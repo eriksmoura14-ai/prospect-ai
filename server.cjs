@@ -236,9 +236,17 @@ async function locate(city) {
 
   try {
     data = await fetchJSON(url, {}, true);
-  } catch {
+  } catch (error) {
+    const detail = [
+      error.name,
+      error.message,
+      error.cause?.code
+    ].filter(Boolean).join(" — ");
+
+    console.error("Falha ao localizar cidade:", detail);
+
     throw new Error(
-      "Não foi possível localizar a cidade. Tente mais tarde."
+      "Falha na consulta da cidade: " + detail
     );
   }
 
