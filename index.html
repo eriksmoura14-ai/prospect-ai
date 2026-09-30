@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta
+    name="description"
+    content="Pesquise empresas locais e avalie sua presença digital com dados públicos."
+  >
+
+  <title>Prospect AI</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+
+      --bg: #0b0e14;
+      --panel: #121722;
+      --border: #293246;
+      --text: #edf2fa;
+      --muted: #a2aec1;
+      --accent: #a6ef75;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, sans-serif;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button,
+    select {
+      cursor: pointer;
+    }
+
+    button,
+    a,
+    input,
+    select {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+
+      padding: 20px max(24px, calc((100vw - 1200px) / 2));
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      font-size: 19px;
+      font-weight: 750;
+    }
+
+    .logo {
+      display: grid;
+      place-items: center;
+
+      width: 38px;
+      height: 38px;
+
+      background: var(--accent);
+      color: #15200e;
+      border-radius: 10px;
+    }
+
+    .brand small {
+      color: var(--accent);
+      font-size: 15px;
+    }
+
+    .version {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 1248px;
+      margin: auto;
+      padding: 36px 24px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 8px 0;
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.2;
+      letter-spacing: -0.035em;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    p {
+      color: var(--muted);
+    }
+
+    .intro {
+      margin: 12px 0 24px;
+    }
+
+    .notice {
+      margin-bottom: 22px;
+      padding: 14px 16px;
+
+      background: #191f2b;
+      color: #bac9df;
+
+      border: 1px solid #35435c;
+      border-radius: 10px;
+
+      font-size: 14px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1.3fr 1.3fr 0.65fr auto;
+      align-items: end;
+      gap: 16px;
+
+      padding: 24px;
+    }
+
+    label {
+      display: block;
+      min-width: 0;
+      color: #c3cddd;
+      font-size: 14px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 46px;
+      margin-top: 8px;
+      padding: 10px 12px;
+
+      background: #0c111a;
+      color: var(--text);
+
+      border: 1px solid #3b4860;
+      border-radius: 8px;
+    }
+
+    input::placeholder {
+      color: #8493aa;
+    }
+
+    button {
+      min-height: 44px;
+      padding: 10px 16px;
+
+      background: #1b2331;
+      color: var(--text);
+
+      border: 1px solid var(--border);
+      border-radius: 8px;
+
+      font-weight: 600;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: #8294ad;
+    }
+
+    .primary {
+      min-height: 46px;
+      background: var(--accent);
+      color: #172410;
+      border: 1px solid var(--accent);
+    }
+
+    .primary:hover:not(:disabled) {
+      background: #b9fa8e;
+      border-color: #b9fa8e;
+    }
+
+    .form-note {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      margin: 12px 0 26px;
+      font-size: 14px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .stat {
+      padding: 18px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 30px;
+      font-weight: 650;
+    }
+
+    .stat.highlight {
+      border-color: #49673b;
+    }
+
+    .stat.highlight strong {
+      color: var(--accent);
+    }
+
+    .result-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .result-head > div:first-child {
+      flex: 1 1 280px;
+      min-width: 0;
+    }
+
+    .result-head p {
+      margin: 4px 0 0;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .exports {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filters {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tabs button {
+      background: transparent;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .tabs button[aria-pressed="true"] {
+      background: #263522;
+      color: var(--accent);
+      border-color: #58764b;
+    }
+
+    .selects {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .selects select {
+      font-size: 14px;
+    }
+
+    .cards {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 230px) 100px;
+      align-items: start;
+      gap: 24px;
+      padding: 22px;
+    }
+
+    .business,
+    .verification {
+      min-width: 0;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 18px;
+      overflow-wrap: anywhere;
+    }
+
+    .meta {
+      margin: 5px 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .contact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+
+      color: #d0d8e7;
+      font-size: 14px;
+    }
+
+    .contact span {
+      overflow-wrap: anywhere;
+    }
+
+    .website {
+      margin-top: 8px;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    a {
+      color: #b9d1ff;
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: #dbe8ff;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+
+    .actions a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+
+      background: #293141;
+      color: #d1dbec;
+
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .badge.prospect {
+      background: #233821;
+      color: #b1ee90;
+    }
+
+    .badge.found {
+      background: #202f48;
+      color: #a9ccff;
+    }
+
+    .badge.uncertain {
+      background: #3a3020;
+      color: #ebca87;
+    }
+
+    .confidence {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .reason {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    details {
+      margin-top: 12px;
+    }
+
+    summary {
+      cursor: pointer;
+      color: #c9d6e9;
+      padding: 5px 0;
+    }
+
+    details p {
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .score {
+      text-align: right;
+    }
+
+    .score strong {
+      color: var(--accent);
+      font-size: 28px;
+    }
+
+    .score span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .score-label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    progress {
+      display: block;
+      width: 100%;
+      height: 7px;
+      margin-top: 8px;
+      accent-color: var(--accent);
+    }
+
+    .empty {
+      padding: 55px 22px;
+      text-align: center;
+    }
+
+    .empty h3 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .empty p {
+      max-width: 490px;
+      margin: 10px auto;
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 18px;
+
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+
+      font-size: 13px;
+    }
+
+    noscript {
+      display: block;
+      padding: 18px;
+      background: #3a3020;
+      color: #ebca87;
+    }
+
+    @media (max-width: 1000px) {
+      form {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        grid-template-columns: minmax(0, 1fr) 190px 85px;
+        gap: 18px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      header {
+        padding: 16px;
+      }
+
+      main {
+        padding: 24px 16px;
+      }
+
+      form {
+        grid-template-columns: 1fr;
+        padding: 18px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .card {
+        grid-template-columns: minmax(0, 1fr) 85px;
+      }
+
+      .business {
+        grid-column: 1 / -1;
+      }
+
+      .selects,
+      .selects label {
+        width: 100%;
+      }
+
+      .version {
+        max-width: 120px;
+        text-align: right;
+      }
+
+      .exports {
+        width: 100%;
+      }
+
+      .exports button {
+        flex: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      button {
+        transition:
+          background-color 150ms ease,
+          border-color 150ms ease;
+      }
+    }
+  </style>
+
+  <script src="/app.js" defer></script>
+</head>
+
+<body>
+  <noscript>
+    Ative o JavaScript no navegador para pesquisar empresas
+    e utilizar os filtros.
+  </noscript>
+
+  <header>
+    <div class="brand">
+      <span class="logo" aria-hidden="true">P</span>
+      <span>Prospect <small>AI</small></span>
+    </div>
+
+    <span class="version">
+      Pesquisa de empresas · v0.2
+    </span>
+  </header>
+
+  <main>
+    <div class="eyebrow">
+      Pesquisa de negócios locais
+    </div>
+
+    <h1>Encontre sua próxima oportunidade.</h1>
+
+    <p class="intro">
+      Encontre empresas locais com presença digital fraca.
+    </p>
+
+    <div class="notice">
+      Dados públicos do OpenStreetMap. A ausência de website
+      cadastrado não significa ausência de site.
+      Revise as evidências antes de priorizar um negócio.
+    </div>
+
+    <form id="search" class="panel">
+      <label for="city">
+        Cidade
+
+        <input
+          id="city"
+          name="city"
+          type="text"
+          value="Saskatoon, Saskatchewan, Canada"
+          placeholder="Ex.: Saskatoon, Canada"
+          minlength="2"
+          maxlength="100"
+          autocomplete="off"
+          required
+          disabled
+        >
+      </label>
+
+      <label for="niche">
+        Nicho
+
+        <select
+          id="niche"
+          name="niche"
+          required
+          disabled
+        >
+          <option value="">Carregando nichos…</option>
+        </select>
+      </label>
+
+      <label for="quantity">
+        Quantidade
+
+        <select
+          id="quantity"
+          name="quantity"
+          disabled
+        >
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="30" selected>30</option>
+          <option value="50">50</option>
+        </select>
+      </label>
+
+      <button
+        class="primary"
+        type="submit"
+        disabled
+      >
+        Conectando…
+      </button>
+    </form>
+
+    <p class="form-note">
+      <span>
+        Pesquisas manuais · cache · sem APIs pagas
+      </span>
+
+      <span>
+        A quantidade escolhida é um limite,
+        não uma garantia de resultados.
+      </span>
+    </p>
+
+    <section
+      class="stats"
+      aria-label="Resumo da pesquisa"
+    >
+      <div class="panel stat">
+        <span>Encontradas</span>
+        <strong id="total">0</strong>
+      </div>
+
+      <div class="panel stat highlight">
+        <span>Prospects</span>
+        <strong id="prospects">0</strong>
+      </div>
+
+      <div class="panel stat">
+        <span>Sites encontrados</span>
+        <strong id="websites">0</strong>
+      </div>
+
+      <div class="panel stat">
+        <span>Incertos</span>
+        <strong id="uncertain">0</strong>
+      </div>
+
+      <div class="panel stat">
+        <span>Com telefone</span>
+        <strong id="phones">0</strong>
+      </div>
+    </section>
+
+    <section aria-labelledby="results-title">
+      <div class="result-head">
+        <div>
+          <h2 id="results-title">Empresas</h2>
+
+          <p
+            id="summary"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            Conectando ao servidor…
+          </p>
+        </div>
+
+        <div class="exports">
+          <button
+            id="csv"
+            type="button"
+            title="Exportar os resultados que correspondem aos filtros"
+            disabled
+          >
+            Exportar CSV
+          </button>
+
+          <button
+            id="json"
+            type="button"
+            title="Exportar os resultados e evidências disponíveis"
+            disabled
+          >
+            Exportar JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="filters">
+        <div
+          class="tabs"
+          role="group"
+          aria-label="Filtrar por status do website"
+        >
+          <button
+            type="button"
+            data-filter="all"
+            aria-pressed="true"
+          >
+            Todos
+          </button>
+
+          <button
+            type="button"
+            data-filter="prospect"
+            aria-pressed="false"
+          >
+            Provavelmente sem site
+          </button>
+
+          <button
+            type="button"
+            data-filter="found"
+            aria-pressed="false"
+          >
+            Site encontrado
+          </button>
+
+          <button
+            type="button"
+            data-filter="uncertain"
+            aria-pressed="false"
+          >
+            Incerto
+          </button>
+        </div>
+
+        <div class="selects">
+          <label for="phone-filter">
+            Telefone
+
+            <select id="phone-filter">
+              <option value="all">Todos</option>
+              <option value="yes">Com telefone</option>
+              <option value="no">Sem telefone</option>
+            </select>
+          </label>
+
+          <label for="sort">
+            Ordenar por
+
+            <select id="sort">
+              <option value="score">Prospect Score</option>
+              <option value="confidence">Confidence</option>
+              <option value="name">Nome</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div id="cards" class="cards">
+        <div class="panel empty">
+          <h3>Sua pesquisa começa aqui</h3>
+
+          <p>
+            Informe cidade e nicho para procurar negócios
+            usando informações comerciais públicas.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Confidence e Prospect Score são heurísticas,
+      não probabilidades calibradas nem garantias comerciais.
+
+      <a
+        href="https://www.openstreetmap.org/copyright"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        © OpenStreetMap contributors · ODbL
+      </a>
+    </footer>
+  </main>
+</body>
+</html>
