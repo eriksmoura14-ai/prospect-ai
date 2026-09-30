@@ -4,7 +4,7 @@
   "private": true,
   "description": "Pesquisa de empresas locais e verificação de websites.",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.cjs"
   },
   "engines": {
     "node": ">=22"
