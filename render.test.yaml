@@ -21,3 +21,5 @@ services:
         sync: false
       - key: OVERPASS_URL
         value: https://overpass.private.coffee/api/interpreter
+      - key: OVERPASS_FALLBACK_URLS
+        value: https://overpass-api.de/api/interpreter

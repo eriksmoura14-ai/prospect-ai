@@ -41,6 +41,13 @@ const OVERPASS =
   process.env.OVERPASS_URL ||
   "https://overpass-api.de/api/interpreter";
 
+// Alternativas só existem quando configuradas explicitamente no servidor.
+// Cada uma deve oferecer a base mundial do OpenStreetMap.
+const OVERPASS_ENDPOINTS = [OVERPASS, ...(process.env.OVERPASS_FALLBACK_URLS || "")
+  .split(",").map(value => value.trim()).filter(Boolean)];
+const overpassClient = overpass.createClient({ endpoints: OVERPASS_ENDPOINTS,
+  userAgent: UA, request: overpass.query });
+
 if (HOSTED && PASSWORD.length < 16) {
   console.error(
     "Configure APP_PASSWORD no Render com pelo menos 16 caracteres."
@@ -539,8 +546,8 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
     `;
     let answer;
     try {
-      answer = await overpass.query(OVERPASS, query, {
-        userAgent: UA,
+      answer = await overpassClient.execute(query, {
+        onProgress,
         onTrace: trace => onDiagnostics({ queryAttempt: { method, ...trace } })
       });
     } catch (error) {
@@ -1130,7 +1137,8 @@ async function run(job, city, niche, limit) {
       if (update.queryAttempt) {
         const attempt = update.queryAttempt;
         const queries = job.discoveryDiagnostics.queries;
-        const index = queries.findIndex(item => item.method === attempt.method);
+        const index = queries.findIndex(item => item.method === attempt.method &&
+          item.endpoint === attempt.endpoint && item.purpose === attempt.purpose);
         if (index < 0) queries.push(attempt);
         else queries[index] = attempt;
       } else Object.assign(job.discoveryDiagnostics, update);
@@ -1333,9 +1341,13 @@ const server = http.createServer(async (request, response) => {
           diagnosticProbe = (async () => {
             let trace;
             try {
-              await overpass.query(OVERPASS, "[out:json][timeout:5];node(1);out count;", {
+              const target = url.searchParams.get("target") || "primary";
+              const endpoint = target === "primary" ? OVERPASS
+                : target === "fallback" ? OVERPASS_ENDPOINTS[1] : null;
+              if (!endpoint) return { outcome: "configuration", note: "Alternativa não configurada ou target inválido." };
+              await overpass.query(endpoint, overpass.PROBE_QUERY, {
                 userAgent: UA,
-                limits: { executionSeconds: 5, connectionMs: 5000, requestMs: 10000 },
+                limits: overpass.PROBE_LIMITS,
                 onTrace: value => { trace = value; }
               });
             } catch { /* O resultado e a fase da falha estão no trace. */ }
@@ -1349,9 +1361,12 @@ const server = http.createServer(async (request, response) => {
       return json(response, 200, {
         endpoint: overpass.endpointLabel(OVERPASS),
         endpointSource: process.env.OVERPASS_URL ? "OVERPASS_URL" : "default",
+        configuredEndpoints: overpassClient.endpoints,
         geocoder: LOCATIONIQ_KEY ? "LocationIQ" : "Nominatim",
         limits: overpass.LIMITS,
         automaticQueryRetries: 0,
+        maximumBusinessAttemptsPerStage: overpassClient.endpoints.length,
+        recovery: { minimalProbeFirst: true, alternativeEndpoints: "Somente falha de conexão, espera sem headers ou HTTP 502/503/504; mesma consulta completa.", cooldownMs: 60000 },
         lastDiscovery: lastDiscoveryDiagnostics,
         probe,
         note: "Um teste mínimo confirma apenas acesso ao endpoint. Não confirma a consulta de empresas nem a escolha da cidade. awaiting_headers pode indicar fila ou execução; sozinho não identifica a causa."

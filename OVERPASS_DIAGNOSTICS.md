@@ -8,7 +8,7 @@ Atualizar server.cjs e adicionar overpass.cjs na mesma pasta. app.js, index.html
 
 ## Comportamento
 
-A consulta, a área geográfica, os seletores e a alternativa por nomes são preservados. A comparação de nomes e as chaves de cache de localidade/discovery passam a preservar letras e números Unicode. Antes, cidades como 北京 e 東京 normalizavam para a mesma string vazia, podendo reutilizar a localidade ou descoberta errada. As versões dessas chaves foram incrementadas para não reutilizar entradas antigas; o cache da classificação não foi alterado. Há uma tentativa por consulta, 45 s para execução Overpass, 15 s para conexão TCP/TLS e 65 s para a resposta completa. O novo prazo de conexão e a mudança de fetch para node:http/node:https precisam ser avaliados no Render.
+A consulta, a área geográfica, os seletores e a alternativa por nomes são preservados. A comparação de nomes e as chaves de cache de localidade/discovery passam a preservar letras e números Unicode. Antes, cidades como 北京 e 東京 normalizavam para a mesma string vazia, podendo reutilizar a localidade ou descoberta errada. As versões dessas chaves foram incrementadas para não reutilizar entradas antigas; o cache da classificação não foi alterado. Há uma tentativa pesada por endpoint configurado e por etapa (categorias/nomes), 45 s para execução Overpass, 15 s para conexão TCP/TLS e 65 s para a resposta completa de cada consulta pesada. O novo prazo de conexão e a mudança de fetch para node:http/node:https precisam ser avaliados no Render.
 
 GET /api/diagnostics/overpass usa a autenticação existente e retorna o endpoint efetivo, a fonte de configuração, o geocodificador, os candidatos e a localidade escolhida na última descoberta sem cache, o bounding box, areaId, a consulta QL e seus tempos por fase. Não retorna a chave LocationIQ. Um cache de descoberta pode impedir a geração de uma nova consulta; o diagnóstico indica cacheHit.
 
@@ -22,7 +22,7 @@ node --check server.cjs
 node --check overpass.cjs
 node --test test/*.test.cjs
 
-Os 25 testes passaram: transporte com servidores e sockets locais controlados, mais regressões de localização/discovery com fixtures explicitamente identificadas. Incluem nomes em português, inglês, japonês, chinês e árabe, escopo por área/bounding box, cache, falhas, classificação e autenticação do diagnóstico. Não são prova de resolução no Overpass ou no Render. A consulta exata e as funções de classificação foram comparadas com o código original e preservadas.
+Os 42 testes passaram: transporte com servidores e sockets locais controlados, mais regressões de localização/discovery com fixtures explicitamente identificadas. Incluem nomes em português, inglês, japonês, chinês e árabe, escopo por área/bounding box, cache, falhas, classificação e autenticação do diagnóstico. Não são prova de resolução no Overpass ou no Render. A consulta exata e as funções de classificação foram comparadas com o código original e preservadas.
 
 ## Validação de produção ainda pendente
 
@@ -37,3 +37,21 @@ Consultas reais ao Nominatim retornaram localidades para Uberlândia (Brasil, re
 A consulta original de Barber para a área 3600314875 enviada ao endpoint private.coffee deste ambiente expirou após 55 s sem headers/corpo HTTP. Um GET de status subsequente também não conectou no prazo de 3 s. O status de overpass-api.de respondeu HTTP 406 em aproximadamente 1 s. Nenhum desses resultados é uma resposta vazia de empresas nem comprova a causa do timeout no Render. Não foi reduzida a área nem trocado automaticamente o endpoint.
 
 A validação real de discovery em várias regiões continua pendente; não há resultados de empresas simuladas apresentados como prova de correção em produção. Não houve bypass de autenticação, acesso a dados privados ou mudança no agente.
+
+## Recuperação após a evidência obtida no Render
+
+O diagnóstico da busca real no serviço de teste selecionou Uberlândia, relation 314875 e área 3600314875. DNS concluiu em 31 ms, TCP em 226 ms e TCP/TLS em 424 ms. Não foram recebidos headers ou bytes de resposta até o prazo de 65003 ms. Isso identifica uma espera após conexão no endpoint private.coffee, mas não distingue fila, execução ou retenção da resposta pela rede. Não foi uma resposta vazia. O geocodificador dessa execução foi Nominatim; não confirma o comportamento do LocationIQ em produção.
+
+A recuperação aplica-se a todas as localidades e nichos:
+- Antes de uma consulta pesada, cada endpoint sem saúde recente recebe uma consulta mínima, com 5 s de execução, 5 s de conexão e 10 s total. Saúde positiva vale 60 s.
+- Falha de conexão, espera sem headers e HTTP 502/503/504 permitem tentar a próxima alternativa explicitamente configurada em OVERPASS_FALLBACK_URLS (lista separada por vírgulas). Sem essa variável não existe alternativa automática.
+- Cada alternativa recebe a QL original inteira, sem alterar a área, categorias ou termos. Não se fragmentam resultados nem aceitam respostas incompletas. Uma lista vazia válida não provoca troca de endpoint.
+- Não há troca após HTTP 401, 403, 429, query_timeout informado, resposta incompleta, JSON inválido ou timeout durante transferência. Não se contornam autenticação ou limites de uso.
+- Um endpoint com falha transitória entra em cooldown de 60 s, evitando insistência nas pesquisas seguintes. Não há trabalho automático em segundo plano.
+- A recuperação pode adicionar tempo: cada probe tem 10 s e cada consulta pesada tem 65 s. Categorias e alternativa por nomes são etapas diferentes. Não há promessa de prazo total global de 65 s. Diagnósticos preservam todas as tentativas por endpoint/purpose/método.
+
+O Blueprint de teste mantém private.coffee como primário e declara explicitamente overpass-api.de como alternativa mundial. Não há mudança silenciosa de endpoint na produção. Depois de sincronizar o Blueprint, conferir a presença de OVERPASS_FALLBACK_URLS no serviço de teste.
+
+O diagnóstico inclui configuredEndpoints, maximumBusinessAttemptsPerStage e recovery. O probe manual mantém o primário por padrão; ?probe=1&target=fallback testa somente a primeira alternativa configurada, sem aceitar URLs fornecidas pelo navegador. As chamadas manuais respeitam o intervalo de 30 s.
+
+As 42 verificações incluem fluxo de recuperação com sockets locais reais após 503 e testes unitários identificados como controlados. Consultas remotas deste ambiente não obtiveram empresas: private.coffee não respondeu nem ao probe mínimo em 10 s, e a alternativa alemã respondeu erros de gateway 503/504. Isso não prova a disponibilidade dessa alternativa no Render. O teste real após deploy permanece necessário; o timeout original não foi declarado resolvido.

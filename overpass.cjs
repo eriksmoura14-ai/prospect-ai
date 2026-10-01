@@ -150,4 +150,73 @@ function query(endpoint, ql, options = {}) {
   });
 }
 
-module.exports = { query, LIMITS, endpointLabel };
+const PROBE_QUERY = "[out:json][timeout:5][maxsize:16777216];node(1);out count;";
+const PROBE_LIMITS = Object.freeze({ executionSeconds: 5, connectionMs: 5000, requestMs: 10000 });
+
+function canUseAlternative(error) {
+  if (["connection_error", "connection_timeout"].includes(error.code)) return true;
+  if (error.code === "response_timeout") return error.diagnostics?.phase === "awaiting_headers";
+  // Não contorna autenticação, bloqueios ou limites HTTP 429.
+  return error.code === "http_error" && [502, 503, 504].includes(error.diagnostics?.httpStatus);
+}
+
+function createClient({ endpoints, userAgent, request = query, now = Date.now }) {
+  const urls = [...new Set(endpoints.map(endpoint => {
+    const url = new URL(endpoint);
+    if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
+      throw new Error("Configure endpoints Overpass HTTP(S), sem credenciais ou parâmetros.");
+    }
+    return url.href;
+  }))];
+  if (!urls.length) throw new Error("Configure pelo menos um endpoint Overpass.");
+  const health = new Map();
+  const cooldownMs = 60000;
+
+  async function execute(ql, { onTrace = () => {}, onProgress = () => {} } = {}) {
+    const failures = [];
+    for (const endpoint of urls) {
+      const state = health.get(endpoint);
+      if (state?.unavailableUntil > now()) {
+        const trace = { endpoint: endpointLabel(endpoint), purpose: "cooldown",
+          outcome: "temporarily_unavailable", phase: "not_requested",
+          unavailableUntil: state.unavailableUntil, previousOutcome: state.outcome };
+        onTrace(trace);
+        failures.push(trace);
+        continue;
+      }
+      let purpose = "probe";
+      try {
+        if (!(state?.healthyUntil > now())) {
+          onProgress("Testando disponibilidade do servidor público de empresas…");
+          await request(endpoint, PROBE_QUERY, {
+            userAgent, limits: PROBE_LIMITS,
+            onTrace: trace => onTrace({ ...trace, purpose: "probe" })
+          });
+          health.set(endpoint, { healthyUntil: now() + cooldownMs });
+        }
+        purpose = "businesses";
+        onProgress("Consultando empresas na área completa da localidade…");
+        // Exatamente a mesma QL em cada endpoint. Nunca muda área ou seletores.
+        const answer = await request(endpoint, ql, {
+          userAgent, onTrace: trace => onTrace({ ...trace, purpose: "businesses" })
+        });
+        health.set(endpoint, { healthyUntil: now() + cooldownMs });
+        return answer; // Lista vazia também é válida: não amplia a busca.
+      } catch (error) {
+        failures.push({ ...error.diagnostics, endpoint: endpointLabel(endpoint),
+          purpose, outcome: error.code });
+        if (!canUseAlternative(error)) throw error;
+        health.set(endpoint, { unavailableUntil: now() + cooldownMs, outcome: error.code });
+        onProgress("Servidor público indisponível. Verificando alternativa com a mesma área e filtros…");
+      }
+    }
+    const error = new Error("Os servidores públicos de empresas configurados estão indisponíveis. Tente novamente mais tarde; sua área e seus filtros continuam válidos.");
+    error.code = "overpass_unavailable";
+    error.diagnostics = { outcome: error.code, attempts: failures };
+    throw error;
+  }
+
+  return { execute, endpoints: urls.map(endpointLabel), probeQuery: PROBE_QUERY, probeLimits: PROBE_LIMITS };
+}
+
+module.exports = { query, LIMITS, endpointLabel, createClient, PROBE_QUERY, PROBE_LIMITS };

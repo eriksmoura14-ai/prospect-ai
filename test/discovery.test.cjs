@@ -25,6 +25,10 @@ function harness({ locations, answers = [], failure } = {}) {
     readFileSync: () => { throw new Error("Sem cache persistente nos testes."); },
     mkdirSync() {}, writeFileSync() {}, renameSync() {} };
   const query = async (_endpoint, ql, options) => {
+    if (ql === localRequire("./overpass.cjs").PROBE_QUERY) {
+      options?.onTrace?.({ query: ql, phase: "complete", outcome: "success" });
+      return { elements: [{ type: "count", tags: { total: "0" } }] };
+    }
     queries.push(ql);
     options?.onTrace?.({ query: ql, phase: "complete", outcome: failure ? failure.code : "success" });
     if (failure) throw failure;
