@@ -16,9 +16,11 @@ function endpointLabel(input) {
 // Uma espera sem headers NÃO prova que a consulta é lenta.
 function query(endpoint, ql, options = {}) {
   const limits = { ...LIMITS, ...options.limits };
+  const method = options.method || "POST";
   const trace = { endpoint: endpointLabel(endpoint), query: ql,
     startedAt: new Date().toISOString(), phase: "connecting", bytes: 0,
-    limits: { ...limits } };
+    httpMethod: method, ipFamily: options.family || "auto", limits: { ...limits },
+    connectionAttempts: [] };
   const started = Date.now();
   const notify = () => options.onTrace?.({ ...trace });
   notify();
@@ -51,18 +53,20 @@ function query(endpoint, ql, options = {}) {
 
     try {
       const url = new URL(endpoint);
-      if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) {
+      if (!["http:", "https:"].includes(url.protocol) || url.username || url.password ||
+          !["GET", "POST"].includes(method) || ![undefined, 0, 4, 6].includes(options.family)) {
         finish("configuration", "OVERPASS_URL inválida: use HTTP(S) sem credenciais.");
         return;
       }
       const body = new URLSearchParams({ data: ql }).toString();
+      if (method === "GET") url.searchParams.set("data", ql);
       const transport = url.protocol === "https:" ? https : http;
       request = transport.request(url, {
-        method: "POST", agent: false,
+        method, agent: false, ...(options.family ? { family: options.family } : {}),
         headers: { "User-Agent": options.userAgent || "ProspectAI/0.2",
           Accept: "application/json", "Accept-Encoding": "identity",
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Content-Length": Buffer.byteLength(body) }
+          ...(method === "POST" ? { "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Length": Buffer.byteLength(body) } : {}) }
       }, incoming => {
         response = incoming;
         trace.phase = "reading_body";
@@ -114,13 +118,29 @@ function query(endpoint, ql, options = {}) {
       });
 
       request.on("socket", socket => {
-        socket.on("lookup", error => {
+        socket.on("lookup", (error, address, family) => {
           trace.dnsMs = elapsed();
           if (error) trace.networkCode = error.code;
+          if (address) {
+            trace.resolvedAddresses ||= [];
+            if (!trace.resolvedAddresses.some(item => item.address === address)) {
+              trace.resolvedAddresses.push({ address, family });
+            }
+          }
+          notify();
+        });
+        socket.on("connectionAttempt", (address, port, family) => {
+          trace.connectionAttempts.push({ address, port, family, startedMs: elapsed() });
+          notify();
+        });
+        socket.on("connectionAttemptFailed", (address, port, family, error) => {
+          trace.connectionAttempts.push({ address, port, family, failedMs: elapsed(), code: error.code });
           notify();
         });
         socket.on("connect", () => {
           trace.tcpMs = elapsed();
+          trace.remoteAddress = socket.remoteAddress;
+          trace.remoteFamily = socket.remoteFamily;
           notify();
         });
         const readyEvent = url.protocol === "https:" ? "secureConnect" : "connect";
@@ -133,6 +153,10 @@ function query(endpoint, ql, options = {}) {
       });
       request.on("error", error => {
         trace.networkCode = error.code || "UNKNOWN";
+        if (Array.isArray(error.errors)) {
+          trace.networkErrors = error.errors.map(item => ({ code: item.code,
+            address: item.address, port: item.port }));
+        }
         finish(trace.connectedMs == null ? "connection_error" : "response_interrupted",
           trace.connectedMs == null
             ? `Não foi possível conectar ao servidor de empresas (${trace.networkCode}). Seus filtros continuam válidos.`
@@ -143,7 +167,7 @@ function query(endpoint, ql, options = {}) {
       totalTimer = setTimeout(() => finish("response_timeout", trace.phase === "reading_body"
         ? "A transferência das empresas excedeu o prazo. Seus filtros continuam válidos."
         : "O servidor de empresas não enviou uma resposta no prazo após a conexão. Pode haver fila ou consulta lenta; seus filtros continuam válidos."), limits.requestMs);
-      request.end(body);
+      request.end(method === "POST" ? body : undefined);
     } catch {
       finish("configuration", "Não foi possível iniciar a consulta. Verifique OVERPASS_URL no servidor.");
     }
@@ -160,7 +184,10 @@ function canUseAlternative(error) {
   return error.code === "http_error" && [502, 503, 504].includes(error.diagnostics?.httpStatus);
 }
 
-function createClient({ endpoints, userAgent, request = query, now = Date.now }) {
+function createClient({ endpoints, userAgent, method = "POST", family = 0, request = query, now = Date.now }) {
+  if (!["GET", "POST"].includes(method) || ![0, 4, 6].includes(family)) {
+    throw new Error("Configure OVERPASS_HTTP_METHOD como GET/POST e OVERPASS_IP_FAMILY como 0/4/6.");
+  }
   const urls = [...new Set(endpoints.map(endpoint => {
     const url = new URL(endpoint);
     if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
@@ -189,7 +216,7 @@ function createClient({ endpoints, userAgent, request = query, now = Date.now })
         if (!(state?.healthyUntil > now())) {
           onProgress("Testando disponibilidade do servidor público de empresas…");
           await request(endpoint, PROBE_QUERY, {
-            userAgent, limits: PROBE_LIMITS,
+            userAgent, method, family, limits: PROBE_LIMITS,
             onTrace: trace => onTrace({ ...trace, purpose: "probe" })
           });
           health.set(endpoint, { healthyUntil: now() + cooldownMs });
@@ -198,7 +225,7 @@ function createClient({ endpoints, userAgent, request = query, now = Date.now })
         onProgress("Consultando empresas na área completa da localidade…");
         // Exatamente a mesma QL em cada endpoint. Nunca muda área ou seletores.
         const answer = await request(endpoint, ql, {
-          userAgent, onTrace: trace => onTrace({ ...trace, purpose: "businesses" })
+          userAgent, method, family, onTrace: trace => onTrace({ ...trace, purpose: "businesses" })
         });
         health.set(endpoint, { healthyUntil: now() + cooldownMs });
         return answer; // Lista vazia também é válida: não amplia a busca.
@@ -216,7 +243,8 @@ function createClient({ endpoints, userAgent, request = query, now = Date.now })
     throw error;
   }
 
-  return { execute, endpoints: urls.map(endpointLabel), probeQuery: PROBE_QUERY, probeLimits: PROBE_LIMITS };
+  return { execute, endpoints: urls.map(endpointLabel), method, family,
+    probeQuery: PROBE_QUERY, probeLimits: PROBE_LIMITS };
 }
 
 module.exports = { query, LIMITS, endpointLabel, createClient, PROBE_QUERY, PROBE_LIMITS };

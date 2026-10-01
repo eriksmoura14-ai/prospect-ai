@@ -132,3 +132,19 @@ test("recuperação completa com sockets locais reais após HTTP 503", async t =
   assert.equal(result.elements[0].id, 25);
   assert.deepEqual(received, [PROBE_QUERY, ql]);
 });
+
+test("método e família configurados são iguais em probe e consulta em cada endpoint", async () => {
+  const calls = [];
+  const client = createClient({ endpoints: [primary, fallback], method: "GET", family: 4,
+    request: async (url, query, options) => {
+      calls.push({ url, query, method: options.method, family: options.family });
+      if (url === primary) throw timeout();
+      return { elements: [] };
+    } });
+  await client.execute(ql);
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every(item => item.method === "GET" && item.family === 4));
+  assert.equal(calls.at(-1).query, ql);
+  assert.throws(() => createClient({ endpoints: [primary], method: "DELETE" }));
+  assert.throws(() => createClient({ endpoints: [primary], family: 5 }));
+});

@@ -105,3 +105,28 @@ test("limite de bytes rejeita resposta e encerra conexão", async t => {
 test("diagnóstico não inclui usuário, senha nem parâmetros de URL", () => {
   assert.equal(endpointLabel("https://user:password@example.com/api/interpreter?key=secret"), "https://example.com/api/interpreter");
 });
+
+test("GET transmite a QL completa sem body e registra família IP real", async t => {
+  const ql = '[out:json];nwr(-34,150,-33,151)["name"~"Barber|東京",i];out body center;';
+  const endpoint = await serve(t, async (req, res) => {
+    assert.equal(req.method, "GET");
+    assert.equal(new URL(req.url, "http://local.test").searchParams.get("data"), ql);
+    let body = "";
+    for await (const chunk of req) body += chunk;
+    assert.equal(body, "");
+    assert.equal(req.headers["content-length"], undefined);
+    res.end('{"elements":[]}');
+  });
+  let trace;
+  await query(endpoint, ql, { method: "GET", family: 4, onTrace: value => { trace = value; } });
+  assert.equal(trace.httpMethod, "GET");
+  assert.equal(trace.ipFamily, 4);
+  assert.equal(trace.remoteFamily, "IPv4");
+  assert.equal(trace.remoteAddress, "127.0.0.1");
+  assert.ok(!trace.endpoint.includes("data="));
+});
+
+test("método e família inválidos falham antes de contato externo", async () => {
+  await assert.rejects(query("http://127.0.0.1:1/", "query", { method: "DELETE" }), e => e.code === "configuration");
+  await assert.rejects(query("http://127.0.0.1:1/", "query", { family: 3 }), e => e.code === "configuration");
+});

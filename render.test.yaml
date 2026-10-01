@@ -22,4 +22,8 @@ services:
       - key: OVERPASS_URL
         value: https://overpass.private.coffee/api/interpreter
       - key: OVERPASS_FALLBACK_URLS
-        value: https://overpass-api.de/api/interpreter
+        value: https://maps.mail.ru/osm/tools/overpass/api/interpreter
+      - key: OVERPASS_HTTP_METHOD
+        value: GET
+      - key: OVERPASS_IP_FAMILY
+        value: "4"

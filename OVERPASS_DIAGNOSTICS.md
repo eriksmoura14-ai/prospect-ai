@@ -22,7 +22,7 @@ node --check server.cjs
 node --check overpass.cjs
 node --test test/*.test.cjs
 
-Os 42 testes passaram: transporte com servidores e sockets locais controlados, mais regressões de localização/discovery com fixtures explicitamente identificadas. Incluem nomes em português, inglês, japonês, chinês e árabe, escopo por área/bounding box, cache, falhas, classificação e autenticação do diagnóstico. Não são prova de resolução no Overpass ou no Render. A consulta exata e as funções de classificação foram comparadas com o código original e preservadas.
+Os 45 testes passaram: transporte com servidores e sockets locais controlados, mais regressões de localização/discovery com fixtures explicitamente identificadas. Incluem nomes em português, inglês, japonês, chinês e árabe, escopo por área/bounding box, cache, falhas, classificação e autenticação do diagnóstico. Não são prova de resolução no Overpass ou no Render. A consulta exata e as funções de classificação foram comparadas com o código original e preservadas.
 
 ## Validação de produção ainda pendente
 
@@ -40,18 +40,29 @@ A validação real de discovery em várias regiões continua pendente; não há 
 
 ## Recuperação após a evidência obtida no Render
 
-O diagnóstico da busca real no serviço de teste selecionou Uberlândia, relation 314875 e área 3600314875. DNS concluiu em 31 ms, TCP em 226 ms e TCP/TLS em 424 ms. Não foram recebidos headers ou bytes de resposta até o prazo de 65003 ms. Isso identifica uma espera após conexão no endpoint private.coffee, mas não distingue fila, execução ou retenção da resposta pela rede. Não foi uma resposta vazia. O geocodificador dessa execução foi Nominatim; não confirma o comportamento do LocationIQ em produção.
+O diagnóstico da busca real no serviço de teste selecionou Uberlândia, relation 314875 e área 3600314875. DNS concluiu em 31 ms, TCP em 226 ms e TCP/TLS em 454 ms. Não foram recebidos headers ou bytes de resposta até o prazo de 65003 ms. Isso identifica uma espera após conexão no endpoint private.coffee, mas não distingue fila, execução ou retenção da resposta pela rede. Não foi uma resposta vazia. O geocodificador dessa execução foi Nominatim; não confirma o comportamento do LocationIQ em produção.
 
 A recuperação aplica-se a todas as localidades e nichos:
 - Antes de uma consulta pesada, cada endpoint sem saúde recente recebe uma consulta mínima, com 5 s de execução, 5 s de conexão e 10 s total. Saúde positiva vale 60 s.
 - Falha de conexão, espera sem headers e HTTP 502/503/504 permitem tentar a próxima alternativa explicitamente configurada em OVERPASS_FALLBACK_URLS (lista separada por vírgulas). Sem essa variável não existe alternativa automática.
 - Cada alternativa recebe a QL original inteira, sem alterar a área, categorias ou termos. Não se fragmentam resultados nem aceitam respostas incompletas. Uma lista vazia válida não provoca troca de endpoint.
-- Não há troca após HTTP 401, 403, 429, query_timeout informado, resposta incompleta, JSON inválido ou timeout durante transferência. Não se contornam autenticação ou limites de uso.
+- Não há troca após HTTP 401, 403, 459, query_timeout informado, resposta incompleta, JSON inválido ou timeout durante transferência. Não se contornam autenticação ou limites de uso.
 - Um endpoint com falha transitória entra em cooldown de 60 s, evitando insistência nas pesquisas seguintes. Não há trabalho automático em segundo plano.
 - A recuperação pode adicionar tempo: cada probe tem 10 s e cada consulta pesada tem 65 s. Categorias e alternativa por nomes são etapas diferentes. Não há promessa de prazo total global de 65 s. Diagnósticos preservam todas as tentativas por endpoint/purpose/método.
 
-O Blueprint de teste mantém private.coffee como primário e declara explicitamente overpass-api.de como alternativa mundial. Não há mudança silenciosa de endpoint na produção. Depois de sincronizar o Blueprint, conferir a presença de OVERPASS_FALLBACK_URLS no serviço de teste.
+O Blueprint de teste mantém private.coffee como primário e declara explicitamente https://maps.mail.ru/osm/tools/overpass/api/interpreter como alternativa mundial. Não há mudança silenciosa de endpoint na produção. Depois de sincronizar o Blueprint, conferir a presença de OVERPASS_FALLBACK_URLS no serviço de teste.
 
 O diagnóstico inclui configuredEndpoints, maximumBusinessAttemptsPerStage e recovery. O probe manual mantém o primário por padrão; ?probe=1&target=fallback testa somente a primeira alternativa configurada, sem aceitar URLs fornecidas pelo navegador. As chamadas manuais respeitam o intervalo de 30 s.
 
-As 42 verificações incluem fluxo de recuperação com sockets locais reais após 503 e testes unitários identificados como controlados. Consultas remotas deste ambiente não obtiveram empresas: private.coffee não respondeu nem ao probe mínimo em 10 s, e a alternativa alemã respondeu erros de gateway 503/504. Isso não prova a disponibilidade dessa alternativa no Render. O teste real após deploy permanece necessário; o timeout original não foi declarado resolvido.
+As 45 verificações incluem fluxo de recuperação com sockets locais reais após 503 e testes unitários identificados como controlados. Consultas remotas deste ambiente não obtiveram empresas: private.coffee não respondeu nem ao probe mínimo em 10 s, e a alternativa alemã respondeu erros de gateway 503/504. Isso não prova a disponibilidade dessa alternativa no Render. O teste real após deploy permanece necessário; o timeout original não foi declarado resolvido.
+
+
+## Teste de transporte e evidência mais recente
+
+No Render, o probe mínimo do private.coffee completou TCP/TLS em 393 ms, mas expirou sem headers em 10003 ms. O probe do overpass-api.de falhou com ECONNREFUSED em 350 ms. Nenhuma consulta pesada foi enviada nessa execução. Isso demonstra falha mesmo com consulta mínima, mas não identifica se a retenção ocorre no operador ou na rede.
+
+OVERPASS_HTTP_METHOD aceita POST (padrão) ou GET; GET envia a mesma QL integral no parâmetro data. OVERPASS_IP_FAMILY aceita 0 (automático, padrão), 4 ou 6. O Blueprint de teste usa GET e IPv4 explicitamente. O diagnóstico inclui httpMethod, ipFamily, endereços resolvidos, tentativas de conexão e endereço/família remotos quando disponíveis. Não é uma correção comprovada no Render.
+
+O padrão sem OVERPASS_URL passa a ser private.coffee. A alternativa alemã foi retirada do Blueprint: a documentação pública recomenda serviço próprio ou pago para uso comercial. A alternativa VK Maps consta como instância mundial aberta para projetos na lista pública https://wiki.openstreetmap.org/wiki/Overpass_API ; verificar políticas antes de escalar o produto.
+
+Neste ambiente, um GET mínimo à instância alemã retornou JSON válido, enquanto POSTs falharam. Isso motiva comparar transporte, sem provar o mesmo comportamento no Render. VK Maps não forneceu resultados: POST mínimo expirou e GET mínimo retornou HTTP 504. A descoberta real de empresas continua pendente. Os 45 testes locais verificam transporte, recuperação e regressões, não disponibilidade remota.
