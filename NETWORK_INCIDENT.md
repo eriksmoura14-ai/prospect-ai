@@ -73,3 +73,19 @@ O teste completou às 22:35:03 UTC. A atualização de variável já inicia depl
 Os 45 testes locais passaram após o acréscimo do diagnóstico. O transporte original de empresas, QL, localidade, escopo, agente e classificação foram preservados. Arquivos de código desta rodada: server.cjs e network-check.cjs. Nenhuma alteração no serviço de produção.
 
 Conclusão: a falha é reproduzível no mesmo Render por cliente independente do aplicativo; trocar o transporte do Prospect AI não resolveu. Não prova se private.coffee está retendo requisições por fila ou origem; VK Maps devolve uma falha de gateway. Não houve resultado de empresas, portanto correção real continua pendente. Anexar esses resultados ao chamado existente do Render. Se não houver correção do acesso/operador, falta um endpoint mundial operacional autorizado para configurar OVERPASS_URL, sem redução de cobertura.
+
+
+## Orçamento zero e teste gratuito em Frankfurt (22:49 UTC)
+
+O usuário definiu somente opções gratuitas. Não contratar fornecedores nem mudar plano para pago. Foi criado prospect-ai-eu-test, srv-dave6had0e5s73flcf9g, explicitamente plan=free, região frankfurt, branch de teste, deploy automático desligado. Não é o serviço de produção. A instância adicional usa a franquia de horas dos serviços gratuitos do workspace; não foi contratado recurso pago. A senha foi gerada e armazenada somente no Environment desse serviço, sem registro no repositório ou relatório.
+
+A comparação de rede foi feita sobre be8da14ebaa7bb73413feba158ab76ae157a603c, com os 50 testes no build e deploy live. Requisições mínimas sequenciais, limite 6 s, nenhum resultado de empresas simulado:
+- private.coffee nativo: TLS em 218 ms, sem headers, expira em 6097 ms.
+- fetch: expira em 6004 ms.
+- curl GET: TCP 0.013087 s, TLS 0.190426 s, HTTP 000, expira em 6.001952 s.
+- curl POST: TCP 0.016392 s, TLS 0.204324 s, HTTP 000, expira em 6.001428 s.
+- curl VK Maps: TCP 0.089716 s, TLS 0.254562 s, HTTP 000, expira em 6.001063 s.
+
+O teste terminou às 22:49:34 UTC. OVERPASS_NETWORK_CHECK foi definido como 0 posteriormente para não repetir em reinícios. Nenhuma busca pesada foi enviada, pois nenhum probe confirmou disponibilidade. Não foi reduzida a área ou trocado o geocodificador/regras do produto.
+
+Conclusão: a falha é reproduzível em Oregon e Frankfurt mesmo em clientes independentes; a troca gratuita de região não resolveu nesta rodada. O orçamento não permite escolher o serviço comercial avaliado na documentação. Nenhuma alternativa gratuita mundial foi comprovada disponível para este aplicativo; serviços gratuitos com cadastro devem ter elegibilidade/termos e acesso confirmados antes de configuração. Anexar esses dados ao chamado EXISTENTE no Render e investigar também disponibilidade dos operadores. Não repetir deploys/timeout sem nova evidência. O agente continua sem ferramenta de atendimento para anexar ao chamado, apesar do acesso a deploys/logs.
