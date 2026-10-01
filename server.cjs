@@ -1572,5 +1572,9 @@ server.listen(
   () => {
     console.log(`Prospect AI iniciado na porta ${PORT}.`);
     console.log(`Endereço: ${ORIGIN}`);
+    if (process.env.RENDER_SERVICE_NAME === "prospect-ai-discovery-test" &&
+        process.env.OVERPASS_NETWORK_CHECK === "1") {
+      require("./network-check.cjs").run().catch(() => console.error("NETWORK_CHECK failed"));
+    }
   }
 );
