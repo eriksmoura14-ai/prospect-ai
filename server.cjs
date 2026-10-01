@@ -82,6 +82,16 @@ const normalize = value =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
+// Localidades precisam manter alfabetos não latinos nas chaves e comparação.
+// A normalização da classificação comercial permanece inalterada.
+const normalizeLocation = value =>
+  String(value || "")
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+
 const digits = value =>
   String(value || "").replace(/\D/g, "");
 
@@ -246,7 +256,7 @@ function locationSummary(place) {
 }
 
 async function locate(city, onLocation = () => {}) {
-  const key = `city:v3:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalize(city)}`;
+  const key = `city:v4:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}`;
   const hit = cached(key);
   if (hit) {
     onLocation({ cacheHit: true, selected: locationSummary(hit) });
@@ -306,10 +316,10 @@ async function locate(city, onLocation = () => {}) {
     throw new Error("Cidade não encontrada.");
   }
 
-  const requested = normalize(city.split(",")[0]);
+  const requested = normalizeLocation(city.split(",")[0]);
 
   const exact = places.filter(place =>
-    normalize(
+    normalizeLocation(
       place.name || place.display_name.split(",")[0]
     ) === requested
   );
@@ -462,7 +472,7 @@ function deduplicate(rows) {
 }
 
 async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}) {
-  const key = `discovery:v4:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalize(city)}:${niche}`;
+  const key = `discovery:v5:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
   if (hit) {
     onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });
