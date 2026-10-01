@@ -130,3 +130,44 @@ test("método e família inválidos falham antes de contato externo", async () =
   await assert.rejects(query("http://127.0.0.1:1/", "query", { method: "DELETE" }), e => e.code === "configuration");
   await assert.rejects(query("http://127.0.0.1:1/", "query", { family: 3 }), e => e.code === "configuration");
 });
+
+test("chave nunca é transmitida em HTTP ou com quebra de linha", async () => {
+  for (const [endpoint, apiKey] of [["http://127.0.0.1:1/", "fixture-key"],
+    ["https://127.0.0.1:1/", "fixture\r\nX-Test: x"]]) {
+    let trace;
+    await assert.rejects(query(endpoint, "query", { apiKey, onTrace: value => { trace = value; } }),
+      error => error.code === "configuration");
+    assert.ok(!JSON.stringify(trace).includes(apiKey));
+    assert.equal(trace.tcpMs, undefined);
+  }
+});
+
+test("Bearer é colocado no cabeçalho HTTPS e não no diagnóstico (mock controlado)", async t => {
+  const https = require("node:https");
+  const { EventEmitter } = require("node:events");
+  let headers;
+  let destination;
+  t.mock.method(https, "request", (url, options, callback) => {
+    destination = url.href;
+    headers = options.headers;
+    const request = new EventEmitter();
+    request.destroy = () => {};
+    request.end = () => queueMicrotask(() => {
+      const response = new EventEmitter();
+      response.statusCode = 200;
+      response.destroy = () => {};
+      callback(response);
+      response.emit("data", Buffer.from(JSON.stringify({ elements: [], remark: "error reflects fixture-key" })));
+      response.emit("end");
+    });
+    return request;
+  });
+  let trace;
+  await assert.rejects(query("https://primary.example/api/interpreter", "query", {
+    apiKey: "fixture-key", onTrace: value => { trace = value; }
+  }), error => error.code === "query_incomplete");
+  assert.equal(headers.Authorization, "Bearer fixture-key");
+  assert.ok(!destination.includes("fixture-key"));
+  assert.ok(!JSON.stringify(trace).includes("fixture-key"));
+  assert.ok(trace.remark.includes("[redacted]"));
+});

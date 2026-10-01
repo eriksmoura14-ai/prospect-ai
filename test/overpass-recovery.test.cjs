@@ -13,6 +13,37 @@ const timeout = () => Object.assign(new Error("Timeout controlado"), {
   code: "response_timeout", diagnostics: { phase: "awaiting_headers" }
 });
 
+test("credencial do primário acompanha probe e consulta, nunca a alternativa", async () => {
+  const calls = [];
+  const client = createClient({ endpoints: [primary, fallback], apiKey: "fixture-key",
+    request: async (endpoint, query, options) => {
+      calls.push({ endpoint, query, key: options.apiKey });
+      if (endpoint === primary && query !== PROBE_QUERY) throw timeout();
+      return { elements: [] };
+    } });
+  await client.execute(ql);
+  assert.deepEqual(calls.map(call => call.key), ["fixture-key", "fixture-key", "", ""]);
+  assert.deepEqual(calls.map(call => call.query), [PROBE_QUERY, ql, PROBE_QUERY, ql]);
+});
+
+test("chave não é enviada a alternativa no mesmo host com outro caminho", async () => {
+  const keys = [];
+  const other = "https://primary.example/another/interpreter";
+  const client = createClient({ endpoints: [primary, other], apiKey: "fixture-key",
+    request: async (url, _query, options) => {
+      keys.push(options.apiKey);
+      if (url === primary) throw timeout();
+      return { elements: [] };
+    } });
+  await client.execute(ql);
+  assert.deepEqual(keys, ["fixture-key", "", ""]);
+});
+
+test("credencial exige HTTPS e rejeita injeção de cabeçalhos antes da conexão", () => {
+  assert.throws(() => createClient({ endpoints: ["http://primary.example/"], apiKey: "fixture-key" }));
+  assert.throws(() => createClient({ endpoints: [primary], apiKey: "fixture\r\nX-Test: x" }));
+});
+
 test("probe sem headers usa alternativa; mesma QL e nenhuma consulta pesada no primário", async () => {
   const calls = [];
   const traces = [];

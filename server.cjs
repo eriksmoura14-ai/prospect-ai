@@ -40,13 +40,14 @@ const NOMINATIM =
 const OVERPASS =
   process.env.OVERPASS_URL ||
   "https://overpass.private.coffee/api/interpreter";
+const OVERPASS_API_KEY = (process.env.OVERPASS_API_KEY || "").trim();
 
 // Alternativas só existem quando configuradas explicitamente no servidor.
 // Cada uma deve oferecer a base mundial do OpenStreetMap.
 const OVERPASS_ENDPOINTS = [OVERPASS, ...(process.env.OVERPASS_FALLBACK_URLS || "")
   .split(",").map(value => value.trim()).filter(Boolean)];
 const overpassClient = overpass.createClient({ endpoints: OVERPASS_ENDPOINTS,
-  userAgent: UA, request: overpass.query,
+  userAgent: UA, request: overpass.query, apiKey: OVERPASS_API_KEY,
   method: (process.env.OVERPASS_HTTP_METHOD || "POST").toUpperCase(),
   family: Number(process.env.OVERPASS_IP_FAMILY || 0) });
 
@@ -1350,6 +1351,7 @@ const server = http.createServer(async (request, response) => {
               await overpass.query(endpoint, overpass.PROBE_QUERY, {
                 userAgent: UA,
                 method: overpassClient.method, family: overpassClient.family,
+                apiKey: endpoint === OVERPASS ? OVERPASS_API_KEY : "",
                 limits: overpass.PROBE_LIMITS,
                 onTrace: value => { trace = value; }
               });
@@ -1367,6 +1369,7 @@ const server = http.createServer(async (request, response) => {
         configuredEndpoints: overpassClient.endpoints,
         httpMethod: overpassClient.method,
         ipFamily: overpassClient.family || "auto",
+        authenticationConfigured: Boolean(OVERPASS_API_KEY),
         geocoder: LOCATIONIQ_KEY ? "LocationIQ" : "Nominatim",
         limits: overpass.LIMITS,
         automaticQueryRetries: 0,

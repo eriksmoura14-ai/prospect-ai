@@ -17,6 +17,7 @@ function endpointLabel(input) {
 function query(endpoint, ql, options = {}) {
   const limits = { ...LIMITS, ...options.limits };
   const method = options.method || "POST";
+  const apiKey = options.apiKey ?? "";
   const trace = { endpoint: endpointLabel(endpoint), query: ql,
     startedAt: new Date().toISOString(), phase: "connecting", bytes: 0,
     httpMethod: method, ipFamily: options.family || "auto", limits: { ...limits },
@@ -54,7 +55,9 @@ function query(endpoint, ql, options = {}) {
     try {
       const url = new URL(endpoint);
       if (!["http:", "https:"].includes(url.protocol) || url.username || url.password ||
-          !["GET", "POST"].includes(method) || ![undefined, 0, 4, 6].includes(options.family)) {
+          !["GET", "POST"].includes(method) || ![undefined, 0, 4, 6].includes(options.family) ||
+          typeof apiKey !== "string" || /[\r\n]/.test(apiKey) ||
+          (apiKey && url.protocol !== "https:")) {
         finish("configuration", "OVERPASS_URL inválida: use HTTP(S) sem credenciais.");
         return;
       }
@@ -65,6 +68,7 @@ function query(endpoint, ql, options = {}) {
         method, agent: false, ...(options.family ? { family: options.family } : {}),
         headers: { "User-Agent": options.userAgent || "ProspectAI/0.2",
           Accept: "application/json", "Accept-Encoding": "identity",
+          ...(apiKey ? { Authorization: "Bearer " + apiKey } : {}),
           ...(method === "POST" ? { "Content-Type": "application/x-www-form-urlencoded",
             "Content-Length": Buffer.byteLength(body) } : {}) }
       }, incoming => {
@@ -95,7 +99,8 @@ function query(endpoint, ql, options = {}) {
           }
           if (answer?.remark) {
             // Pode conter resultados PARCIAIS. Nunca tratar como sucesso/vazio.
-            trace.remark = String(answer.remark).slice(0, 500);
+            const remark = String(answer.remark);
+            trace.remark = (apiKey ? remark.split(apiKey).join("[redacted]") : remark).slice(0, 500);
             const timedOut = /timed?\s*out|timeout|time limit/i.test(trace.remark);
             finish(timedOut ? "query_timeout" : "query_incomplete", timedOut
               ? "O Overpass informou que a consulta excedeu o tempo de execução. A pesquisa não foi concluída; seus filtros continuam válidos."
@@ -184,7 +189,7 @@ function canUseAlternative(error) {
   return error.code === "http_error" && [502, 503, 504].includes(error.diagnostics?.httpStatus);
 }
 
-function createClient({ endpoints, userAgent, method = "POST", family = 0, request = query, now = Date.now }) {
+function createClient({ endpoints, userAgent, method = "POST", family = 0, apiKey = "", request = query, now = Date.now }) {
   if (!["GET", "POST"].includes(method) || ![0, 4, 6].includes(family)) {
     throw new Error("Configure OVERPASS_HTTP_METHOD como GET/POST e OVERPASS_IP_FAMILY como 0/4/6.");
   }
@@ -196,12 +201,18 @@ function createClient({ endpoints, userAgent, method = "POST", family = 0, reque
     return url.href;
   }))];
   if (!urls.length) throw new Error("Configure pelo menos um endpoint Overpass.");
+  if (typeof apiKey !== "string" || /[\r\n]/.test(apiKey) ||
+      (apiKey && new URL(urls[0]).protocol !== "https:")) {
+    throw new Error("Configure OVERPASS_API_KEY sem quebras de linha e use HTTPS no endpoint primário.");
+  }
   const health = new Map();
   const cooldownMs = 60000;
 
   async function execute(ql, { onTrace = () => {}, onProgress = () => {} } = {}) {
     const failures = [];
     for (const endpoint of urls) {
+      // A credencial pertence exclusivamente ao primário; nunca a uma alternativa.
+      const endpointKey = endpoint === urls[0] ? apiKey : "";
       const state = health.get(endpoint);
       if (state?.unavailableUntil > now()) {
         const trace = { endpoint: endpointLabel(endpoint), purpose: "cooldown",
@@ -214,9 +225,9 @@ function createClient({ endpoints, userAgent, method = "POST", family = 0, reque
       let purpose = "probe";
       try {
         if (!(state?.healthyUntil > now())) {
-          onProgress("Testando disponibilidade do servidor público de empresas…");
+          onProgress("Testando disponibilidade do servidor de empresas…");
           await request(endpoint, PROBE_QUERY, {
-            userAgent, method, family, limits: PROBE_LIMITS,
+            userAgent, method, family, apiKey: endpointKey, limits: PROBE_LIMITS,
             onTrace: trace => onTrace({ ...trace, purpose: "probe" })
           });
           health.set(endpoint, { healthyUntil: now() + cooldownMs });
@@ -225,7 +236,7 @@ function createClient({ endpoints, userAgent, method = "POST", family = 0, reque
         onProgress("Consultando empresas na área completa da localidade…");
         // Exatamente a mesma QL em cada endpoint. Nunca muda área ou seletores.
         const answer = await request(endpoint, ql, {
-          userAgent, method, family, onTrace: trace => onTrace({ ...trace, purpose: "businesses" })
+          userAgent, method, family, apiKey: endpointKey, onTrace: trace => onTrace({ ...trace, purpose: "businesses" })
         });
         health.set(endpoint, { healthyUntil: now() + cooldownMs });
         return answer; // Lista vazia também é válida: não amplia a busca.
@@ -234,10 +245,10 @@ function createClient({ endpoints, userAgent, method = "POST", family = 0, reque
           purpose, outcome: error.code });
         if (!canUseAlternative(error)) throw error;
         health.set(endpoint, { unavailableUntil: now() + cooldownMs, outcome: error.code });
-        onProgress("Servidor público indisponível. Verificando alternativa com a mesma área e filtros…");
+        onProgress("Servidor indisponível. Verificando alternativa com a mesma área e filtros…");
       }
     }
-    const error = new Error("Os servidores públicos de empresas configurados estão indisponíveis. Tente novamente mais tarde; sua área e seus filtros continuam válidos.");
+    const error = new Error("Os servidores de empresas configurados estão indisponíveis. Tente novamente mais tarde; sua área e seus filtros continuam válidos.");
     error.code = "overpass_unavailable";
     error.diagnostics = { outcome: error.code, attempts: failures };
     throw error;
