@@ -13,6 +13,7 @@ const {
 
 const niches = require("./niches.cjs");
 const agent = require("./agent.cjs");
+const overpass = require("./overpass.cjs");
 
 // Configuração local e hospedada.
 const HOSTED = process.env.RENDER === "true";
@@ -38,7 +39,17 @@ const NOMINATIM =
 
 const OVERPASS =
   process.env.OVERPASS_URL ||
-  "https://overpass-api.de/api/interpreter";
+  "https://overpass.private.coffee/api/interpreter";
+const OVERPASS_API_KEY = (process.env.OVERPASS_API_KEY || "").trim();
+
+// Alternativas só existem quando configuradas explicitamente no servidor.
+// Cada uma deve oferecer a base mundial do OpenStreetMap.
+const OVERPASS_ENDPOINTS = [OVERPASS, ...(process.env.OVERPASS_FALLBACK_URLS || "")
+  .split(",").map(value => value.trim()).filter(Boolean)];
+const overpassClient = overpass.createClient({ endpoints: OVERPASS_ENDPOINTS,
+  userAgent: UA, request: overpass.query, apiKey: OVERPASS_API_KEY,
+  method: (process.env.OVERPASS_HTTP_METHOD || "POST").toUpperCase(),
+  family: Number(process.env.OVERPASS_IP_FAMILY || 0) });
 
 if (HOSTED && PASSWORD.length < 16) {
   console.error(
@@ -66,6 +77,9 @@ let lastSearch = 0;
 let lastGeocode = 0;
 let cache = {};
 let cacheTimer = null;
+let lastDiscoveryDiagnostics = null;
+let diagnosticProbe = null;
+let lastProbeAt = 0;
 
 const sleep = ms =>
   new Promise(resolve => setTimeout(resolve, ms));
@@ -76,6 +90,16 @@ const normalize = value =>
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+// Localidades precisam manter alfabetos não latinos nas chaves e comparação.
+// A normalização da classificação comercial permanece inalterada.
+const normalizeLocation = value =>
+  String(value || "")
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 
 const digits = value =>
@@ -231,10 +255,23 @@ async function fetchJSON(url, options = {}, geocode = false, timeoutMs = 35000, 
   }
 }
 
-async function locate(city) {
-  const key = `city:v3:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalize(city)}`;
+function locationSummary(place) {
+  return {
+    displayName: place.display_name, name: place.name,
+    osmType: place.osm_type, osmId: place.osm_id,
+    category: place.category || place.class, type: place.type,
+    boundingbox: place.boundingbox,
+    address: place.address
+  };
+}
+
+async function locate(city, onLocation = () => {}) {
+  const key = `city:v4:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}`;
   const hit = cached(key);
-  if (hit) return hit;
+  if (hit) {
+    onLocation({ cacheHit: true, selected: locationSummary(hit) });
+    return hit;
+  }
 
   const url = new URL(LOCATIONIQ_KEY
     ? "https://us1.locationiq.com/v1/search"
@@ -289,10 +326,10 @@ async function locate(city) {
     throw new Error("Cidade não encontrada.");
   }
 
-  const requested = normalize(city.split(",")[0]);
+  const requested = normalizeLocation(city.split(",")[0]);
 
   const exact = places.filter(place =>
-    normalize(
+    normalizeLocation(
       place.name || place.display_name.split(",")[0]
     ) === requested
   );
@@ -304,6 +341,9 @@ async function locate(city) {
   }
 
   const selected = exact[0] || places[0];
+
+  onLocation({ cacheHit: false, candidates: places.map(locationSummary),
+    selected: locationSummary(selected) });
 
   saveCache(key, selected, LOCATIONIQ_KEY ? 48 * HOUR : 7 * 24 * HOUR);
   return selected;
@@ -441,13 +481,18 @@ function deduplicate(rows) {
   return output;
 }
 
-async function discover(city, niche, onProgress = () => {}) {
-  const key = `discovery:v4:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalize(city)}:${niche}`;
+async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}) {
+  const key = `discovery:v5:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
-  if (hit) return structuredClone(hit);
+  if (hit) {
+    onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });
+    return structuredClone(hit);
+  }
 
   onProgress("Localizando cidade…");
-  const place = await locate(city);
+  const geocodeStarted = Date.now();
+  const place = await locate(city, geocode => onDiagnostics({ geocode }));
+  onDiagnostics({ geocodeMs: Date.now() - geocodeStarted, place: place.display_name });
   onProgress("Cidade localizada. Consultando empresas no OpenStreetMap…");
   const [south, north, west, east] =
     place.boundingbox.map(Number);
@@ -474,6 +519,9 @@ async function discover(city, niche, onProgress = () => {}) {
     ? "(area.searchArea)"
     : `(${south},${west},${north},${east})`;
 
+  onDiagnostics({ geographicScope: relation ? "Limite administrativo" : "Retângulo geográfico da localidade",
+    areaId, scope, boundingbox: [south, north, west, east] });
+
   const config = niches[niche];
 
   const escapeRegex = value =>
@@ -491,7 +539,7 @@ async function discover(city, niche, onProgress = () => {}) {
       )
     : [];
 
-  async function queryBusinesses(selectors) {
+  async function queryBusinesses(selectors, method) {
     if (!selectors.length) return { elements: [] };
     const query = `
       [out:json][timeout:45][maxsize:16777216];
@@ -501,38 +549,26 @@ async function discover(city, niche, onProgress = () => {}) {
     `;
     let answer;
     try {
-      // Reserva tempo para a fila e transferência além da execução no Overpass.
-      // Não repete automaticamente uma consulta pesada que falhou.
-      answer = await fetchJSON(OVERPASS, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ data: query }).toString()
-      }, false, 65000, 1);
+      answer = await overpassClient.execute(query, {
+        onProgress,
+        onTrace: trace => onDiagnostics({ queryAttempt: { method, ...trace } })
+      });
     } catch (error) {
-      const detail = [error.name, error.message, error.cause?.code]
-        .filter(Boolean).join(" — ");
-      console.error("Falha na consulta de empresas ao Overpass:", detail);
-      if (["TimeoutError", "AbortError"].includes(error.name)) {
-        throw new Error("O servidor de empresas demorou a responder. Tente novamente mais tarde; seus filtros continuam válidos.");
-      }
-      throw new Error("Falha na consulta de empresas: " + detail);
-    }
-    if (!answer || answer.remark || !Array.isArray(answer.elements)) {
-      const detail = String(answer?.remark || "Lista de empresas ausente.").slice(0, 500);
-      console.error("Resposta incompleta do Overpass:", detail);
-      throw new Error("Consulta de empresas incompleta: " + detail);
+      console.error("Falha Overpass:", JSON.stringify(error.diagnostics || { code: error.code }));
+      throw error;
     }
     return answer;
   }
 
   let discoveryMethod = tagSelectors.length ? "Categorias cadastradas" : "Correspondência pelo nome";
   onProgress("Consultando empresas por categoria. A quantidade ainda é desconhecida…");
-  let data = await queryBusinesses(tagSelectors.length ? tagSelectors : nameSelectors);
+  let data = await queryBusinesses(tagSelectors.length ? tagSelectors : nameSelectors,
+    tagSelectors.length ? "categories" : "names");
   // A busca por nomes é alternativa, em vez de ampliar todas as consultas.
   if (tagSelectors.length && nameSelectors.length &&
       !data.elements.some(element => businessMatch(element.tags || {}, niche))) {
     onProgress("Nenhuma correspondência por categoria. Consultando nomes de empresas…");
-    data = await queryBusinesses(nameSelectors);
+    data = await queryBusinesses(nameSelectors, "names");
     discoveryMethod = "Correspondência pelo nome";
   }
 
@@ -610,6 +646,9 @@ async function discover(city, niche, onProgress = () => {}) {
       : "Retângulo geográfico da localidade",
     rows: deduplicate(rows)
   };
+
+  onDiagnostics({ outcome: result.rows.length ? "success" : "empty",
+    matchedCount: result.rows.length, discoveryMethod });
 
   saveCache(key, result);
   return structuredClone(result);
@@ -1088,12 +1127,26 @@ async function verify(business) {
 async function run(job, city, niche, limit) {
   const started = Date.now();
   job.timings = {};
+  job.discoveryDiagnostics = { city, niche, cacheHit: false, queries: [] };
+  lastDiscoveryDiagnostics = job.discoveryDiagnostics;
+  let discoveryStarted;
   try {
     job.message = "Localizando cidade e consultando empresas…";
 
-    const discoveryStarted = Date.now();
+    discoveryStarted = Date.now();
     const discovery = await discover(city, niche, message => {
       job.message = message;
+    }, update => {
+      if (update.queryAttempt) {
+        const attempt = update.queryAttempt;
+        const queries = job.discoveryDiagnostics.queries;
+        const index = queries.findIndex(item => item.method === attempt.method &&
+          item.endpoint === attempt.endpoint && item.purpose === attempt.purpose);
+        if (index < 0) queries.push(attempt);
+        else queries[index] = attempt;
+      } else Object.assign(job.discoveryDiagnostics, update);
+      if (update.place) job.place = update.place;
+      if (update.geographicScope) job.geographicScope = update.geographicScope;
     });
     job.timings.discoveryMs = Date.now() - discoveryStarted;
 
@@ -1141,7 +1194,12 @@ async function run(job, city, niche, limit) {
   } catch (error) {
     job.state = "error";
     job.message = error.message;
+    job.errorCode = error.code || "discovery_error";
+    job.discoveryDiagnostics.outcome = job.errorCode;
   } finally {
+    if (job.timings.discoveryMs == null && discoveryStarted != null) {
+      job.timings.discoveryMs = Date.now() - discoveryStarted;
+    }
     job.timings.totalMs = Date.now() - started;
     console.log(`Pesquisa concluída: descoberta=${job.timings.discoveryMs ?? "falhou"}ms, verificação=${job.timings.verificationMs ?? 0}ms, total=${job.timings.totalMs}ms, empresas=${job.total}, estado=${job.state}`);
     activeJob = null;
@@ -1268,6 +1326,59 @@ const server = http.createServer(async (request, response) => {
       });
       response.end("Informe seu usuário e senha.");
       return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/diagnostics/overpass") {
+      // Protegido pela mesma autenticação da aplicação. Sem chave do LocationIQ.
+      // A consulta real só aparece depois de uma pesquisa; não é repetida aqui.
+      let probe = null;
+      if (url.searchParams.get("probe") === "1") {
+        if (activeJob) {
+          return json(response, 409, { error: "Aguarde a pesquisa terminar antes de testar a conexão." });
+        }
+        if (!diagnosticProbe && Date.now() - lastProbeAt < 30000) {
+          return json(response, 429, { error: "Aguarde 30 segundos entre testes de conexão." });
+        }
+        if (!diagnosticProbe) {
+          lastProbeAt = Date.now();
+          diagnosticProbe = (async () => {
+            let trace;
+            try {
+              const target = url.searchParams.get("target") || "primary";
+              const endpoint = target === "primary" ? OVERPASS
+                : target === "fallback" ? OVERPASS_ENDPOINTS[1] : null;
+              if (!endpoint) return { outcome: "configuration", note: "Alternativa não configurada ou target inválido." };
+              await overpass.query(endpoint, overpass.PROBE_QUERY, {
+                userAgent: UA,
+                method: overpassClient.method, family: overpassClient.family,
+                apiKey: endpoint === OVERPASS ? OVERPASS_API_KEY : "",
+                limits: overpass.PROBE_LIMITS,
+                onTrace: value => { trace = value; }
+              });
+            } catch { /* O resultado e a fase da falha estão no trace. */ }
+            return trace;
+          })();
+        }
+        const pending = diagnosticProbe;
+        try { probe = await pending; }
+        finally { if (diagnosticProbe === pending) diagnosticProbe = null; }
+      }
+      return json(response, 200, {
+        endpoint: overpass.endpointLabel(OVERPASS),
+        endpointSource: process.env.OVERPASS_URL ? "OVERPASS_URL" : "default",
+        configuredEndpoints: overpassClient.endpoints,
+        httpMethod: overpassClient.method,
+        ipFamily: overpassClient.family || "auto",
+        authenticationConfigured: Boolean(OVERPASS_API_KEY),
+        geocoder: LOCATIONIQ_KEY ? "LocationIQ" : "Nominatim",
+        limits: overpass.LIMITS,
+        automaticQueryRetries: 0,
+        maximumBusinessAttemptsPerStage: overpassClient.endpoints.length,
+        recovery: { minimalProbeFirst: true, alternativeEndpoints: "Somente falha de conexão, espera sem headers ou HTTP 502/503/504; mesma consulta completa.", cooldownMs: 60000 },
+        lastDiscovery: lastDiscoveryDiagnostics,
+        probe,
+        note: "Um teste mínimo confirma apenas acesso ao endpoint. Não confirma a consulta de empresas nem a escolha da cidade. awaiting_headers pode indicar fila ou execução; sozinho não identifica a causa."
+      });
     }
 
     if (request.method === "POST" && url.pathname === "/api/ai") {
@@ -1464,5 +1575,9 @@ server.listen(
   () => {
     console.log(`Prospect AI iniciado na porta ${PORT}.`);
     console.log(`Endereço: ${ORIGIN}`);
+    if (process.env.RENDER_SERVICE_NAME === "prospect-ai-discovery-test" &&
+        process.env.OVERPASS_NETWORK_CHECK === "1") {
+      require("./network-check.cjs").run().catch(() => console.error("NETWORK_CHECK failed"));
+    }
   }
 );
