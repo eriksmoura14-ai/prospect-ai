@@ -13,16 +13,17 @@ const {
 
 const niches = require("./niches.cjs");
 const agent = require("./agent.cjs");
+const overpass = require("./overpass.cjs");
+const geoapify = require("./geoapify.cjs");
+const GEOAPIFY_KEY = (process.env.GEOAPIFY_API_KEY || "").trim();
+const BUSINESS_PROVIDER = process.env.BUSINESS_PROVIDER || "overpass";
+if (!["overpass", "geoapify"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
 
 // Configuração local e hospedada.
-const HOSTED = process.env.RENDER === "true";
-const PORT = Number(process.env.PORT || 3000);
-
-const ORIGIN = new URL(
-  process.env.APP_ORIGIN ||
-  process.env.RENDER_EXTERNAL_URL ||
-  `http://127.0.0.1:${PORT}`
-).origin;
+const hosting = require("./hosting.cjs").configuration(process.env);
+const HOSTED = hosting.hosted;
+const PORT = hosting.port;
+const ORIGIN = hosting.origin;
 
 const USER = process.env.APP_USER || "admin";
 const PASSWORD = process.env.APP_PASSWORD || "";
@@ -38,14 +39,26 @@ const NOMINATIM =
 
 const OVERPASS =
   process.env.OVERPASS_URL ||
-  "https://overpass-api.de/api/interpreter";
+  "https://overpass.private.coffee/api/interpreter";
+const OVERPASS_API_KEY = (process.env.OVERPASS_API_KEY || "").trim();
+
+// Alternativas só existem quando configuradas explicitamente no servidor.
+// Cada uma deve oferecer a base mundial do OpenStreetMap.
+const OVERPASS_ENDPOINTS = [OVERPASS, ...(process.env.OVERPASS_FALLBACK_URLS || "")
+  .split(",").map(value => value.trim()).filter(Boolean)];
+const overpassClient = overpass.createClient({ endpoints: OVERPASS_ENDPOINTS,
+  userAgent: UA, request: overpass.query, apiKey: OVERPASS_API_KEY,
+  method: (process.env.OVERPASS_HTTP_METHOD || "POST").toUpperCase(),
+  family: Number(process.env.OVERPASS_IP_FAMILY || 0) });
 
 if (HOSTED && PASSWORD.length < 16) {
   console.error(
-    "Configure APP_PASSWORD no Render com pelo menos 16 caracteres."
+    "Configure APP_PASSWORD na hospedagem com pelo menos 16 caracteres."
   );
   process.exit(1);
 }
+
+console.log("Business discovery:", JSON.stringify({provider: BUSINESS_PROVIDER, geoapifyConfigured: Boolean(GEOAPIFY_KEY)}));
 
 const HOUR = 3600000;
 const CACHE_DIR = path.join(__dirname, ".cache");
@@ -66,6 +79,9 @@ let lastSearch = 0;
 let lastGeocode = 0;
 let cache = {};
 let cacheTimer = null;
+let lastDiscoveryDiagnostics = null;
+let diagnosticProbe = null;
+let lastProbeAt = 0;
 
 const sleep = ms =>
   new Promise(resolve => setTimeout(resolve, ms));
@@ -76,6 +92,16 @@ const normalize = value =>
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+// Localidades precisam manter alfabetos não latinos nas chaves e comparação.
+// A normalização da classificação comercial permanece inalterada.
+const normalizeLocation = value =>
+  String(value || "")
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 
 const digits = value =>
@@ -231,10 +257,23 @@ async function fetchJSON(url, options = {}, geocode = false, timeoutMs = 35000, 
   }
 }
 
-async function locate(city) {
-  const key = `city:v3:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalize(city)}`;
+function locationSummary(place) {
+  return {
+    displayName: place.display_name, name: place.name,
+    osmType: place.osm_type, osmId: place.osm_id,
+    category: place.category || place.class, type: place.type,
+    boundingbox: place.boundingbox,
+    address: place.address
+  };
+}
+
+async function locate(city, onLocation = () => {}) {
+  const key = `city:v5:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}`;
   const hit = cached(key);
-  if (hit) return hit;
+  if (hit) {
+    onLocation({ cacheHit: true, selected: locationSummary(hit) });
+    return hit;
+  }
 
   const url = new URL(LOCATIONIQ_KEY
     ? "https://us1.locationiq.com/v1/search"
@@ -248,6 +287,7 @@ async function locate(city) {
   url.searchParams.set("q", city);
   url.searchParams.set("format", LOCATIONIQ_KEY ? "json" : "jsonv2");
   url.searchParams.set("addressdetails", "1");
+  if (BUSINESS_PROVIDER === "geoapify") url.searchParams.set("polygon_geojson", "1");
   url.searchParams.set("limit", "5");
   if (!LOCATIONIQ_KEY) url.searchParams.set("featuretype", "city");
 
@@ -289,10 +329,10 @@ async function locate(city) {
     throw new Error("Cidade não encontrada.");
   }
 
-  const requested = normalize(city.split(",")[0]);
+  const requested = normalizeLocation(city.split(",")[0]);
 
   const exact = places.filter(place =>
-    normalize(
+    normalizeLocation(
       place.name || place.display_name.split(",")[0]
     ) === requested
   );
@@ -304,6 +344,9 @@ async function locate(city) {
   }
 
   const selected = exact[0] || places[0];
+
+  onLocation({ cacheHit: false, candidates: places.map(locationSummary),
+    selected: locationSummary(selected) });
 
   saveCache(key, selected, LOCATIONIQ_KEY ? 48 * HOUR : 7 * 24 * HOUR);
   return selected;
@@ -441,13 +484,18 @@ function deduplicate(rows) {
   return output;
 }
 
-async function discover(city, niche, onProgress = () => {}) {
-  const key = `discovery:v4:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalize(city)}:${niche}`;
+async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}) {
+  const key = `discovery:v9:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
-  if (hit) return structuredClone(hit);
+  if (hit) {
+    onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });
+    return structuredClone(hit);
+  }
 
   onProgress("Localizando cidade…");
-  const place = await locate(city);
+  const geocodeStarted = Date.now();
+  const place = await locate(city, geocode => onDiagnostics({ geocode }));
+  onDiagnostics({ geocodeMs: Date.now() - geocodeStarted, place: place.display_name });
   onProgress("Cidade localizada. Consultando empresas no OpenStreetMap…");
   const [south, north, west, east] =
     place.boundingbox.map(Number);
@@ -474,6 +522,9 @@ async function discover(city, niche, onProgress = () => {}) {
     ? "(area.searchArea)"
     : `(${south},${west},${north},${east})`;
 
+  onDiagnostics({ geographicScope: relation ? "Limite administrativo" : "Retângulo geográfico da localidade",
+    areaId, scope, boundingbox: [south, north, west, east] });
+
   const config = niches[niche];
 
   const escapeRegex = value =>
@@ -491,7 +542,7 @@ async function discover(city, niche, onProgress = () => {}) {
       )
     : [];
 
-  async function queryBusinesses(selectors) {
+  async function queryBusinesses(selectors, method) {
     if (!selectors.length) return { elements: [] };
     const query = `
       [out:json][timeout:45][maxsize:16777216];
@@ -501,39 +552,42 @@ async function discover(city, niche, onProgress = () => {}) {
     `;
     let answer;
     try {
-      // Reserva tempo para a fila e transferência além da execução no Overpass.
-      // Não repete automaticamente uma consulta pesada que falhou.
-      answer = await fetchJSON(OVERPASS, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ data: query }).toString()
-      }, false, 65000, 1);
+      answer = await overpassClient.execute(query, {
+        onProgress,
+        onTrace: trace => onDiagnostics({ queryAttempt: { method, ...trace } })
+      });
     } catch (error) {
-      const detail = [error.name, error.message, error.cause?.code]
-        .filter(Boolean).join(" — ");
-      console.error("Falha na consulta de empresas ao Overpass:", detail);
-      if (["TimeoutError", "AbortError"].includes(error.name)) {
-        throw new Error("O servidor de empresas demorou a responder. Tente novamente mais tarde; seus filtros continuam válidos.");
-      }
-      throw new Error("Falha na consulta de empresas: " + detail);
-    }
-    if (!answer || answer.remark || !Array.isArray(answer.elements)) {
-      const detail = String(answer?.remark || "Lista de empresas ausente.").slice(0, 500);
-      console.error("Resposta incompleta do Overpass:", detail);
-      throw new Error("Consulta de empresas incompleta: " + detail);
+      console.error("Falha Overpass:", JSON.stringify(error.diagnostics || { code: error.code }));
+      throw error;
     }
     return answer;
   }
 
-  let discoveryMethod = tagSelectors.length ? "Categorias cadastradas" : "Correspondência pelo nome";
+  let discoveryMethod, data;
+  if (BUSINESS_PROVIDER === "geoapify") {
+    discoveryMethod = "Índices comerciais do Geoapify · tags OSM originais";
+    const hints = geoapify.CATEGORY_HINTS[niche];
+    const options = {apiKey: GEOAPIFY_KEY, onProgress, budget:{remaining:4},
+      onTrace: trace => onDiagnostics({queryAttempt: {method:"categories", ...trace}})};
+    data = await geoapify.discover(place, {...options, categories: hints || geoapify.CATEGORIES});
+    if (hints && !data.elements.some(element => businessMatch(element.tags || {}, niche))) {
+      onProgress("Sem correspondências na categoria. Consultando os índices comerciais para a classificação original…");
+      data = await geoapify.discover(place, {...options, categories: geoapify.CATEGORIES,
+        onTrace: trace => onDiagnostics({queryAttempt: {method:"commercial_fallback", ...trace}})});
+    }
+  } else {
+  discoveryMethod = tagSelectors.length ? "Categorias cadastradas" : "Correspondência pelo nome";
   onProgress("Consultando empresas por categoria. A quantidade ainda é desconhecida…");
-  let data = await queryBusinesses(tagSelectors.length ? tagSelectors : nameSelectors);
+  data = await queryBusinesses(tagSelectors.length ? tagSelectors : nameSelectors,
+    tagSelectors.length ? "categories" : "names");
   // A busca por nomes é alternativa, em vez de ampliar todas as consultas.
   if (tagSelectors.length && nameSelectors.length &&
       !data.elements.some(element => businessMatch(element.tags || {}, niche))) {
     onProgress("Nenhuma correspondência por categoria. Consultando nomes de empresas…");
-    data = await queryBusinesses(nameSelectors);
+    data = await queryBusinesses(nameSelectors, "names");
     discoveryMethod = "Correspondência pelo nome";
+  }
+
   }
 
   const rows = [];
@@ -580,7 +634,7 @@ async function discover(city, niche, onProgress = () => {}) {
       longitude,
       osmId: `${element.type}/${element.id}`,
       osmIds: [`${element.type}/${element.id}`],
-      source: "OpenStreetMap",
+      source: BUSINESS_PROVIDER === "geoapify" ? "OpenStreetMap via Geoapify" : "OpenStreetMap",
       street: tags["addr:street"] || "",
       houseNumber: tags["addr:housenumber"] || "",
       invalidListedWebsite: Boolean(rawWebsite && !website),
@@ -605,11 +659,16 @@ async function discover(city, niche, onProgress = () => {}) {
   const result = {
     place: place.display_name,
     discoveryMethod,
+    provider: BUSINESS_PROVIDER,
+    coverage: BUSINESS_PROVIDER === "geoapify" ? "Índices comerciais, serviços e escritórios do Geoapify; cobertura diferente do Overpass." : "Seletores OpenStreetMap",
     geographicScope: relation
       ? "Limite administrativo"
       : "Retângulo geográfico da localidade",
     rows: deduplicate(rows)
   };
+
+  onDiagnostics({ outcome: result.rows.length ? "success" : "empty",
+    matchedCount: result.rows.length, discoveryMethod });
 
   saveCache(key, result);
   return structuredClone(result);
@@ -1088,12 +1147,26 @@ async function verify(business) {
 async function run(job, city, niche, limit) {
   const started = Date.now();
   job.timings = {};
+  job.discoveryDiagnostics = { city, niche, cacheHit: false, queries: [] };
+  lastDiscoveryDiagnostics = job.discoveryDiagnostics;
+  let discoveryStarted;
   try {
     job.message = "Localizando cidade e consultando empresas…";
 
-    const discoveryStarted = Date.now();
+    discoveryStarted = Date.now();
     const discovery = await discover(city, niche, message => {
       job.message = message;
+    }, update => {
+      if (update.queryAttempt) {
+        const attempt = update.queryAttempt;
+        const queries = job.discoveryDiagnostics.queries;
+        const index = queries.findIndex(item => item.method === attempt.method &&
+          item.endpoint === attempt.endpoint && item.purpose === attempt.purpose);
+        if (index < 0) queries.push(attempt);
+        else queries[index] = attempt;
+      } else Object.assign(job.discoveryDiagnostics, update);
+      if (update.place) job.place = update.place;
+      if (update.geographicScope) job.geographicScope = update.geographicScope;
     });
     job.timings.discoveryMs = Date.now() - discoveryStarted;
 
@@ -1141,7 +1214,12 @@ async function run(job, city, niche, limit) {
   } catch (error) {
     job.state = "error";
     job.message = error.message;
+    job.errorCode = error.code || "discovery_error";
+    job.discoveryDiagnostics.outcome = job.errorCode;
   } finally {
+    if (job.timings.discoveryMs == null && discoveryStarted != null) {
+      job.timings.discoveryMs = Date.now() - discoveryStarted;
+    }
     job.timings.totalMs = Date.now() - started;
     console.log(`Pesquisa concluída: descoberta=${job.timings.discoveryMs ?? "falhou"}ms, verificação=${job.timings.verificationMs ?? 0}ms, total=${job.timings.totalMs}ms, empresas=${job.total}, estado=${job.state}`);
     activeJob = null;
@@ -1268,6 +1346,61 @@ const server = http.createServer(async (request, response) => {
       });
       response.end("Informe seu usuário e senha.");
       return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/diagnostics/overpass") {
+      // Protegido pela mesma autenticação da aplicação. Sem chave do LocationIQ.
+      // A consulta real só aparece depois de uma pesquisa; não é repetida aqui.
+      let probe = null;
+      if (url.searchParams.get("probe") === "1") {
+        if (activeJob) {
+          return json(response, 409, { error: "Aguarde a pesquisa terminar antes de testar a conexão." });
+        }
+        if (!diagnosticProbe && Date.now() - lastProbeAt < 30000) {
+          return json(response, 429, { error: "Aguarde 30 segundos entre testes de conexão." });
+        }
+        if (!diagnosticProbe) {
+          lastProbeAt = Date.now();
+          diagnosticProbe = (async () => {
+            let trace;
+            try {
+              const target = url.searchParams.get("target") || "primary";
+              const endpoint = target === "primary" ? OVERPASS
+                : target === "fallback" ? OVERPASS_ENDPOINTS[1] : null;
+              if (!endpoint) return { outcome: "configuration", note: "Alternativa não configurada ou target inválido." };
+              await overpass.query(endpoint, overpass.PROBE_QUERY, {
+                userAgent: UA,
+                method: overpassClient.method, family: overpassClient.family,
+                apiKey: endpoint === OVERPASS ? OVERPASS_API_KEY : "",
+                limits: overpass.PROBE_LIMITS,
+                onTrace: value => { trace = value; }
+              });
+            } catch { /* O resultado e a fase da falha estão no trace. */ }
+            return trace;
+          })();
+        }
+        const pending = diagnosticProbe;
+        try { probe = await pending; }
+        finally { if (diagnosticProbe === pending) diagnosticProbe = null; }
+      }
+      return json(response, 200, {
+        businessProvider: BUSINESS_PROVIDER,
+        geoapify: {authenticationConfigured: Boolean(GEOAPIFY_KEY), endpoint: geoapify.ENDPOINT, requestMs: 20000, maximumPages: 4, coverage: "POIs indexados; não é substituição equivalente da base Overpass."},
+        endpoint: overpass.endpointLabel(OVERPASS),
+        endpointSource: process.env.OVERPASS_URL ? "OVERPASS_URL" : "default",
+        configuredEndpoints: overpassClient.endpoints,
+        httpMethod: overpassClient.method,
+        ipFamily: overpassClient.family || "auto",
+        authenticationConfigured: Boolean(OVERPASS_API_KEY),
+        geocoder: LOCATIONIQ_KEY ? "LocationIQ" : "Nominatim",
+        limits: overpass.LIMITS,
+        automaticQueryRetries: 0,
+        maximumBusinessAttemptsPerStage: overpassClient.endpoints.length,
+        recovery: { minimalProbeFirst: true, alternativeEndpoints: "Somente falha de conexão, espera sem headers ou HTTP 502/503/504; mesma consulta completa.", cooldownMs: 60000 },
+        lastDiscovery: lastDiscoveryDiagnostics,
+        probe,
+        note: "Um teste mínimo confirma apenas acesso ao endpoint. Não confirma a consulta de empresas nem a escolha da cidade. awaiting_headers pode indicar fila ou execução; sozinho não identifica a causa."
+      });
     }
 
     if (request.method === "POST" && url.pathname === "/api/ai") {
@@ -1460,9 +1593,54 @@ server.headersTimeout = 10000;
 
 server.listen(
   PORT,
-  HOSTED ? "0.0.0.0" : "127.0.0.1",
+  hosting.bind,
   () => {
     console.log(`Prospect AI iniciado na porta ${PORT}.`);
     console.log(`Endereço: ${ORIGIN}`);
+    if (process.env.RENDER_SERVICE_NAME === "prospect-ai-discovery-test" &&
+        ["1", "categories"].includes(process.env.GEOAPIFY_DISCOVERY_CHECK)) {
+      (async () => {
+        if (BUSINESS_PROVIDER !== "geoapify" || !GEOAPIFY_KEY) {
+          console.log("GEOAPIFY_CHECK", JSON.stringify({outcome: "configuration", provider: BUSINESS_PROVIDER, keyConfigured: Boolean(GEOAPIFY_KEY)}));
+          return;
+        }
+        if (process.env.GEOAPIFY_DISCOVERY_CHECK === "categories") {
+          for (const [label,categories,bounds] of [
+            ["Uberlândia hairdressers",["service.beauty.hairdresser"],[-48.8234391,-19.416808,-47.9034816,-18.5922258]],
+            ["Uberlândia commercial roots",["commercial","service","office"],[-48.8234391,-19.416808,-47.9034816,-18.5922258]],
+            ["Sydney car wash",["service.vehicle.car_wash"],[150.260825,-34.2598367,151.3431756,-33.3641864]]]) {
+            const [lon1,lat1,lon2,lat2]=bounds;
+            try {
+              const result=await geoapify.request({categories,filter:{type:"rect",lon1,lat1,lon2,lat2},limit:20,offset:0},GEOAPIFY_KEY,
+                trace=>console.log("GEOAPIFY_CATEGORY_CHECK",JSON.stringify({label,categories,...trace})));
+              console.log("GEOAPIFY_CATEGORY_SAMPLE",JSON.stringify({label, examples:result.features.slice(0,3).map(f=>{
+                const item=geoapify.element(f);return {name:item.tags.name,osmId:`${item.type}/${item.id}`, tags:Object.fromEntries(["shop","craft","office","amenity","service","hairdresser"].filter(k=>item.tags[k]).map(k=>[k,item.tags[k]])), barberMatch:businessMatch(item.tags,"Barber"),autoDetailingMatch:businessMatch(item.tags,"Auto Detailing")};
+              })}));
+            } catch(error) {console.log("GEOAPIFY_CATEGORY_CHECK",JSON.stringify({label,outcome:error.code||"error"}));}
+          }
+          return;
+        }
+        for (const [city,niche] of [["Uberlândia, Minas Gerais, Brasil", "Barber"],
+          ["Saskatoon, Saskatchewan, Canada", "Barber"], ["Sydney, New South Wales, Australia", "Auto Detailing"]]) {
+          const diagnostic = {city,niche,queries:[]};
+          try {
+            const result = await discover(city,niche,()=>{},update=>{
+              if (update.queryAttempt) diagnostic.queries.push(update.queryAttempt);
+              else Object.assign(diagnostic,update);
+            });
+            console.log("GEOAPIFY_CHECK", JSON.stringify({...diagnostic, outcome: result.rows.length ? "success" : "empty", count:result.rows.length,
+              examples: result.rows.slice(0,3).map(row=>({name:row.name,osmId:row.osmId,matchMethod:row.matchMethod}))}));
+          } catch (error) {
+            console.log("GEOAPIFY_CHECK", JSON.stringify({...diagnostic, outcome:error.code || "error"}));
+            if (["geoapify_http_401", "geoapify_http_403", "geoapify_http_429"].includes(error.code)) break;
+          }
+        }
+      })().catch(()=>console.log("GEOAPIFY_CHECK", JSON.stringify({outcome:"check_failed"})));
+    }
+
+    if (process.env.RENDER_SERVICE_NAME === "prospect-ai-discovery-test" &&
+        process.env.OVERPASS_NETWORK_CHECK === "1") {
+      require("./network-check.cjs").run().catch(() => console.error("NETWORK_CHECK failed"));
+    }
   }
 );

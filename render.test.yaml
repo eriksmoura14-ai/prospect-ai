@@ -1,0 +1,29 @@
+# Serviço separado para validação. Não referencia o serviço de produção.
+services:
+  - type: web
+    name: prospect-ai-discovery-test
+    runtime: node
+    plan: free
+    repo: https://github.com/eriksmoura14-ai/prospect-ai
+    branch: codex/overpass-timeout-diagnostics
+    autoDeployTrigger: "off"
+    buildCommand: node --check server.cjs && node --check overpass.cjs && node --check geoapify.cjs && node --test test/*.test.cjs
+    startCommand: node server.cjs
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: APP_USER
+        value: admin
+      - key: APP_PASSWORD
+        generateValue: true
+      - key: LOCATIONIQ_KEY
+        sync: false
+      - key: OVERPASS_URL
+        value: https://overpass.private.coffee/api/interpreter
+      - key: OVERPASS_FALLBACK_URLS
+        value: https://maps.mail.ru/osm/tools/overpass/api/interpreter
+      - key: OVERPASS_HTTP_METHOD
+        value: GET
+      - key: OVERPASS_IP_FAMILY
+        value: "4"
