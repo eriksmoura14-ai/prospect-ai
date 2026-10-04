@@ -1591,10 +1591,26 @@ server.listen(
     console.log(`Prospect AI iniciado na porta ${PORT}.`);
     console.log(`Endereço: ${ORIGIN}`);
     if (process.env.RENDER_SERVICE_NAME === "prospect-ai-discovery-test" &&
-        process.env.GEOAPIFY_DISCOVERY_CHECK === "1") {
+        ["1", "categories"].includes(process.env.GEOAPIFY_DISCOVERY_CHECK)) {
       (async () => {
         if (BUSINESS_PROVIDER !== "geoapify" || !GEOAPIFY_KEY) {
           console.log("GEOAPIFY_CHECK", JSON.stringify({outcome: "configuration", provider: BUSINESS_PROVIDER, keyConfigured: Boolean(GEOAPIFY_KEY)}));
+          return;
+        }
+        if (process.env.GEOAPIFY_DISCOVERY_CHECK === "categories") {
+          for (const [label,categories,bounds] of [
+            ["Uberlândia hairdressers",["service.beauty.hairdresser"],[-48.8234391,-19.416808,-47.9034816,-18.5922258]],
+            ["Uberlândia commercial roots",["commercial","service","office"],[-48.8234391,-19.416808,-47.9034816,-18.5922258]],
+            ["Sydney car wash",["service.vehicle.car_wash"],[150.260825,-34.2598367,151.3431756,-33.3641864]]]) {
+            const [lon1,lat1,lon2,lat2]=bounds;
+            try {
+              const result=await geoapify.request({categories,filter:{type:"rect",lon1,lat1,lon2,lat2},limit:20,offset:0},GEOAPIFY_KEY,
+                trace=>console.log("GEOAPIFY_CATEGORY_CHECK",JSON.stringify({label,categories,...trace})));
+              console.log("GEOAPIFY_CATEGORY_SAMPLE",JSON.stringify({label, examples:result.features.slice(0,3).map(f=>{
+                const item=geoapify.element(f);return {name:item.tags.name,osmId:`${item.type}/${item.id}`, tags:Object.fromEntries(["shop","craft","office","amenity","service","hairdresser"].filter(k=>item.tags[k]).map(k=>[k,item.tags[k]])), barberMatch:businessMatch(item.tags,"Barber"),autoDetailingMatch:businessMatch(item.tags,"Auto Detailing")};
+              })}));
+            } catch(error) {console.log("GEOAPIFY_CATEGORY_CHECK",JSON.stringify({label,outcome:error.code||"error"}));}
+          }
           return;
         }
         for (const [city,niche] of [["Uberlândia, Minas Gerais, Brasil", "Barber"],
