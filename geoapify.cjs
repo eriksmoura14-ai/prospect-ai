@@ -1,8 +1,9 @@
 "use strict";
 const https = require("node:https");
 const ENDPOINT = "https://api.geoapify.com/v2/places";
-// Todos os grupos de POIs documentados, sem substituir os seletores de niches.cjs.
-const CATEGORIES = "accommodation,activity,airport,commercial,catering,emergency,education,childcare,entertainment,healthcare,heritage,highway,leisure,man_made,maritime,waterway,natural,national_park,office,parking,pet,power,production,railway,rental,service,tourism,religion,camping,amenity,beach,adult,building,ski,sport,public_transport,administrative,postal_code,political,low_emission_zone,populated_place,memorial".split(",");
+// Grupos de POIs documentados, sem substituir os seletores de niches.cjs.
+// Categorias de limites administrativos usam outro índice no provedor; não são POIs.
+const CATEGORIES = "accommodation,activity,airport,commercial,catering,emergency,education,childcare,entertainment,healthcare,heritage,highway,leisure,man_made,maritime,waterway,natural,national_park,office,parking,pet,power,production,railway,rental,service,tourism,religion,camping,amenity,beach,adult,building,ski,sport,public_transport".split(",");
 function failure(code, message) { return Object.assign(new Error(message), {code}); }
 function spatialFilter(place) {
   if (place.osm_type === "relation") {

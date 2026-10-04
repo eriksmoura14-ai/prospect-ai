@@ -50,3 +50,5 @@ test("retângulo amplo não aceita pontos fora do polígono original",async()=>{
  const result=await discover({...place,geojson:geometry},{transport:async body=>{assert.equal(body.filter.type,"rect");return {features:[feature(1),outside]};}});
  assert.equal(result.elements.length,1);assert.equal(result.elements[0].id,1);
 });
+
+test("consulta de empresas não seleciona o índice de limites administrativos",()=>{const {CATEGORIES}=require("../geoapify.cjs");for(const category of ["administrative","postal_code","political","low_emission_zone","populated_place"])assert.equal(CATEGORIES.includes(category),false);for(const category of ["commercial","service","office","amenity"])assert.equal(CATEGORIES.includes(category),true);});
