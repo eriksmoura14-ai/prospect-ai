@@ -485,7 +485,7 @@ function deduplicate(rows) {
 }
 
 async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}) {
-  const key = `discovery:v6:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}:${niche}`;
+  const key = `discovery:v7:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
   if (hit) {
     onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });

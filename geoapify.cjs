@@ -73,7 +73,10 @@ function request(body, apiKey, onTrace = () => {}) {
         let data;
         try { data = JSON.parse(Buffer.concat(chunks)); } catch { return finish(failure("geoapify_json", "Geoapify enviou uma resposta inválida.")); }
         if (data.type !== "FeatureCollection" || !Array.isArray(data.features)) return finish(failure("geoapify_schema", "Geoapify enviou um formato inesperado."));
-        trace.phase = "complete"; trace.count = data.features.length; finish(null, data);
+        trace.phase = "complete"; trace.count = data.features.length;
+        trace.rawFields = Object.keys(data.features[0]?.properties?.datasource?.raw || {});
+        trace.commercialTagCount = data.features.filter(f => ["shop","craft","office","amenity","service"].some(k => f.properties?.datasource?.raw?.[k])).length;
+        trace.categorySamples = data.features.slice(0,5).map(f=>({categories:f.properties?.categories, raw: Object.fromEntries(["shop","craft","office","amenity","service","hairdresser","osm_type"].filter(k=>f.properties?.datasource?.raw?.[k] != null).map(k=>[k,f.properties.datasource.raw[k]]))})); finish(null, data);
       });
     });
     req.on("socket", socket => socket.once("secureConnect", () => {clearTimeout(connectionTimer); trace.phase = "awaiting_headers"; trace.connectedMs = Date.now() - started;}));
