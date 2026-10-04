@@ -8,7 +8,7 @@ No serviço `prospect-ai-discovery-test`, configure `GEOAPIFY_API_KEY` em Enviro
 
 O cliente novo envia a chave somente no cabeçalho HTTPS `x-api-key` ao endpoint fixo oficial. Não registra URL com credencial, corpo de erro remoto ou segredo. O diagnóstico autenticado existente mostra somente se a chave está configurada e qual provedor foi selecionado. Logs de inicialização também mostram somente esses indicadores.
 
-A descoberta solicita o GeoJSON completo ao mesmo geocodificador e usa Polygon/MultiPolygon com todas as partes e buracos, sem simplificação ou buffer. Sem geometria administrativa, ou excedendo os limites documentados (10.000 posições, 100 anéis, 102.400 bytes), falha explicitamente, sem mudar para um raio ou retângulo. Localidades originalmente selecionadas sem relação mantêm seu retângulo integral.
+A descoberta solicita o GeoJSON completo ao mesmo geocodificador e usa Polygon/MultiPolygon com todas as partes e buracos, sem simplificação ou buffer. Sem geometria administrativa, falha explicitamente. Se a geometria exceder os limites documentados (10.000 posições, 100 anéis, 102.400 bytes), consulta o retângulo integral e filtra os pontos localmente pelo polígono original intacto, incluindo partes e buracos. Não simplifica, não usa raio e não aceita pontos externos como pertencentes à cidade. Localidades originalmente selecionadas sem relação mantêm seu retângulo integral.
 
 São solicitados todos os grupos de POIs documentados para evitar estreitar a seleção pelas categorias externas. Cada resultado precisa ter identidade, coordenadas e tags OSM originais. A função original businessMatch continua fazendo a seleção; nenhuma tag comercial é fabricada a partir de categorias do Geoapify. O agente e suas regras permanecem intactos.
 
@@ -29,3 +29,5 @@ Antes de promover: executar uma busca real autenticada no serviço de teste (Ube
 Arquivos de execução desta integração: `server.cjs`, novo `geoapify.cjs`, `index.html`. A branch também depende dos módulos `overpass.cjs` e `hosting.cjs` já adicionados anteriormente; não copie server.cjs sozinho para main. Teste novo: `test/geoapify.test.cjs`; build do serviço separado: `render.test.yaml`. Nenhuma chave foi incluída.
 
 Estado: integração implementada na branch de revisão; consulta real do Geoapify no Render ainda não validada. A chave informada pelo usuário está no serviço principal, não confirmada no serviço de teste. Não houve merge em main nem implantação desta integração em produção.
+
+Teste público real de geocodificação em 2026-10-04: Nominatim selecionou Uberlândia como relação 314875, Polygon com um anel e 10.413 posições. Esse caso aciona a consulta do retângulo completo seguida pelo filtro local exato. Esse teste prova obtenção da geometria pública; não prova resposta de empresas do Geoapify.

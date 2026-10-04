@@ -18,14 +18,30 @@ function spatialFilter(place) {
           !ring.every(p => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]) && Math.abs(p[0]) <= 180 && Math.abs(p[1]) <= 90))
         throw failure("geoapify_geometry", "Limite geográfico inválido.");
     }
-    if (!rings || rings > 100 || positions > 10000 || Buffer.byteLength(JSON.stringify(geometry)) > 102400)
-      throw failure("geoapify_geometry_limit", "O limite completo desta cidade excede a capacidade do provedor. A área não foi reduzida.");
+    if (!rings) throw failure("geoapify_geometry", "Limite geográfico vazio.");
+    if (rings > 100 || positions > 10000 || Buffer.byteLength(JSON.stringify(geometry)) > 102400)
+      return spatialFilter({...place, osm_type: "node"}); // Retângulo integral + filtro local pelo polígono intacto.
     return {type: "polygon", geometry};
   }
   const [south, north, west, east] = place.boundingbox.map(Number);
   if (![south,north,west,east].every(Number.isFinite) || south >= north || west >= east)
     throw failure("geoapify_geometry", "Retângulo geográfico inválido.");
   return {type: "rect", lon1: west, lat1: south, lon2: east, lat2: north};
+}
+// -1 fora, 0 sobre a borda, 1 dentro. Mantém todos os vértices e buracos.
+function ringPosition(point, ring) {
+  const [x,y] = point; let inside = false;
+  for (let i=0,j=ring.length-1;i<ring.length;j=i++) {
+    const [ax,ay]=ring[j], [bx,by]=ring[i];
+    const cross=(x-ax)*(by-ay)-(y-ay)*(bx-ax);
+    if (Math.abs(cross)<=1e-12 && x>=Math.min(ax,bx) && x<=Math.max(ax,bx) && y>=Math.min(ay,by) && y<=Math.max(ay,by)) return 0;
+    if ((ay>y)!==(by>y) && x < (bx-ax)*(y-ay)/(by-ay)+ax) inside=!inside;
+  }
+  return inside ? 1 : -1;
+}
+function contains(geometry, point) {
+  const polygons=geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
+  return polygons.some(rings=>ringPosition(point,rings[0])>=0 && rings.slice(1).every(ring=>ringPosition(point,ring)<=0));
 }
 function request(body, apiKey, onTrace = () => {}) {
   return new Promise((resolve, reject) => {
@@ -83,6 +99,8 @@ function element(feature) {
 }
 async function discover(place, {apiKey, onTrace, onProgress = () => {}, transport = request} = {}) {
   const filter = spatialFilter(place), elements = [], seen = new Set();
+  const localPolygon = place.osm_type === "relation" && filter.type === "rect" ? place.geojson : null;
+  if (localPolygon) onProgress("Consultando o retângulo completo; os pontos serão filtrados pelo limite administrativo original, sem simplificação…");
   // Até 100 créditos nominais por busca (4 páginas de 500). Nunca retorna uma lista truncada.
   for (let page = 0; page < 4; page++) {
     onProgress(`Consultando Geoapify, página ${page + 1}. A quantidade total ainda é desconhecida…`);
@@ -91,10 +109,11 @@ async function discover(place, {apiKey, onTrace, onProgress = () => {}, transpor
     for (const feature of data.features) {
       const item = element(feature), key = `${item.type}/${item.id}`;
       if (seen.has(key)) throw failure("geoapify_pagination", "Geoapify repetiu resultados entre páginas. Não é possível confirmar uma busca completa.");
-      seen.add(key); elements.push(item);
+      seen.add(key);
+      if (!localPolygon || contains(localPolygon, [item.lon,item.lat])) elements.push(item);
     }
     if (data.features.length < 500) return {elements};
   }
   throw failure("geoapify_budget", "A cidade exige mais páginas que o orçamento gratuito por busca. Nenhum resultado parcial foi apresentado; a área e os filtros foram preservados.");
 }
-module.exports = {discover, spatialFilter, element, request, CATEGORIES, ENDPOINT};
+module.exports = {discover, spatialFilter, element, request, contains, CATEGORIES, ENDPOINT};
