@@ -290,12 +290,16 @@ async function api(url, options = {}) {
   return data;
 }
 
+const locationPicker = new LocationPicker({ api, isLocked: () => busy || !ready,
+  canResume: () => Boolean(storedJob()) });
+
 function setBusy(value) {
   busy = value;
   $("search").querySelectorAll("input, select, button")
     .forEach(element => { element.disabled = value || !ready; });
-  $("search").querySelector("button").textContent =
-    value ? "Aguarde…" : "Buscar empresas";
+  $("search").querySelector('button[type="submit"]').textContent =
+    value ? "Aguarde…" : storedJob() ? "Reconectar pesquisa" : "Buscar empresas";
+  locationPicker.sync();
 }
 
 async function watch(jobId) {
@@ -345,17 +349,11 @@ async function watch(jobId) {
 
 $("search").addEventListener("submit", async event => {
   event.preventDefault();
-  if (busy || !ready) return;
-  const city = $("city").value.trim();
-  if (city.length < 2) {
-    $("city").setCustomValidity("Informe uma cidade com pelo menos dois caracteres.");
-    $("city").reportValidity();
-    return;
-  }
-  const payload = {
-    city, niche: $("niche").value, limit: Number($("quantity").value)
-  };
   const pendingJob = storedJob();
+  if (busy || !ready || (!pendingJob && !locationPicker.valid())) return;
+  const payload = pendingJob ? null : {
+    location: locationPicker.payload(), niche: $("niche").value, limit: Number($("quantity").value)
+  };
   const previousRows = rows;
   const previousJob = lastJob;
   searched = true;
@@ -407,7 +405,6 @@ $("search").addEventListener("submit", async event => {
   }
 });
 
-$("city").addEventListener("input", () => { $("city").setCustomValidity(""); });
 document.querySelectorAll("[data-filter]").forEach(button => {
   button.addEventListener("click", () => {
     filter = button.dataset.filter;
@@ -457,7 +454,7 @@ $("json").addEventListener("click", () => {
 
 async function initialize() {
   document.title = "Prospect AI";
-  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.2";
+  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.3";
   document.querySelector(".notice").textContent =
     "Dados públicos do OpenStreetMap. A ausência de website " +
     "cadastrado não significa ausência de site. Durante a busca, " +
@@ -469,13 +466,18 @@ async function initialize() {
   document.querySelector("footer").replaceChildren(
     node("span", "", "Confidence e Prospect Score são heurísticas, não probabilidades " +
       "calibradas nem garantias comerciais. "),
-    link("© OpenStreetMap contributors · ODbL", "https://www.openstreetmap.org/copyright")
+    link("© OpenStreetMap contributors · ODbL", "https://www.openstreetmap.org/copyright"),
+    node("span", "", " · "),
+    link("Powered by Geoapify", "https://www.geoapify.com/"),
+    node("span", "", " · "),
+    link("Localidades: Countries States Cities Database · ODbL", "https://github.com/dr5hn/countries-states-cities-database")
   );
   setBusy(true);
   progressText = "Conectando ao servidor…";
   render();
 
   try {
+    void locationPicker.initialize();
     const names = await api("/api/niches");
     $("niche").replaceChildren();
     for (const name of names) {

@@ -162,7 +162,7 @@
 
     form {
       display: grid;
-      grid-template-columns: 1.3fr 1.3fr 0.65fr auto;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       align-items: end;
       gap: 16px;
 
@@ -175,6 +175,10 @@
       color: #c3cddd;
       font-size: 14px;
     }
+
+    [hidden] { display: none !important; }
+    .location-help { grid-column: 1 / -1; margin: 0; color: #9daec5; font-size: 13px; }
+    .location-help button { margin-left: 8px; min-height: 32px; }
 
     input,
     select {
@@ -583,6 +587,7 @@
     }
   </style>
 
+  <script src="/location-picker.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 
@@ -621,22 +626,38 @@
     </div>
 
     <form id="search" class="panel">
-      <label for="city">
-        Cidade
-
-        <input
-          id="city"
-          name="city"
-          type="text"
-          value="Saskatoon, Saskatchewan, Canada"
-          placeholder="Ex.: Saskatoon, Canada"
-          minlength="2"
-          maxlength="100"
-          autocomplete="off"
-          required
-          disabled
-        >
+      <label for="country">País
+        <select id="country" name="country" required disabled aria-describedby="location-status">
+          <option value="">Carregando países…</option>
+        </select>
       </label>
+
+      <label for="region">Estado / província
+        <select id="region" name="region" required disabled>
+          <option value="">Selecione o país primeiro</option>
+        </select>
+      </label>
+
+      <label for="city">Cidade
+        <select id="city" name="city" required disabled>
+          <option value="">Selecione o estado primeiro</option>
+        </select>
+      </label>
+
+      <label for="manual-region" id="manual-region-label" hidden>Nome do estado / província
+        <input id="manual-region" name="manual-region" minlength="2" maxlength="100"
+          placeholder="Informe o estado / província" autocomplete="off" disabled>
+      </label>
+
+      <label for="manual-city" id="manual-city-label" hidden>Nome da cidade
+        <input id="manual-city" name="manual-city" minlength="1" maxlength="100"
+          placeholder="Informe a cidade" autocomplete="off" disabled>
+      </label>
+
+      <p class="location-help">
+        <span id="location-status" role="status" aria-live="polite">Escolha país, estado/província e cidade.</span>
+        <button id="location-retry" type="button" hidden>Tentar carregar novamente</button>
+      </p>
 
       <label for="niche">
         Nicho
@@ -838,8 +859,8 @@
         © OpenStreetMap contributors · ODbL
       </a>
       <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Powered by Geoapify</a>
+      · <a href="https://github.com/dr5hn/countries-states-cities-database" target="_blank" rel="noopener">Localidades: Countries States Cities Database · ODbL</a>
     </footer>
   </main>
 </body>
 </html>
-

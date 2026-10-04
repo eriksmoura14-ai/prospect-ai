@@ -15,6 +15,7 @@ const niches = require("./niches.cjs");
 const agent = require("./agent.cjs");
 const overpass = require("./overpass.cjs");
 const geoapify = require("./geoapify.cjs");
+const locations = require("./locations.cjs");
 const GEOAPIFY_KEY = (process.env.GEOAPIFY_API_KEY || "").trim();
 const BUSINESS_PROVIDER = process.env.BUSINESS_PROVIDER || "overpass";
 if (!["overpass", "geoapify"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
@@ -267,8 +268,27 @@ function locationSummary(place) {
   };
 }
 
-async function locate(city, onLocation = () => {}) {
-  const key = `city:v5:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}`;
+function locationMatches(place, selection) {
+  if (!selection) return true;
+  const address = place.address || {};
+  if (String(address.country_code || "").toUpperCase() !== selection.countryCode) return false;
+  if (!selection.stateName) return true;
+  const isoCodes = Object.entries(address).filter(([key]) => key.startsWith("ISO3166-2-")).map(([, value]) => value);
+  if (selection.stateIso && isoCodes.includes(selection.stateIso)) return true;
+  // Uma subdivisão conhecida do mesmo tipo prevalece sobre um nome contraditório.
+  // Códigos de condados e versões antigas de ISO não são tratados como estados.
+  if (selection.stateIsoPeers?.includes(address["ISO3166-2-lvl4"])) return false;
+  const aliases = [selection.stateName, selection.stateNative].filter(Boolean).map(normalizeLocation);
+  return Object.entries(address).some(([key, value]) => {
+    if (!/^(state|province|region|county|district|state_district|municipality)$/.test(key)) return false;
+    const name = normalizeLocation(value);
+    return aliases.some(alias => alias === name);
+  });
+}
+
+async function locate(city, onLocation = () => {}, selection = null) {
+  const constraint = selection ? `${selection.countryCode}:${selection.stateCode}:${normalizeLocation(selection.stateName)}` : "legacy";
+  const key = `city:v6:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}`;
   const hit = cached(key);
   if (hit) {
     onLocation({ cacheHit: true, selected: locationSummary(hit) });
@@ -285,6 +305,10 @@ async function locate(city, onLocation = () => {}) {
     url.searchParams.set("source", "nom");
   }
   url.searchParams.set("q", city);
+  if (selection) {
+    url.searchParams.set("countrycodes", selection.countryCode.toLowerCase());
+    url.searchParams.set("accept-language", "en");
+  }
   url.searchParams.set("format", LOCATIONIQ_KEY ? "json" : "jsonv2");
   url.searchParams.set("addressdetails", "1");
   if (BUSINESS_PROVIDER === "geoapify") url.searchParams.set("polygon_geojson", "1");
@@ -318,6 +342,7 @@ async function locate(city, onLocation = () => {}) {
 
   const places = data.filter(place =>
     place.boundingbox &&
+    locationMatches(place, selection) &&
     (
       place.class === "place" ||
       place.category === "place" ||
@@ -326,7 +351,9 @@ async function locate(city, onLocation = () => {}) {
   );
 
   if (!places.length) {
-    throw new Error("Cidade não encontrada.");
+    throw new Error(selection
+      ? "Cidade não encontrada no país e estado/província selecionados. Confira os filtros ou informe o nome local da cidade."
+      : "Cidade não encontrada.");
   }
 
   const requested = normalizeLocation(city.split(",")[0]);
@@ -484,8 +511,9 @@ function deduplicate(rows) {
   return output;
 }
 
-async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}) {
-  const key = `discovery:v9:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}:${niche}`;
+async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}, selection = null) {
+  const constraint = selection ? `${selection.countryCode}:${selection.stateCode}:${normalizeLocation(selection.stateName)}` : "legacy";
+  const key = `discovery:v10:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
   if (hit) {
     onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });
@@ -494,7 +522,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
 
   onProgress("Localizando cidade…");
   const geocodeStarted = Date.now();
-  const place = await locate(city, geocode => onDiagnostics({ geocode }));
+  const place = await locate(city, geocode => onDiagnostics({ geocode }), selection);
   onDiagnostics({ geocodeMs: Date.now() - geocodeStarted, place: place.display_name });
   onProgress("Cidade localizada. Consultando empresas no OpenStreetMap…");
   const [south, north, west, east] =
@@ -1144,10 +1172,11 @@ async function verify(business) {
   return row;
 }
 
-async function run(job, city, niche, limit) {
+async function run(job, city, niche, limit, selection = null) {
   const started = Date.now();
   job.timings = {};
   job.discoveryDiagnostics = { city, niche, cacheHit: false, queries: [] };
+  if (selection) job.discoveryDiagnostics.location = selection;
   lastDiscoveryDiagnostics = job.discoveryDiagnostics;
   let discoveryStarted;
   try {
@@ -1167,7 +1196,7 @@ async function run(job, city, niche, limit) {
       } else Object.assign(job.discoveryDiagnostics, update);
       if (update.place) job.place = update.place;
       if (update.geographicScope) job.geographicScope = update.geographicScope;
-    });
+    }, selection);
     job.timings.discoveryMs = Date.now() - discoveryStarted;
 
     job.place = discovery.place;
@@ -1445,6 +1474,23 @@ const server = http.createServer(async (request, response) => {
       return json(response, 200, Object.keys(niches));
     }
 
+    if (request.method === "GET" && url.pathname.startsWith("/api/locations/")) {
+      try {
+        if (url.pathname === "/api/locations/countries") {
+          return json(response, 200, await locations.listCountries());
+        }
+        if (url.pathname === "/api/locations/states") {
+          return json(response, 200, await locations.listStates(url.searchParams.get("country")));
+        }
+        if (url.pathname === "/api/locations/cities") {
+          return json(response, 200, await locations.listCities(url.searchParams.get("country"), url.searchParams.get("state")));
+        }
+        return json(response, 404, { error: "Lista de localidades não encontrada." });
+      } catch (error) {
+        return json(response, error.status || 503, { error: error.status === 400 ? error.message : "Não foi possível carregar as localidades. Tente novamente." });
+      }
+    }
+
     if (
       request.method === "POST" &&
       url.pathname === "/api/search"
@@ -1468,12 +1514,23 @@ const server = http.createServer(async (request, response) => {
         });
       }
 
-      const { city, niche, limit } = await readBody(request);
+      const input = await readBody(request);
+      const { niche, limit } = input;
+      let city = input.city;
+      let selection = null;
+      if (Object.hasOwn(input, "location")) {
+        try {
+          selection = await locations.resolveSelection(input.location);
+          city = selection.query;
+        } catch (error) {
+          return json(response, error.status || 503, { error: error.status === 400 ? error.message : "Não foi possível validar a localidade. Tente novamente." });
+        }
+      }
 
       if (
         typeof city !== "string" ||
         city.trim().length < 2 ||
-        city.length > 100 ||
+        city.length > (selection ? 600 : 100) ||
         typeof niche !== "string" ||
         !Object.hasOwn(niches, niche) ||
         ![10, 20, 30, 50].includes(limit)
@@ -1481,6 +1538,15 @@ const server = http.createServer(async (request, response) => {
         return json(response, 400, {
           error: "Cidade, nicho ou quantidade inválidos."
         });
+      }
+
+      // A leitura do corpo e a validação de localidades são assíncronas.
+      // Reconfere os limites antes de reservar o único job de descoberta.
+      if (activeJob) {
+        return json(response, 409, { error: "Uma pesquisa já está em andamento.", jobId: activeJob });
+      }
+      if (Date.now() - lastSearch < 3000) {
+        return json(response, 429, { error: "Aguarde alguns segundos entre pesquisas." });
       }
 
       while (jobs.size >= 20) {
@@ -1504,7 +1570,7 @@ const server = http.createServer(async (request, response) => {
       lastSearch = Date.now();
 
       json(response, 202, { jobId: id });
-      void run(job, city.trim(), niche, limit);
+      void run(job, city.trim(), niche, limit, selection);
       return;
     }
 
@@ -1527,7 +1593,8 @@ const server = http.createServer(async (request, response) => {
     const staticFiles = {
       "/": ["index.html", "text/html; charset=utf-8"],
       "/index.html": ["index.html", "text/html; charset=utf-8"],
-      "/app.js": ["app.js", "text/javascript; charset=utf-8"]
+      "/app.js": ["app.js", "text/javascript; charset=utf-8"],
+      "/location-picker.js": ["location-picker.js", "text/javascript; charset=utf-8"]
     };
 
     if (
