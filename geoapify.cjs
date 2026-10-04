@@ -64,6 +64,7 @@ function request(body, apiKey, onTrace = () => {}) {
     };
     const payload = JSON.stringify(body);
     const req = https.request(ENDPOINT, {method: "POST", headers: {"x-api-key": apiKey, "Content-Type": "application/json", "Content-Length": Buffer.byteLength(payload)}}, res => {
+      clearTimeout(connectionTimer);
       trace.phase = "reading_body"; trace.httpStatus = res.statusCode;
       if (res.statusCode !== 200) {
         res.resume();
@@ -87,7 +88,11 @@ function request(body, apiKey, onTrace = () => {}) {
         trace.categorySamples = data.features.slice(0,5).map(f=>({categories:f.properties?.categories, raw: Object.fromEntries(["shop","craft","office","amenity","service","hairdresser","osm_type"].filter(k=>f.properties?.datasource?.raw?.[k] != null).map(k=>[k,f.properties.datasource.raw[k]]))})); finish(null, data);
       });
     });
-    req.on("socket", socket => socket.once("secureConnect", () => {clearTimeout(connectionTimer); trace.phase = "awaiting_headers"; trace.connectedMs = Date.now() - started;}));
+    req.on("socket", socket => {
+      const connected = () => {clearTimeout(connectionTimer); trace.phase="awaiting_headers"; trace.connectedMs=Date.now()-started;};
+      if (req.reusedSocket) {trace.reusedConnection=true; connected();}
+      else socket.once("secureConnect", connected);
+    });
     req.on("error", () => finish(failure("geoapify_connection", "Não foi possível conectar ao Geoapify.")));
     const timer = setTimeout(() => {finish(failure(trace.phase === "connecting" ? "geoapify_connection_timeout" : "geoapify_response_timeout", "Geoapify não respondeu no prazo. A busca não foi concluída.")); req.destroy();}, 20000);
     const connectionTimer = setTimeout(() => {finish(failure("geoapify_connection_timeout", "Não foi possível conectar ao Geoapify no prazo.")); req.destroy();}, 5000);

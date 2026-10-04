@@ -67,3 +67,14 @@ test("orçamento de páginas é compartilhado entre categorias e alternativa",as
  const budget={remaining:1};await discover(place,{budget,transport:async()=>({features:[]})});
  await assert.rejects(discover(place,{budget,transport:async()=>{throw new Error("não deve chamar");}}),{code:"geoapify_budget"});
 });
+
+test("socket HTTPS reutilizado não espera outro evento secureConnect",async()=>{
+ const https=require("node:https"),{EventEmitter}=require("node:events"),original=https.request;
+ const {request}=require("../geoapify.cjs");const traces=[];
+ https.request=(_url,_options,callback)=>{const req=new EventEmitter();req.reusedSocket=true;req.destroy=()=>{};req.end=()=>queueMicrotask(()=>{
+   req.emit("socket",new EventEmitter());const res=new EventEmitter();res.statusCode=200;callback(res);
+   res.emit("data",Buffer.from(JSON.stringify({type:"FeatureCollection",features:[]})));res.emit("end");
+ });return req;};
+ try {await request({offset:0},"fixture",t=>traces.push(t));assert.equal(traces[0].reusedConnection,true);assert.equal(Number.isFinite(traces[0].connectedMs),true);assert.equal(traces[0].outcome,"success");}
+ finally {https.request=original;}
+});
