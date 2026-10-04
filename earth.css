@@ -1,0 +1,129 @@
+:root {
+  --bg: #030811;
+  --panel: rgba(11, 20, 34, .83);
+  --border: rgba(141, 181, 218, .23);
+  --text: #f0f5fb;
+  --muted: #b1bed0;
+  --accent: #b1f472;
+}
+
+body {
+  isolation: isolate;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 80% 20%, #072b43 0, #030811 65%);
+}
+
+#earth-scene {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(1px 1px at 18% 16%, #95b1d7 80%, transparent),
+    radial-gradient(1px 1px at 77% 57%, #d4e7ff 80%, transparent),
+    radial-gradient(1px 1px at 48% 29%, #a8caff 80%, transparent),
+    radial-gradient(1px 1px at 88% 11%, #7eadde 80%, transparent);
+  background-size: 173px 181px, 281px 267px, 317px 293px, 461px 419px;
+}
+
+/* O fundo estático mantém o visual disponível sem WebGL. */
+#earth-scene::before {
+  content: "";
+  position: absolute;
+  top: 4vh;
+  right: -14vh;
+  width: min(86vw, 94vh);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 67% 22%, transparent 12%, rgba(1, 7, 20, .2) 48%, #01030b 90%),
+    url("/assets/earth-day.jpg") center / 200% 100%;
+  box-shadow: inset -30px -20px 75px #000c, inset 8px 2px 22px #76cbf85c, 0 0 32px #249ef535;
+  opacity: .66;
+}
+
+#earth-scene.webgl-ready::before { display: none; }
+#earth-scene canvas { display: block; width: 100%; height: 100%; }
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(2, 7, 16, .88) 0, rgba(2, 7, 16, .63) 39%, rgba(2, 7, 16, .08) 78%);
+}
+
+header {
+  padding: 18px max(28px, calc((100vw - 1440px) / 2));
+  background: rgba(3, 9, 18, .35);
+  border-color: rgba(126, 171, 213, .15);
+}
+
+.header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+.earth-motion { min-height: 34px; padding: 6px 10px; font-size: 12px; background: rgba(12, 24, 38, .8); }
+.logo { box-shadow: 0 0 20px #aff4731c; }
+
+main { max-width: 1496px; padding: 40px 28px; }
+h1 { max-width: 730px; font-size: clamp(34px, 3.7vw, 56px); letter-spacing: -.04em; }
+.hero-accent { color: var(--accent); }
+.intro { margin: 14px 0 24px; font-size: 18px; }
+.notice { max-width: 980px; background: rgba(9, 23, 40, .66); border-color: rgba(104, 151, 191, .28); }
+#search, .form-note, .stats { width: min(100%, 980px); }
+.panel, .stat { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 8px 24px #0000001a; }
+.stat { background: rgba(9, 21, 35, .78); }
+input, select { background: rgba(4, 13, 24, .82); border-color: rgba(132, 169, 203, .31); }
+button { background: rgba(16, 30, 46, .88); }
+.primary { color: #15220c; background: var(--accent); box-shadow: 0 0 22px #adf07412; }
+.primary:hover:not(:disabled) { background: #c3fc92; box-shadow: 0 0 25px #adf0742b; }
+.stat strong { color: #e9f1ff; }
+.stat.prospects strong { color: var(--accent); }
+footer { border-color: rgba(142, 184, 217, .22); }
+
+.earth-location {
+  position: absolute;
+  width: max-content;
+  max-width: 230px;
+  padding: 7px 11px;
+  color: #e9f7ff;
+  background: rgba(3, 16, 29, .85);
+  border: 1px solid rgba(175, 238, 116, .55);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 0 20px #abf07316;
+  text-shadow: 0 1px 4px #000;
+}
+.earth-location-kicker { display: block; margin-bottom: 3px; color: var(--accent); font-size: 9px; letter-spacing: .08em; }
+.earth-location-name { display: block; font-weight: 650; }
+
+@media (max-width: 1100px) {
+  body::after { background: linear-gradient(90deg, #020710bd, #02071035); }
+  #search, .form-note, .stats { width: 100%; }
+  .notice { max-width: none; }
+  h1 { max-width: 650px; }
+}
+
+@media (max-width: 700px) {
+  header { padding: 14px 16px; }
+  .header-actions { flex-direction: column; align-items: flex-end; gap: 6px; }
+  .version { max-width: 160px; font-size: 11px; }
+  .earth-motion { min-height: 29px; padding: 4px 8px; font-size: 11px; }
+  main { padding: 28px 16px; }
+  h1 { max-width: 310px; font-size: 36px; }
+  .intro { max-width: 265px; font-size: 15px; margin-bottom: 34px; }
+  body::after { background: linear-gradient(180deg, #02071055, #02071066 27%, #020710cf 68%); }
+  #earth-scene::before { top: 8vh; right: -25vw; width: 105vw; }
+  .notice { background: rgba(7, 20, 35, .87); }
+  .panel, .stat { background: rgba(6, 17, 30, .91); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .earth-location { max-width: 160px; font-size: 11px; }
+}
+
+@media (max-width: 640px) {
+  .earth-location { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary { box-shadow: none; }
+}

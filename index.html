@@ -10,6 +10,7 @@
   >
 
   <title>Prospect AI</title>
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
 
   <style>
     :root {
@@ -587,11 +588,14 @@
     }
   </style>
 
+  <link rel="stylesheet" href="/earth.css">
+  <script type="module" src="/earth-background.js"></script>
   <script src="/location-picker.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 
 <body>
+  <div id="earth-scene" aria-hidden="true" data-earth-day="/assets/earth-day.jpg" data-earth-night="/assets/earth-night.jpg"></div>
   <noscript>
     Ative o JavaScript no navegador para pesquisar empresas
     e utilizar os filtros.
@@ -603,9 +607,10 @@
       <span>Prospect <small>AI</small></span>
     </div>
 
-    <span class="version">
-      Pesquisa de empresas · v0.2
-    </span>
+    <div class="header-actions">
+      <span class="version">Pesquisa de empresas · v0.4</span>
+      <button id="earth-motion" class="earth-motion" type="button" aria-pressed="false" hidden>Pausar animação</button>
+    </div>
   </header>
 
   <main>
@@ -613,10 +618,10 @@
       Pesquisa de negócios locais
     </div>
 
-    <h1>Encontre sua próxima oportunidade.</h1>
+    <h1>Encontre sua próxima <span class="hero-accent">oportunidade.</span></h1>
 
     <p class="intro">
-      Encontre empresas locais com presença digital fraca.
+      Explore negócios locais pelo mundo.
     </p>
 
     <div class="notice">

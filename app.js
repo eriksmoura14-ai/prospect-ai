@@ -11,6 +11,7 @@ let searched = false;
 let progressText = "";
 let lastJob = null;
 let searchError = "";
+let globeJobLocationKey = "";
 
 const fields = [
   "name", "category", "city", "address", "phone", "website",
@@ -327,6 +328,18 @@ async function watch(jobId) {
     }
 
     lastJob = job;
+    const point = job.discoveryDiagnostics?.geocode?.selected;
+    if (point && Number.isFinite(point.latitude) && Number.isFinite(point.longitude)) {
+      const key = `${jobId}:${point.latitude}:${point.longitude}`;
+      if (key !== globeJobLocationKey) {
+        globeJobLocationKey = key;
+        window.prospectLocationTarget = {
+          latitude: point.latitude, longitude: point.longitude, stage: "city",
+          label: point.name || job.place || "", countryCode: point.address?.country_code?.toUpperCase() || ""
+        };
+        window.dispatchEvent(new CustomEvent("prospect:location", { detail: window.prospectLocationTarget }));
+      }
+    }
     rows = job.rows || [];
     searchError = job.state === "error"
       ? job.message || "Erro durante a pesquisa." : "";
@@ -454,7 +467,7 @@ $("json").addEventListener("click", () => {
 
 async function initialize() {
   document.title = "Prospect AI";
-  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.3";
+  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.4";
   document.querySelector(".notice").textContent =
     "Dados públicos do OpenStreetMap. A ausência de website " +
     "cadastrado não significa ausência de site. Durante a busca, " +
@@ -470,7 +483,9 @@ async function initialize() {
     node("span", "", " · "),
     link("Powered by Geoapify", "https://www.geoapify.com/"),
     node("span", "", " · "),
-    link("Localidades: Countries States Cities Database · ODbL", "https://github.com/dr5hn/countries-states-cities-database")
+    link("Localidades: Countries States Cities Database · ODbL", "https://github.com/dr5hn/countries-states-cities-database"),
+    node("span", "", " · "),
+    link("Terra: NASA / Blue Marble e Black Marble", "https://science.nasa.gov/earth/earth-observatory/earth-at-night/maps/")
   );
   setBusy(true);
   progressText = "Conectando ao servidor…";
