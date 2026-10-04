@@ -12,7 +12,7 @@ test("location countries use real ISO codes and Portuguese labels", async () => 
   const countries = await locations.listCountries();
   assert.equal(countries.length, 250);
   assert.deepEqual(countries.find(country => country.code === "BR"), {
-    code: "BR", name: "Brazil", labelpt: "Brasil"
+    code: "BR", name: "Brazil", labelpt: "Brasil", latitude: -10, longitude: -55
   });
   assert.equal(countries.find(country => country.code === "US").labelpt, "Estados Unidos");
   countries.find(country => country.code === "BR").name = "changed";
@@ -22,9 +22,13 @@ test("location countries use real ISO codes and Portuguese labels", async () => 
 test("real location dataset contains Brazil / Minas Gerais / Uberlândia", async () => {
   const states = await locations.listStates("BR");
   assert.equal(states.length, 27);
-  assert.deepEqual(states.find(state => state.code === "MG"), { code: "MG", name: "Minas Gerais" });
+  assert.deepEqual(states.find(state => state.code === "MG"), {
+    code: "MG", name: "Minas Gerais", latitude: -18.5264844, longitude: -44.1588654
+  });
   const cities = await locations.listCities("BR", "MG");
-  assert.deepEqual(cities.find(city => city.id === 15434), { id: 15434, name: "Uberlândia" });
+  assert.deepEqual(cities.find(city => city.id === 15434), {
+    id: 15434, name: "Uberlândia", latitude: -19.02333, longitude: -48.33477
+  });
   const { stateIsoPeers, ...selection } = await locations.resolveSelection(brazil);
   assert.ok(stateIsoPeers.includes("BR-SP"));
   assert.deepEqual(selection, {

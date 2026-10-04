@@ -152,6 +152,23 @@ test("nome estadual não contorna código conhecido de outro estado", async () =
   assert.equal(h.queries.length, 0);
 });
 
+test("busca em cache fornece ponto geográfico ao globo sem novas consultas externas", async () => {
+  const selection = await localRequire("./locations.cjs").resolveSelection({ countryCode: "BR", stateCode: "MG", cityId: "__manual__", manualCity: "Uberlândia" });
+  const p = { ...place("Uberlândia", 314875, [-19.4, -18.6, -48.8, -47.9]),
+    lat: "-18.9186", lon: "-48.2772",
+    address: { country_code: "br", state: "Minas Gerais", "ISO3166-2-lvl4": "BR-MG" } };
+  const h = harness({ locations: { [selection.query]: [p] } });
+  await h.discover(selection.query, "Barber", () => {}, () => {}, selection);
+  const count = { geocodes: h.geocodes.length, queries: h.queries.length };
+  const updates = [];
+  await h.discover(selection.query, "Barber", () => {}, value => updates.push(value), selection);
+  assert.equal(h.geocodes.length, count.geocodes);
+  assert.equal(h.queries.length, count.queries);
+  const selected = updates.find(value => value.geocode)?.geocode.selected;
+  assert.equal(selected.latitude, -18.9186);
+  assert.equal(selected.longitude, -48.2772);
+});
+
 test("buscas simultâneas após validação assíncrona reservam um único job", async () => {
   const selection = await localRequire("./locations.cjs").resolveSelection({ countryCode: "BR", stateCode: "MG", cityId: 15434 });
   const p = { ...place("Uberlândia", 314875, [-19.4, -18.6, -48.8, -47.9]),

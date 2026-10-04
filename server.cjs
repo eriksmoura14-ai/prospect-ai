@@ -5,6 +5,7 @@ const https = require("node:https");
 const dns = require("node:dns").promises;
 const fs = require("node:fs");
 const path = require("node:path");
+const { gzipSync } = require("node:zlib");
 const {
   randomUUID,
   createHash,
@@ -259,12 +260,19 @@ async function fetchJSON(url, options = {}, geocode = false, timeoutMs = 35000, 
 }
 
 function locationSummary(place) {
+  const coordinate = value => typeof value === "number" || typeof value === "string" && value.trim() !== ""
+    ? Number(value) : NaN;
+  const latitude = coordinate(place.lat);
+  const longitude = coordinate(place.lon);
+  const visualPoint = Number.isFinite(latitude) && Number.isFinite(longitude) &&
+    Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180 ? {latitude, longitude} : {};
   return {
     displayName: place.display_name, name: place.name,
     osmType: place.osm_type, osmId: place.osm_id,
     category: place.category || place.class, type: place.type,
     boundingbox: place.boundingbox,
-    address: place.address
+    address: place.address,
+    ...visualPoint
   };
 }
 
@@ -517,6 +525,9 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
   const hit = cached(key);
   if (hit) {
     onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });
+    // Reaproveita o ponto já geocodificado para a animação, sem nova consulta de rede.
+    const cachedPlace = cached(`city:v6:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}`);
+    if (cachedPlace) onDiagnostics({ geocode: { cacheHit: true, selected: locationSummary(cachedPlace) } });
     return structuredClone(hit);
   }
 
@@ -1594,7 +1605,16 @@ const server = http.createServer(async (request, response) => {
       "/": ["index.html", "text/html; charset=utf-8"],
       "/index.html": ["index.html", "text/html; charset=utf-8"],
       "/app.js": ["app.js", "text/javascript; charset=utf-8"],
-      "/location-picker.js": ["location-picker.js", "text/javascript; charset=utf-8"]
+      "/location-picker.js": ["location-picker.js", "text/javascript; charset=utf-8"],
+      "/earth.css": ["earth.css", "text/css; charset=utf-8"],
+      "/earth-background.js": ["earth-background.js", "text/javascript; charset=utf-8"],
+      "/earth-math.js": ["earth-math.js", "text/javascript; charset=utf-8"],
+      "/vendor/three.module.js": ["node_modules/three/build/three.module.min.js", "text/javascript; charset=utf-8"],
+      "/vendor/three.core.min.js": ["node_modules/three/build/three.core.min.js", "text/javascript; charset=utf-8"],
+      "/assets/earth-day.jpg": ["assets/earth-day.jpg", "image/jpeg"],
+      "/assets/earth-night.jpg": ["assets/earth-night.jpg", "image/jpeg"],
+      "/assets/icon.svg": ["assets/icon.svg", "image/svg+xml"],
+      "/vendor/three.LICENSE.txt": ["node_modules/three/LICENSE", "text/plain; charset=utf-8"]
     };
 
     if (
@@ -1623,11 +1643,16 @@ const server = http.createServer(async (request, response) => {
         );
       }
 
+      const useGzip = (type.startsWith("text/javascript") || type.startsWith("text/css")) &&
+        /\bgzip\b/.test(request.headers["accept-encoding"] || "");
+      if (useGzip) content = gzipSync(content);
       response.writeHead(200, {
         "Content-Type": type,
         "Cache-Control": "no-store",
         "X-Content-Type-Options": "nosniff",
         "Referrer-Policy": "no-referrer",
+        ...(useGzip ? { "Content-Encoding": "gzip" } : {}),
+        Vary: "Accept-Encoding",
         "Content-Security-Policy":
           "default-src 'self'; " +
           "script-src 'self'; " +

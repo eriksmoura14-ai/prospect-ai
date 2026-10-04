@@ -1,7 +1,7 @@
 "use strict";
 
-// This module uses the versioned ODbL location dataset only for selection names.
-// The existing geocoder remains responsible for resolving the complete search area.
+// Names and coordinates come from the versioned ODbL location dataset. Coordinates
+// only orient the decorative globe; the geocoder still resolves the search area.
 const database = require("@countrystatecity/countries");
 
 const attribution = Object.freeze({
@@ -15,6 +15,20 @@ const MANUAL = "__manual__";
 const NO_STATE = "__none__";
 const displayNames = new Intl.DisplayNames(["pt-BR"], { type: "region" });
 let countriesPromise;
+
+// These subdivision coordinates point to Penang, Malaysia, in dataset 1.0.9.
+// Omit those visual targets rather than displaying the wrong Singapore location.
+const invalidStateCoordinates = new Set(["SG:02", "SG:05"]);
+
+function visualCoordinates(row) {
+  const values = [row.latitude, row.longitude];
+  if (values.some(value => !["number", "string"].includes(typeof value) || String(value).trim() === "")) return {};
+  const [latitude, longitude] = values.map(Number);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+      Math.abs(latitude) > 90 || Math.abs(longitude) > 180 ||
+      (latitude === 0 && longitude === 0)) return {};
+  return { latitude, longitude };
+}
 
 function invalid(message) {
   const error = new Error(message);
@@ -59,7 +73,8 @@ async function listCountries() {
     countriesPromise = database.getCountries().then(rows => rows.map(row => ({
       code: row.iso2,
       name: row.name,
-      labelpt: displayNames.of(row.iso2) || row.name
+      labelpt: displayNames.of(row.iso2) || row.name,
+      ...visualCoordinates(row)
     })).sort((left, right) => left.labelpt.localeCompare(right.labelpt, "pt-BR")));
   }
   return (await countriesPromise).map(row => ({ ...row }));
@@ -76,7 +91,8 @@ async function listStates(code) {
   await getCountry(code);
   return (await database.getStatesOfCountry(code)).map(row => ({
     code: row.iso2,
-    name: row.name
+    name: row.name,
+    ...(invalidStateCoordinates.has(`${code}:${row.iso2}`) ? {} : visualCoordinates(row))
   }));
 }
 
@@ -104,7 +120,8 @@ async function listCities(code, selectedState) {
   if (!state) return [];
   return (await database.getCitiesOfState(code, selectedState)).map(row => ({
     id: row.id,
-    name: row.name
+    name: row.name,
+    ...visualCoordinates(row)
   }));
 }
 

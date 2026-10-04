@@ -14,6 +14,9 @@ class LocationPicker {
     this.status = document.getElementById("location-status");
     this.retry = document.getElementById("location-retry");
     this.countries = [];
+    this.regions = [];
+    this.cities = [];
+    this.lastLocationTarget = undefined;
     this.loading = "countries";
     this.failed = "";
     this.generation = 0;
@@ -21,7 +24,11 @@ class LocationPicker {
     this.region.addEventListener("change", () => { void this.loadCities(); });
     this.city.addEventListener("change", () => this.sync());
     for (const input of [this.manualRegion, this.manualCity]) {
-      input.addEventListener("input", () => this.sync());
+      input.addEventListener("input", () => {
+        // Um nome editado não deve manter o ponto de uma cidade já pesquisada.
+        if (window.prospectLocationTarget?.stage === "city") this.lastLocationTarget = undefined;
+        this.sync();
+      });
     }
     this.retry.addEventListener("click", () => {
       if (this.failed === "countries") void this.initialize();
@@ -36,6 +43,7 @@ class LocationPicker {
   }
 
   resetCities() {
+    this.cities = [];
     this.options(this.city, "Selecione o estado primeiro", []);
     this.manualCity.value = "";
   }
@@ -44,6 +52,7 @@ class LocationPicker {
     const generation = ++this.generation;
     this.loading = "countries";
     this.failed = "";
+    this.regions = [];
     this.options(this.country, "Carregando países…", []);
     this.options(this.region, "Selecione o país primeiro", []);
     this.manualRegion.value = "";
@@ -71,6 +80,7 @@ class LocationPicker {
   async loadStates() {
     const generation = ++this.generation;
     const country = this.country.value;
+    this.regions = [];
     this.failed = "";
     this.loading = country ? "states" : "";
     this.options(this.region, country ? "Carregando estados…" : "Selecione o país primeiro", []);
@@ -82,6 +92,7 @@ class LocationPicker {
     try {
       const regions = await this.api(`/api/locations/states?country=${encodeURIComponent(country)}`);
       if (generation !== this.generation) return;
+      this.regions = regions;
       this.options(this.region, "Selecione o estado / província", [
         ...regions.map(item => ({ value: item.code, label: item.name })),
         ...(!regions.length ? [{ value: "__none__", label: "Sem estado / província" }] : []),
@@ -116,6 +127,7 @@ class LocationPicker {
       const cities = ["__manual__", "__none__"].includes(region) ? []
         : await this.api(`/api/locations/cities?country=${encodeURIComponent(country)}&state=${encodeURIComponent(region)}`);
       if (generation !== this.generation) return;
+      this.cities = cities;
       this.options(this.city, "Selecione a cidade", [
         ...cities.map(item => ({ value: item.id, label: item.name })),
         { value: "__manual__", label: "Minha cidade não está na lista" }
@@ -142,7 +154,32 @@ class LocationPicker {
       (this.city.value !== "__manual__" || this.manualCity.value.trim().length >= 1));
   }
 
+  updateGlobeTarget() {
+    const country = this.countries.find(item => item.code === this.country.value);
+    const region = country && this.regions.find(item => item.code === this.region.value);
+    const city = region && this.cities.find(item => String(item.id) === this.city.value);
+    const selected = [["city", city], ["state", region], ["country", country]].find(([, item]) =>
+      item && typeof item.latitude === "number" && typeof item.longitude === "number" &&
+      Number.isFinite(item.latitude) && Number.isFinite(item.longitude) &&
+      Math.abs(item.latitude) <= 90 && Math.abs(item.longitude) <= 180 &&
+      !(item.latitude === 0 && item.longitude === 0));
+    const detail = selected ? {
+      latitude: selected[1].latitude,
+      longitude: selected[1].longitude,
+      stage: selected[0],
+      label: selected[1].labelpt || selected[1].name,
+      countryCode: country.code
+    } : null;
+    const key = JSON.stringify(detail);
+    if (key === this.lastLocationTarget) return;
+    this.lastLocationTarget = key;
+    // Um módulo 3D que termina de carregar depois dos filtros reaproveita o alvo atual.
+    window.prospectLocationTarget = detail;
+    window.dispatchEvent(new CustomEvent("prospect:location", { detail }));
+  }
+
   sync() {
+    this.updateGlobeTarget();
     const locked = this.isLocked();
     const manualRegion = this.region.value === "__manual__";
     const manualCity = this.city.value === "__manual__";
