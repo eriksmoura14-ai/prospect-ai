@@ -6,6 +6,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const { createRequire } = require("node:module");
+const { Readable } = require("node:stream");
 
 // Fixtures de regressão, não resultados reais de empresas/geocodificação.
 // Exercitam a descoberta sem contatos externos, contas ou chaves de produção.
@@ -27,6 +28,7 @@ function harness({ locations, answers = [], failure, provider = "overpass", geoA
   };
   const queries = [];
   const geocodes = [];
+  const geocodeRequests = [];
   const fixtureFS = { ...fs,
     readFileSync: () => { throw new Error("Sem cache persistente nos testes."); },
     mkdirSync() {}, writeFileSync() {}, renameSync() {} };
@@ -56,6 +58,7 @@ function harness({ locations, answers = [], failure, provider = "overpass", geoA
       }
       const city = url.searchParams.get("q");
       geocodes.push(city);
+      geocodeRequests.push(url);
       return new Response(JSON.stringify(locations[city] || []));
     }
   };
@@ -64,8 +67,108 @@ function harness({ locations, answers = [], failure, provider = "overpass", geoA
     module.exports = { discover, locate, businessMatch,
       handler: server.listeners("request")[0], resetGeocode: () => { lastGeocode = 0; } };
   `, context, { filename: path.join(root, "server.cjs") });
-  return { ...context.module.exports, queries, geocodes, geoQueries };
+  return { ...context.module.exports, queries, geocodes, geocodeRequests, geoQueries };
 }
+
+async function callAPI(h, url, { body, authorized = true } = {}) {
+  const request = Readable.from(body === undefined ? [] : [Buffer.from(JSON.stringify(body))]);
+  request.method = body === undefined ? "GET" : "POST";
+  request.url = url;
+  request.headers = { host: "127.0.0.1:3000", origin: "http://127.0.0.1:3000",
+    authorization: authorized ? "Basic " + Buffer.from("admin:local-only-test-password").toString("base64") : "" };
+  const response = { status: null, headersSent: false, body: "",
+    writeHead(status) { this.status = status; this.headersSent = true; },
+    end(body) { this.body = body || ""; } };
+  await h.handler(request, response);
+  return response;
+}
+
+test("listas de localidades exigem autenticação e validam a cascata real sem acesso externo", async () => {
+  const h = harness({ locations: {} });
+  assert.equal((await callAPI(h, "/api/locations/countries", { authorized: false })).status, 401);
+  const countries = await callAPI(h, "/api/locations/countries");
+  assert.equal(countries.status, 200);
+  assert.ok(JSON.parse(countries.body).some(item => item.code === "BR" && item.labelpt === "Brasil"));
+  const regions = await callAPI(h, "/api/locations/states?country=BR");
+  assert.ok(JSON.parse(regions.body).some(item => item.code === "MG"));
+  const cities = await callAPI(h, "/api/locations/cities?country=BR&state=MG");
+  assert.ok(JSON.parse(cities.body).some(item => item.id === 15434 && item.name === "Uberlândia"));
+  assert.equal((await callAPI(h, "/api/locations/cities?country=BR&state=NY")).status, 400);
+  assert.equal(h.geocodes.length, 0);
+  assert.equal(h.queries.length, 0);
+});
+
+test("busca rejeita cidade de outro país antes de consultar serviços externos", async () => {
+  const h = harness({ locations: {} });
+  const response = await callAPI(h, "/api/search", { body: {
+    location: { countryCode: "BR", stateCode: "MG", cityId: 122795 }, niche: "Barber", limit: 10
+  } });
+  assert.equal(response.status, 400);
+  assert.match(JSON.parse(response.body).error, /não pertence/);
+  assert.equal(h.geocodes.length, 0);
+  assert.equal(h.queries.length, 0);
+});
+
+test("geocoder respeita país/estado escolhidos e mantém limite administrativo completo", async () => {
+  const selection = await localRequire("./locations.cjs").resolveSelection({ countryCode: "BR", stateCode: "MG", cityId: 15434 });
+  const correct = { ...place("Uberlândia", 314875, [-19.416808, -18.5922258, -48.8234391, -47.9034816]),
+    address: { country_code: "br", state: "Minas Gerais", "ISO3166-2-lvl4": "BR-MG" } };
+  const wrongState = { ...correct, osm_id: 999, address: { country_code: "br", state: "São Paulo", "ISO3166-2-lvl4": "BR-SP" } };
+  const wrongCountry = { ...correct, osm_id: 1000, address: { country_code: "us", state: "Minas Gerais" } };
+  const h = harness({ locations: { [selection.query]: [wrongCountry, wrongState, correct] } });
+  const result = await h.discover(selection.query, "Barber", () => {}, () => {}, selection);
+  assert.equal(result.rows.length, 0);
+  assert.equal(h.geocodeRequests[0].searchParams.get("countrycodes"), "br");
+  assert.equal(h.geocodeRequests[0].searchParams.get("q"), "Uberlândia, Minas Gerais, Brazil");
+  assert.match(h.queries[0], /area\(3600314875\)/);
+  assert.ok(!h.queries[0].includes("3600000999"));
+});
+
+test("geocoder incompatível com os filtros não inicia descoberta nem reaproveita cache antigo", async () => {
+  const selection = await localRequire("./locations.cjs").resolveSelection({ countryCode: "US", stateCode: "NY", cityId: 122795 });
+  const mismatch = { ...place("New York City", 7, [40.4, 40.9, -74.3, -73.6]),
+    address: { country_code: "us", state: "Texas", "ISO3166-2-lvl4": "US-TX" } };
+  const h = harness({ locations: { [selection.query]: [mismatch] } });
+  await h.locate(selection.query); // Cache da interface antiga sem restrições.
+  h.resetGeocode();
+  await assert.rejects(h.discover(selection.query, "Barber", () => {}, () => {}, selection), /país e estado/);
+  assert.equal(h.geocodes.length, 2);
+  assert.equal(h.queries.length, 0);
+});
+
+test("estado com alfabeto não latino é conferido pelo código ISO", async () => {
+  const selection = { query: "Tokyo, Tokyo, Japan", countryCode: "JP", stateCode: "13", stateName: "Tokyo", stateNative: "東京都", stateIso: "JP-13" };
+  const p = { ...place("東京都", 12345, [35.5, 35.9, 139.5, 139.9]), address: { country_code: "jp", state: "東京都", "ISO3166-2-lvl4": "JP-13" } };
+  const h = harness({ locations: { [selection.query]: [p] } });
+  assert.equal((await h.locate(selection.query, () => {}, selection)).osm_id, 12345);
+});
+
+test("nome estadual não contorna código conhecido de outro estado", async () => {
+  const selection = await localRequire("./locations.cjs").resolveSelection({ countryCode: "BR", stateCode: "MG", cityId: 15434 });
+  const p = { ...place("Uberlândia", 314875, [-19.4, -18.6, -48.8, -47.9]),
+    address: { country_code: "br", state: "Minas Gerais", "ISO3166-2-lvl4": "BR-SP" } };
+  const h = harness({ locations: { [selection.query]: [p] } });
+  await assert.rejects(h.locate(selection.query, () => {}, selection), /país e estado/);
+  assert.equal(h.queries.length, 0);
+});
+
+test("buscas simultâneas após validação assíncrona reservam um único job", async () => {
+  const selection = await localRequire("./locations.cjs").resolveSelection({ countryCode: "BR", stateCode: "MG", cityId: 15434 });
+  const p = { ...place("Uberlândia", 314875, [-19.4, -18.6, -48.8, -47.9]),
+    address: { country_code: "br", state: "Minas Gerais", "ISO3166-2-lvl4": "BR-MG" } };
+  const h = harness({ locations: { [selection.query]: [p] } });
+  const body = { location: { countryCode: "BR", stateCode: "MG", cityId: 15434 }, niche: "Barber", limit: 10 };
+  const responses = await Promise.all([callAPI(h, "/api/search", { body }), callAPI(h, "/api/search", { body })]);
+  assert.equal(responses.filter(response => response.status === 202).length, 1);
+  assert.ok(responses.some(response => [409, 429].includes(response.status)));
+  const jobId = JSON.parse(responses.find(response => response.status === 202).body).jobId;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 2));
+    const job = JSON.parse((await callAPI(h, `/api/jobs/${jobId}`)).body);
+    if (job.state !== "running") break;
+  }
+  assert.equal(h.geocodes.length, 1);
+});
 
 const scenarios = [
   ["São Paulo, Brasil", [-24.1, -23.3, -46.9, -46.3], "relation"],

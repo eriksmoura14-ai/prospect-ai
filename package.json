@@ -1,12 +1,16 @@
 {
   "name": "prospect-ai",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Pesquisa de empresas locais e verificação de websites.",
   "scripts": {
-    "start": "node server.cjs"
+    "start": "node server.cjs",
+    "test": "node --test test/*.test.cjs"
   },
   "engines": {
     "node": ">=22"
+  },
+  "dependencies": {
+    "@countrystatecity/countries": "1.0.9"
   }
 }

@@ -7,7 +7,7 @@ services:
     repo: https://github.com/eriksmoura14-ai/prospect-ai
     branch: codex/overpass-timeout-diagnostics
     autoDeployTrigger: "off"
-    buildCommand: node --check server.cjs && node --check overpass.cjs && node --check geoapify.cjs && node --test test/*.test.cjs
+    buildCommand: npm ci --ignore-scripts && node --check server.cjs && node --check app.js && node --check location-picker.js && node --check overpass.cjs && node --check geoapify.cjs && npm test
     startCommand: node server.cjs
     healthCheckPath: /health
     envVars:
