@@ -18,7 +18,13 @@ function place(name, osmId, bounds, osmType = "relation") {
     osm_type: osmType, osm_id: osmId, boundingbox: bounds.map(String) };
 }
 
-function harness({ locations, answers = [], failure } = {}) {
+function harness({ locations, answers = [], failure, provider = "overpass", geoAnswers = [], geoFailure } = {}) {
+  const geoQueries = [];
+  const geoQuery = async (place, options) => {
+    geoQueries.push({place, categories: options.categories});
+    if (geoFailure) throw geoFailure;
+    return {elements:geoAnswers[geoQueries.length-1] || []};
+  };
   const queries = [];
   const geocodes = [];
   const fixtureFS = { ...fs,
@@ -36,9 +42,10 @@ function harness({ locations, answers = [], failure } = {}) {
   };
   const context = {
     require: name => name === "node:fs" ? fixtureFS
-      : name === "./overpass.cjs" ? { ...localRequire(name), query } : localRequire(name),
+      : name === "./overpass.cjs" ? { ...localRequire(name), query }
+      : name === "./geoapify.cjs" ? {...localRequire(name), discover:geoQuery} : localRequire(name),
     module: { exports: {} }, __dirname: root,
-    process: { env: { APP_PASSWORD: "local-only-test-password", APP_ORIGIN: "http://127.0.0.1:3000" } },
+    process: { env: { APP_PASSWORD: "local-only-test-password", APP_ORIGIN: "http://127.0.0.1:3000", BUSINESS_PROVIDER:provider, GEOAPIFY_API_KEY:provider === "geoapify" ? "fixture-secret" : "" } },
     console: { log() {}, warn() {}, error() {} },
     Buffer, URL, URLSearchParams, AbortSignal, structuredClone, setTimeout, clearTimeout,
     fetch: async (input, options) => {
@@ -57,7 +64,7 @@ function harness({ locations, answers = [], failure } = {}) {
     module.exports = { discover, locate, businessMatch,
       handler: server.listeners("request")[0], resetGeocode: () => { lastGeocode = 0; } };
   `, context, { filename: path.join(root, "server.cjs") });
-  return { ...context.module.exports, queries, geocodes };
+  return { ...context.module.exports, queries, geocodes, geoQueries };
 }
 
 const scenarios = [
@@ -154,4 +161,19 @@ test("diagnóstico exige autenticação e não faz contato externo por padrão",
   assert.equal(h.queries.length, 0);
   assert.equal(h.geocodes.length, 0);
   assert.ok(!response.body.includes("local-only-test-password"));
+});
+
+test("Geoapify usa categoria adequada e mantém businessMatch e fonte",async()=>{
+ const city="Fixture, Brasil",p=place("Fixture",7,[-19,-18,-49,-48]);const e={type:"node",id:1,lat:-18.5,lon:-48.5,tags:{name:"Fixture Barber",shop:"barber"}};
+ const h=harness({locations:{[city]:[p]},provider:"geoapify",geoAnswers:[[e]]});const result=await h.discover(city,"Barber");
+ assert.equal(h.queries.length,0);assert.equal(h.geoQueries.length,1);assert.deepEqual(h.geoQueries[0].categories,["service.beauty.hairdresser"]);assert.equal(result.rows[0].matchMethod,"tag");assert.equal(result.rows[0].source,"OpenStreetMap via Geoapify");
+});
+test("Geoapify sem correspondência tenta índices comerciais sem fabricar tags",async()=>{
+ const city="Fixture, Brasil",p=place("Fixture",7,[-19,-18,-49,-48]);const e={type:"node",id:1,lat:-18.5,lon:-48.5,tags:{name:"Fixture Barber Company",shop:"hairdresser"}};
+ const h=harness({locations:{[city]:[p]},provider:"geoapify",geoAnswers:[[],[e]]});const result=await h.discover(city,"Barber");
+ assert.equal(h.geoQueries.length,2);assert.deepEqual(h.geoQueries[1].categories,["commercial","service","office"]);assert.equal(result.rows[0].matchMethod,"keyword");assert.equal(result.rows[0].category,"Barber");
+});
+test("falha de cota Geoapify não é convertida em alternativa ou lista vazia",async()=>{
+ const city="Fixture, Brasil",p=place("Fixture",7,[-19,-18,-49,-48]);const h=harness({locations:{[city]:[p]},provider:"geoapify",geoFailure:Object.assign(new Error("quota"),{code:"geoapify_http_429"})});
+ await assert.rejects(h.discover(city,"Barber"),{code:"geoapify_http_429"});assert.equal(h.geoQueries.length,1);assert.equal(h.queries.length,0);
 });

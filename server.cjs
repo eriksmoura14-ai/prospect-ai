@@ -485,7 +485,7 @@ function deduplicate(rows) {
 }
 
 async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}) {
-  const key = `discovery:v8:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}:${niche}`;
+  const key = `discovery:v9:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
   if (hit) {
     onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });
@@ -565,9 +565,16 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
 
   let discoveryMethod, data;
   if (BUSINESS_PROVIDER === "geoapify") {
-    discoveryMethod = "POIs indexados pelo Geoapify · tags OSM originais";
-    data = await geoapify.discover(place, {apiKey: GEOAPIFY_KEY, onProgress,
-      onTrace: trace => onDiagnostics({queryAttempt: trace})});
+    discoveryMethod = "Índices comerciais do Geoapify · tags OSM originais";
+    const hints = geoapify.CATEGORY_HINTS[niche];
+    const options = {apiKey: GEOAPIFY_KEY, onProgress, budget:{remaining:4},
+      onTrace: trace => onDiagnostics({queryAttempt: {method:"categories", ...trace}})};
+    data = await geoapify.discover(place, {...options, categories: hints || geoapify.CATEGORIES});
+    if (hints && !data.elements.some(element => businessMatch(element.tags || {}, niche))) {
+      onProgress("Sem correspondências na categoria. Consultando os índices comerciais para a classificação original…");
+      data = await geoapify.discover(place, {...options, categories: geoapify.CATEGORIES,
+        onTrace: trace => onDiagnostics({queryAttempt: {method:"commercial_fallback", ...trace}})});
+    }
   } else {
   discoveryMethod = tagSelectors.length ? "Categorias cadastradas" : "Correspondência pelo nome";
   onProgress("Consultando empresas por categoria. A quantidade ainda é desconhecida…");
@@ -653,7 +660,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
     place: place.display_name,
     discoveryMethod,
     provider: BUSINESS_PROVIDER,
-    coverage: BUSINESS_PROVIDER === "geoapify" ? "POIs indexados pelo Geoapify; não equivale a todos os objetos consultáveis no Overpass." : "Seletores OpenStreetMap",
+    coverage: BUSINESS_PROVIDER === "geoapify" ? "Índices comerciais, serviços e escritórios do Geoapify; cobertura diferente do Overpass." : "Seletores OpenStreetMap",
     geographicScope: relation
       ? "Limite administrativo"
       : "Retângulo geográfico da localidade",

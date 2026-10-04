@@ -1,9 +1,16 @@
 "use strict";
 const https = require("node:https");
 const ENDPOINT = "https://api.geoapify.com/v2/places";
-// Grupos de POIs documentados, sem substituir os seletores de niches.cjs.
-// Categorias de limites administrativos usam outro índice no provedor; não são POIs.
-const CATEGORIES = "accommodation,activity,airport,commercial,catering,emergency,education,childcare,entertainment,healthcare,heritage,highway,leisure,man_made,maritime,waterway,natural,national_park,office,parking,pet,power,production,railway,rental,service,tourism,religion,camping,amenity,beach,adult,building,ski,sport,public_transport".split(",");
+// Índices comerciais; não misturar índices de geometria (rios, bairros, edifícios).
+const CATEGORIES = ["commercial", "service", "office"];
+// Grupos documentados que incluem os tags OSM cadastrados nesses nichos.
+// A classificação continua exclusiva de businessMatch no servidor.
+const CATEGORY_HINTS = {
+  "Barber": ["service.beauty.hairdresser"],
+  "Hair Salon": ["service.beauty.hairdresser"],
+  "Auto Detailing": ["service.vehicle"],
+  "Electrician": ["service.electrician"]
+};
 function failure(code, message) { return Object.assign(new Error(message), {code}); }
 function spatialFilter(place) {
   if (place.osm_type === "relation") {
@@ -99,16 +106,23 @@ function element(feature) {
   const [lon, lat] = feature.geometry?.coordinates || [];
   if (feature.geometry?.type !== "Point" || !Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180)
     throw failure("geoapify_coordinates", "O provedor não forneceu coordenadas válidas. A busca não foi concluída.");
-  return {type, id, lat, lon, tags: {...raw}};
+  const tags = {...raw};
+  // Geoapify também publica componentes de endereço sem o prefixo addr:.
+  for (const [target,source] of [["addr:street","street"],["addr:housenumber","housenumber"],["addr:postcode","postcode"],["addr:city","city"]]) {
+    if (!tags[target] && typeof (raw[source] ?? feature.properties?.[source]) === "string") tags[target] = raw[source] ?? feature.properties[source];
+  }
+  return {type, id, lat, lon, tags};
 }
-async function discover(place, {apiKey, onTrace, onProgress = () => {}, transport = request} = {}) {
+async function discover(place, {apiKey, onTrace, onProgress = () => {}, transport = request, categories = CATEGORIES, budget = {remaining:4}} = {}) {
   const filter = spatialFilter(place), elements = [], seen = new Set();
   const localPolygon = place.osm_type === "relation" && filter.type === "rect" ? place.geojson : null;
   if (localPolygon) onProgress("Consultando o retângulo completo; os pontos serão filtrados pelo limite administrativo original, sem simplificação…");
   // Até 100 créditos nominais por busca (4 páginas de 500). Nunca retorna uma lista truncada.
   for (let page = 0; page < 4; page++) {
     onProgress(`Consultando Geoapify, página ${page + 1}. A quantidade total ainda é desconhecida…`);
-    const data = await transport({categories: CATEGORIES, filter, limit: 500, offset: page * 500}, apiKey, onTrace);
+    if (budget.remaining <= 0) throw failure("geoapify_budget", "A busca exige mais páginas que o orçamento gratuito. Nenhum resultado parcial foi apresentado; a área e os filtros foram preservados.");
+    budget.remaining--;
+    const data = await transport({categories, filter, limit: 500, offset: page * 500}, apiKey, onTrace);
     if (!Array.isArray(data.features) || data.features.length > 500) throw failure("geoapify_schema", "Página inválida do Geoapify.");
     for (const feature of data.features) {
       const item = element(feature), key = `${item.type}/${item.id}`;
@@ -120,4 +134,4 @@ async function discover(place, {apiKey, onTrace, onProgress = () => {}, transpor
   }
   throw failure("geoapify_budget", "A cidade exige mais páginas que o orçamento gratuito por busca. Nenhum resultado parcial foi apresentado; a área e os filtros foram preservados.");
 }
-module.exports = {discover, spatialFilter, element, request, contains, CATEGORIES, ENDPOINT};
+module.exports = {discover, spatialFilter, element, request, contains, CATEGORIES, CATEGORY_HINTS, ENDPOINT};

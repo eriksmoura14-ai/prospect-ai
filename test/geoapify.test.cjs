@@ -51,4 +51,19 @@ test("retângulo amplo não aceita pontos fora do polígono original",async()=>{
  assert.equal(result.elements.length,1);assert.equal(result.elements[0].id,1);
 });
 
-test("consulta de empresas não seleciona o índice de limites administrativos",()=>{const {CATEGORIES}=require("../geoapify.cjs");for(const category of ["administrative","postal_code","political","low_emission_zone","populated_place"])assert.equal(CATEGORIES.includes(category),false);for(const category of ["commercial","service","office","amenity"])assert.equal(CATEGORIES.includes(category),true);});
+test("consulta de empresas não seleciona o índice de limites administrativos",()=>{const {CATEGORIES}=require("../geoapify.cjs");for(const category of ["administrative","postal_code","political","low_emission_zone","populated_place"])assert.equal(CATEGORIES.includes(category),false);for(const category of ["commercial","service","office"])assert.equal(CATEGORIES.includes(category),true);});
+
+test("categorias de nicho orientam consulta sem fabricar tags comerciais",async()=>{
+ const {CATEGORY_HINTS}=require("../geoapify.cjs");let body;
+ await discover(place,{categories:CATEGORY_HINTS.Barber,transport:async b=>{body=b;return {features:[feature(1)]};}});
+ assert.deepEqual(body.categories,["service.beauty.hairdresser"]);
+});
+test("componentes públicos de endereço são normalizados sem alterar classificação",()=>{
+ const f=feature(8);f.properties.datasource.raw.street="Rua Teste";f.properties.housenumber="12";const e=element(f);
+ assert.equal(e.tags["addr:street"],"Rua Teste");assert.equal(e.tags["addr:housenumber"],"12");assert.equal(e.tags.shop,"barber");
+});
+
+test("orçamento de páginas é compartilhado entre categorias e alternativa",async()=>{
+ const budget={remaining:1};await discover(place,{budget,transport:async()=>({features:[]})});
+ await assert.rejects(discover(place,{budget,transport:async()=>{throw new Error("não deve chamar");}}),{code:"geoapify_budget"});
+});
