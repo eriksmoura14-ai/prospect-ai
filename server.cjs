@@ -14,6 +14,10 @@ const {
 const niches = require("./niches.cjs");
 const agent = require("./agent.cjs");
 const overpass = require("./overpass.cjs");
+const geoapify = require("./geoapify.cjs");
+const GEOAPIFY_KEY = (process.env.GEOAPIFY_API_KEY || "").trim();
+const BUSINESS_PROVIDER = process.env.BUSINESS_PROVIDER || "overpass";
+if (!["overpass", "geoapify"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
 
 // Configuração local e hospedada.
 const hosting = require("./hosting.cjs").configuration(process.env);
@@ -53,6 +57,8 @@ if (HOSTED && PASSWORD.length < 16) {
   );
   process.exit(1);
 }
+
+console.log("Business discovery:", JSON.stringify({provider: BUSINESS_PROVIDER, geoapifyConfigured: Boolean(GEOAPIFY_KEY)}));
 
 const HOUR = 3600000;
 const CACHE_DIR = path.join(__dirname, ".cache");
@@ -262,7 +268,7 @@ function locationSummary(place) {
 }
 
 async function locate(city, onLocation = () => {}) {
-  const key = `city:v4:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}`;
+  const key = `city:v5:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}`;
   const hit = cached(key);
   if (hit) {
     onLocation({ cacheHit: true, selected: locationSummary(hit) });
@@ -281,6 +287,7 @@ async function locate(city, onLocation = () => {}) {
   url.searchParams.set("q", city);
   url.searchParams.set("format", LOCATIONIQ_KEY ? "json" : "jsonv2");
   url.searchParams.set("addressdetails", "1");
+  if (BUSINESS_PROVIDER === "geoapify") url.searchParams.set("polygon_geojson", "1");
   url.searchParams.set("limit", "5");
   if (!LOCATIONIQ_KEY) url.searchParams.set("featuretype", "city");
 
@@ -478,7 +485,7 @@ function deduplicate(rows) {
 }
 
 async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}) {
-  const key = `discovery:v5:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}:${niche}`;
+  const key = `discovery:v6:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
   if (hit) {
     onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });
@@ -556,9 +563,15 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
     return answer;
   }
 
-  let discoveryMethod = tagSelectors.length ? "Categorias cadastradas" : "Correspondência pelo nome";
+  let discoveryMethod, data;
+  if (BUSINESS_PROVIDER === "geoapify") {
+    discoveryMethod = "POIs indexados pelo Geoapify · tags OSM originais";
+    data = await geoapify.discover(place, {apiKey: GEOAPIFY_KEY, onProgress,
+      onTrace: trace => onDiagnostics({queryAttempt: trace})});
+  } else {
+  discoveryMethod = tagSelectors.length ? "Categorias cadastradas" : "Correspondência pelo nome";
   onProgress("Consultando empresas por categoria. A quantidade ainda é desconhecida…");
-  let data = await queryBusinesses(tagSelectors.length ? tagSelectors : nameSelectors,
+  data = await queryBusinesses(tagSelectors.length ? tagSelectors : nameSelectors,
     tagSelectors.length ? "categories" : "names");
   // A busca por nomes é alternativa, em vez de ampliar todas as consultas.
   if (tagSelectors.length && nameSelectors.length &&
@@ -566,6 +579,8 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
     onProgress("Nenhuma correspondência por categoria. Consultando nomes de empresas…");
     data = await queryBusinesses(nameSelectors, "names");
     discoveryMethod = "Correspondência pelo nome";
+  }
+
   }
 
   const rows = [];
@@ -612,7 +627,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
       longitude,
       osmId: `${element.type}/${element.id}`,
       osmIds: [`${element.type}/${element.id}`],
-      source: "OpenStreetMap",
+      source: BUSINESS_PROVIDER === "geoapify" ? "OpenStreetMap via Geoapify" : "OpenStreetMap",
       street: tags["addr:street"] || "",
       houseNumber: tags["addr:housenumber"] || "",
       invalidListedWebsite: Boolean(rawWebsite && !website),
@@ -637,6 +652,8 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
   const result = {
     place: place.display_name,
     discoveryMethod,
+    provider: BUSINESS_PROVIDER,
+    coverage: BUSINESS_PROVIDER === "geoapify" ? "POIs indexados pelo Geoapify; não equivale a todos os objetos consultáveis no Overpass." : "Seletores OpenStreetMap",
     geographicScope: relation
       ? "Limite administrativo"
       : "Retângulo geográfico da localidade",
@@ -1360,6 +1377,8 @@ const server = http.createServer(async (request, response) => {
         finally { if (diagnosticProbe === pending) diagnosticProbe = null; }
       }
       return json(response, 200, {
+        businessProvider: BUSINESS_PROVIDER,
+        geoapify: {authenticationConfigured: Boolean(GEOAPIFY_KEY), endpoint: geoapify.ENDPOINT, requestMs: 20000, maximumPages: 4, coverage: "POIs indexados; não é substituição equivalente da base Overpass."},
         endpoint: overpass.endpointLabel(OVERPASS),
         endpointSource: process.env.OVERPASS_URL ? "OVERPASS_URL" : "default",
         configuredEndpoints: overpassClient.endpoints,

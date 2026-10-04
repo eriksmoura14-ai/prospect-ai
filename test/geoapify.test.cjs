@@ -1,0 +1,40 @@
+"use strict";
+const {test} = require("node:test");
+const assert = require("node:assert/strict");
+const {spatialFilter, element, discover} = require("../geoapify.cjs");
+const ring = [[-49,-19],[-48,-19],[-48,-18],[-49,-19]];
+const place = {osm_type:"relation", geojson:{type:"Polygon",coordinates:[ring]},boundingbox:[-19,-18,-49,-48]};
+const feature = id => ({type:"Feature",geometry:{type:"Point",coordinates:[-48.2,-18.9]},properties:{datasource:{raw:{osm_type:"node",osm_id:id,name:"Fixture Barber",shop:"barber",website:"https://example.com"}}}});
+test("Geoapify preserva todas as partes e buracos sem simplificar",()=>{
+ const geometry={type:"MultiPolygon",coordinates:[[ring,ring],[ring]]};
+ assert.strictEqual(spatialFilter({...place,geojson:geometry}).geometry,geometry);
+});
+test("limite administrativo ausente não vira bounding box",()=>assert.throws(()=>spatialFilter({...place,geojson:null}),{code:"geoapify_geometry"}));
+test("polígono acima do limite não é truncado",()=>assert.throws(()=>spatialFilter({...place,geojson:{type:"Polygon",coordinates:[Array(10001).fill(ring[0])]}}),{code:"geoapify_geometry_limit"}));
+test("localidade sem relação usa todo o retângulo original",()=>assert.deepEqual(spatialFilter({...place,osm_type:"node"}),{type:"rect",lon1:-49,lat1:-19,lon2:-48,lat2:-18}));
+test("tags originais e identidade OSM permanecem intactas",()=>assert.deepEqual(element(feature(7)),{type:"node",id:7,lat:-18.9,lon:-48.2,tags:feature(7).properties.datasource.raw}));
+test("categoria externa não fabrica tags para a classificação",()=>assert.throws(()=>element({properties:{categories:["service.beauty.hairdresser"]}}),{code:"geoapify_raw_missing"}));
+test("identidade OSM ausente impede sucesso",()=>assert.throws(()=>element({...feature(7),properties:{datasource:{raw:{name:"Fixture",shop:"barber"}}}}),{code:"geoapify_identity"}));
+test("paginação busca página final inteira mantendo filtro e categorias",async()=>{
+ const bodies=[]; const data=await discover(place,{apiKey:"fixture",transport:async body=>{bodies.push(body);return {features:bodies.length===1?Array.from({length:500},(_,i)=>feature(i+1)):[feature(501)]};}});
+ assert.equal(data.elements.length,501);assert.equal(bodies[1].offset,500);assert.deepEqual(bodies[0].filter,bodies[1].filter);assert.deepEqual(bodies[0].categories,bodies[1].categories);
+});
+test("falha de cota na segunda página não retorna resultados parciais",async()=>{
+ let calls=0;await assert.rejects(discover(place,{transport:async()=>{if(++calls===2)throw Object.assign(new Error("quota"),{code:"geoapify_http_429"});return {features:Array.from({length:500},(_,i)=>feature(i+1))};}}),{code:"geoapify_http_429"});
+});
+test("limite de orçamento aborta em vez de apresentar cobertura parcial",async()=>{
+ let calls=0;await assert.rejects(discover(place,{transport:async()=>{const offset=(calls++)*500; return {features:Array.from({length:500},(_,i)=>feature(offset+i+1))};}}),{code:"geoapify_budget"});
+});
+test("página repetida não é aceita como paginação completa",async()=>{
+ await assert.rejects(discover(place,{transport:async()=>({features:Array.from({length:500},(_,i)=>feature(i+1))})}),{code:"geoapify_pagination"});
+});
+test("resposta vazia válida é distinta de falha",async()=>assert.deepEqual(await discover(place,{transport:async()=>({features:[]})}),{elements:[]}));
+
+test("identificador compacto OSM é normalizado sem alterar tags",()=>{const f=feature(8);f.properties.datasource.raw.osm_type="w";assert.equal(element(f).type,"way");assert.equal(element(f).tags.osm_type,"w");});
+test("transporte manda chave só em cabeçalho e distingue HTTP 429 sem vazá-la", async () => {
+ const https=require("node:https"), {EventEmitter}=require("node:events"), original=https.request;
+ const {request}=require("../geoapify.cjs");const secret="fixture-secret-never-log";let headers,endpoint;const traces=[];
+ https.request=(url,options,callback)=>{endpoint=url;headers=options.headers;const req=new EventEmitter();req.destroy=()=>{};req.end=()=>queueMicrotask(()=>{const res=new EventEmitter();res.statusCode=429;res.resume=()=>{};callback(res);});return req;};
+ try {await assert.rejects(request({offset:0},secret,t=>traces.push(t)),{code:"geoapify_http_429"});assert.equal(headers["x-api-key"],secret);assert.equal(endpoint.includes(secret),false);assert.equal(JSON.stringify(traces).includes(secret),false);assert.equal(traces[0].httpStatus,429);}
+ finally {https.request=original;}
+});
