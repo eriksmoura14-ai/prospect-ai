@@ -1591,6 +1591,31 @@ server.listen(
     console.log(`Prospect AI iniciado na porta ${PORT}.`);
     console.log(`Endereço: ${ORIGIN}`);
     if (process.env.RENDER_SERVICE_NAME === "prospect-ai-discovery-test" &&
+        process.env.GEOAPIFY_DISCOVERY_CHECK === "1") {
+      (async () => {
+        if (BUSINESS_PROVIDER !== "geoapify" || !GEOAPIFY_KEY) {
+          console.log("GEOAPIFY_CHECK", JSON.stringify({outcome: "configuration", provider: BUSINESS_PROVIDER, keyConfigured: Boolean(GEOAPIFY_KEY)}));
+          return;
+        }
+        for (const [city,niche] of [["Uberlândia, Minas Gerais, Brasil", "Barber"],
+          ["Saskatoon, Saskatchewan, Canada", "Barber"], ["Sydney, New South Wales, Australia", "Auto Detailing"]]) {
+          const diagnostic = {city,niche,queries:[]};
+          try {
+            const result = await discover(city,niche,()=>{},update=>{
+              if (update.queryAttempt) diagnostic.queries.push(update.queryAttempt);
+              else Object.assign(diagnostic,update);
+            });
+            console.log("GEOAPIFY_CHECK", JSON.stringify({...diagnostic, outcome: result.rows.length ? "success" : "empty", count:result.rows.length,
+              examples: result.rows.slice(0,3).map(row=>({name:row.name,osmId:row.osmId,matchMethod:row.matchMethod}))}));
+          } catch (error) {
+            console.log("GEOAPIFY_CHECK", JSON.stringify({...diagnostic, outcome:error.code || "error"}));
+            if (["geoapify_http_401", "geoapify_http_403", "geoapify_http_429"].includes(error.code)) break;
+          }
+        }
+      })().catch(()=>console.log("GEOAPIFY_CHECK", JSON.stringify({outcome:"check_failed"})));
+    }
+
+    if (process.env.RENDER_SERVICE_NAME === "prospect-ai-discovery-test" &&
         process.env.OVERPASS_NETWORK_CHECK === "1") {
       require("./network-check.cjs").run().catch(() => console.error("NETWORK_CHECK failed"));
     }
