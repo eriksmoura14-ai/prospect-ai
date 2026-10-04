@@ -28,3 +28,16 @@ O workflow executa 55 regressões e os probes reais existentes com limite de 6 s
 O evento push é restrito à branch de teste e à mudança desse arquivo; demais commits não repetem os probes automaticamente. workflow_dispatch também existe para uso manual. O repositório público usa os runners padrão; não são solicitados runners pagos ou infraestrutura adicional. A conexão GitHub precisa autorizar escrever arquivos de workflow para publicá-lo. Se essa permissão faltar, registrar a rejeição e não afirmar que o teste foi executado.
 
 Somente um probe válido permite passar à busca REAL de empresas com a mesma QL completa. Uma resposta vazia válida, timeout e conexão recusada continuam distintos. Só migrar depois de discovery real bem-sucedida em várias localidades, inclusive validação de área e autenticação na nova hospedagem.
+
+
+## Resultado REAL fora do Render — 4 de outubro, 17:20 UTC
+
+Workflow https://github.com/eriksmoura14-ai/prospect-ai/actions/runs/37220127396 , job 111488599765, commit ce50a14dad4bc45d30bd046ecbed9baf29310f87. Os 55 testes passaram no runner e o job completou; isso não significa disponibilidade dos endpoints.
+
+- private.coffee transporte nativo: TLS/conexão 914 ms; aguardou headers sem bytes e expirou em 6013 ms.
+- fetch independente: expirou em 6003 ms.
+- curl GET: TLS 0.256340 s, HTTP 000, sem primeiro byte, exit 28 em 6.001601 s.
+- curl POST: TLS 0.258332 s, HTTP 000, sem primeiro byte, exit 28 em 6.002164 s.
+- curl GET VK Maps: TLS 0.606519 s, HTTP 000, exit 28 em 6.002353 s.
+
+Nenhuma consulta pesada foi enviada, pois nenhum probe obteve resposta válida. Não é prova de que todo fornecedor falha, nem determina o motivo exato de retenção no operador/caminho. Demonstra que a falha atual também se reproduz fora do Render. A migração não foi realizada: os fornecedores avaliados exigem requisitos de pagamento incompatíveis com cadastro novo a custo zero, não há conta de outra hospedagem vinculada, e os endpoints não responderam no teste externo. A produção e a main permanecem preservadas. Não há descoberta de empresas comprovada como resolvida.
