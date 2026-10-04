@@ -1,0 +1,24 @@
+name: Independent Overpass network diagnostic
+on:
+  push:
+    branches: [codex/overpass-timeout-diagnostics]
+    paths:
+      - .github/workflows/overpass-network.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regression tests
+        run: node --test test/*.test.cjs
+      - name: Minimal live network probes (not proof of business discovery)
+        run: node -e 'require("./network-check.cjs").run().catch(() => { console.error("NETWORK_CHECK failed"); process.exitCode = 1; });'

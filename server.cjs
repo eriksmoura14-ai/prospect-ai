@@ -16,14 +16,10 @@ const agent = require("./agent.cjs");
 const overpass = require("./overpass.cjs");
 
 // Configuração local e hospedada.
-const HOSTED = process.env.RENDER === "true";
-const PORT = Number(process.env.PORT || 3000);
-
-const ORIGIN = new URL(
-  process.env.APP_ORIGIN ||
-  process.env.RENDER_EXTERNAL_URL ||
-  `http://127.0.0.1:${PORT}`
-).origin;
+const hosting = require("./hosting.cjs").configuration(process.env);
+const HOSTED = hosting.hosted;
+const PORT = hosting.port;
+const ORIGIN = hosting.origin;
 
 const USER = process.env.APP_USER || "admin";
 const PASSWORD = process.env.APP_PASSWORD || "";
@@ -53,7 +49,7 @@ const overpassClient = overpass.createClient({ endpoints: OVERPASS_ENDPOINTS,
 
 if (HOSTED && PASSWORD.length < 16) {
   console.error(
-    "Configure APP_PASSWORD no Render com pelo menos 16 caracteres."
+    "Configure APP_PASSWORD na hospedagem com pelo menos 16 caracteres."
   );
   process.exit(1);
 }
@@ -1571,7 +1567,7 @@ server.headersTimeout = 10000;
 
 server.listen(
   PORT,
-  HOSTED ? "0.0.0.0" : "127.0.0.1",
+  hosting.bind,
   () => {
     console.log(`Prospect AI iniciado na porta ${PORT}.`);
     console.log(`Endereço: ${ORIGIN}`);
