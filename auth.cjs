@@ -61,6 +61,7 @@ function createService(config, { store, mailer } = {}) {
     const sending = ["activate-mail", "reset-mail"].includes(action);
     const rules = [{ key: `${sending ? "mail" : action}:${email || browser}`, limit: sending ? 3 : 10, seconds: sending ? 3600 : 600 }];
     if (sending) rules.push({ key: "mail-total", limit: 150, seconds: 86400 });
+    else rules.unshift({ key: "password-work-total", limit: 120, seconds: 60 });
     if (!await store.allow(rules)) throw Object.assign(new Error("Muitas tentativas. Aguarde antes de tentar novamente."), { status: 429 });
   };
   return {

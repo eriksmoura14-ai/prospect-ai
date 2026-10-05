@@ -40,7 +40,7 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       async call(method, url, input, headers = {}) {
         const request = Readable.from(input === undefined ? [] : [Buffer.from(JSON.stringify(input))]);
         request.method=method; request.url=url;
-        request.headers={host:"127.0.0.1:3042",origin:config.origin,"sec-fetch-site":"same-origin",
+        request.headers={host:"127.0.0.1:3042",origin:config.origin,"sec-fetch-site":"same-origin","content-type":"application/json",
           cookie:[...jar].map(([name,value])=>name+"="+value).join("; "),"x-csrf-token":csrf,...headers};
         request.socket={remoteAddress:"127.0.0.1"};
         const response={status:null,headersSent:false,headers:{},body:"",setHeader(name,value){this.headers[name.toLowerCase()]=value;},
@@ -293,6 +293,27 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       assert.equal((await sql.query("SELECT 1 FROM prospect_lists WHERE account_id=$1",[userA.id])).rowCount,0);
       assert.equal((await sql.query("SELECT 1 FROM prospect_list_companies WHERE account_id=$1",[userA.id])).rowCount,0);
       assert.equal((await bob.refresh()).data.authenticated,true);
+    });
+    await t.test("trocar cookies e Gmail não contorna orçamento persistente de trabalho de senha",async()=>{
+      const encryptionKey=crypto.randomBytes(32).toString("base64"),box=accounts.vault(encryptionKey);
+      const budgetStore=accounts.createStore({databaseUrl:config.databaseUrl,encryptionKey,local:true});
+      const budgetConfig={...config,encryptionKey};
+      const marker=new Error("Admitted before password computation");
+      const emails=Array.from({length:121},(_,i)=>`rotated${suffix}${i}@gmail.com`);
+      const client=auth.createService(budgetConfig,{store:{allow:rules=>budgetStore.allow(rules),credentials:async()=>{throw marker;}},mailer:async()=>{}});
+      const request=()=>({headers:{cookie:"prospect_challenge="+random()},socket:{remoteAddress:"127.0.0.1"}});
+      let reader;
+      try{
+        for(let i=0;i<120;i++)await assert.rejects(client.login(request(),{email:emails[i],password:phrase}),error=>error===marker);
+        await assert.rejects(client.login(request(),{email:emails[120],password:phrase}),{status:429});
+        reader=accounts.createStore({databaseUrl:config.databaseUrl,encryptionKey,local:true});
+        const restarted=auth.createService(budgetConfig,{store:{allow:rules=>reader.allow(rules),credentials:async()=>{throw marker;}},mailer:async()=>{}});
+        await assert.rejects(restarted.login(request(),{email:emails[120],password:phrase}),{status:429});
+      }finally{
+        const hashes=["password-work-total",...emails.map(email=>"login:"+email)].map(key=>box.mac("rate",key));
+        await sql.query("DELETE FROM prospect_rate_limits WHERE key_hash=ANY($1::text[])",[hashes]);
+        await budgetStore.close();if(reader)await reader.close();
+      }
     });
   } finally {
     // Database is explicitly a test resource. No production records are removed.

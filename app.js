@@ -270,6 +270,7 @@ function render() {
 }
 
 async function api(url, options = {}) {
+  const generation = accountUI.epoch;
   let response;
   try {
     response = await fetch(url, {
@@ -280,6 +281,9 @@ async function api(url, options = {}) {
     });
   } catch {
     throw new Error("Não foi possível conectar ao servidor. Tente novamente.");
+  }
+  if (generation !== accountUI.epoch) {
+    throw Object.assign(new Error("Sua sessão terminou. Entre novamente."), { status: 401 });
   }
   if (response.status === 401) {
     accountUI.expire();
@@ -299,6 +303,9 @@ async function api(url, options = {}) {
     );
     error.status = response.status;
     throw error;
+  }
+  if (generation !== accountUI.epoch) {
+    throw Object.assign(new Error("Sua sessão terminou. Entre novamente."), { status: 401 });
   }
   if (!response.ok) {
     const error = new Error(data.error || "Não foi possível concluir a solicitação.");
@@ -322,8 +329,10 @@ function setBusy(value) {
 }
 
 async function watch(jobId) {
+  const generation = accountUI.epoch;
   let failures = 0;
   while (true) {
+    if (generation !== accountUI.epoch) throw Object.assign(new Error("Sua sessão terminou. Entre novamente."), { status: 401 });
     let job;
     try {
       job = await api(`/api/jobs/${encodeURIComponent(jobId)}`);
@@ -389,6 +398,7 @@ $("search").addEventListener("submit", async event => {
   };
   const previousRows = rows;
   const previousJob = lastJob;
+  const generation = accountUI.epoch;
   searched = true;
   searchError = "";
   // Só mantém a pesquisa anterior se a criação da nova busca falhar.
@@ -411,6 +421,7 @@ $("search").addEventListener("submit", async event => {
     rememberJob(result.jobId);
     await watch(result.jobId);
   } catch (error) {
+    if (generation !== accountUI.epoch) return;
     if (error.jobId) {
       try {
         rows = [];

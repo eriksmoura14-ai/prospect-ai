@@ -28,6 +28,9 @@ const ORIGIN = hosting.origin;
 const accountAuth = require("./auth.cjs");
 const authConfig = accountAuth.configuration(process.env, hosting);
 const accountService = accountAuth.createService(authConfig);
+const requestSecurity = require("./request-security.cjs");
+const requestGate = requestSecurity.createGate();
+const htmlText = require("./html-text.cjs");
 
 const USER = process.env.APP_USER || "admin";
 const PASSWORD = process.env.APP_PASSWORD || "";
@@ -997,15 +1000,8 @@ function candidates(name, city) {
 }
 
 function analyze(page, business) {
-  const title = (
-    page.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ||
-    ""
-  ).replace(/<[^>]+>/g, " ").trim();
-
-  const text = page.html
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ");
+  const title = htmlText.title(page.html);
+  const text = htmlText.text(page.html);
 
   const normalizedText = normalize(text);
   const name = normalize(business.name);
@@ -1052,7 +1048,7 @@ function analyze(page, business) {
     (phoneMatch || addressMatch);
 
   return {
-    title,
+    title: title.slice(0, 400),
     compatible,
     nameMatch,
     phoneMatch,
@@ -1065,7 +1061,7 @@ async function verify(business) {
   if (business.status === "WEBSITE_LISTED") return business;
 
   const key =
-    `verify:v2:${business.osmId}:${normalize(business.name)}:` +
+    `verify:v3:${business.osmId}:${normalize(business.name)}:` +
     `${business.city}:${business.phone}:${business.address}`;
 
   const hit = cached(key);
@@ -1306,18 +1302,7 @@ function json(response, status, data) {
   response.end(JSON.stringify(data));
 }
 
-async function readBody(request, maxBytes = 4096) {
-  const chunks = [];
-  let size = 0;
-
-  for await (const chunk of request) {
-    size += chunk.length;
-    if (size > maxBytes) throw new Error("Pedido grande demais.");
-    chunks.push(Buffer.from(chunk));
-  }
-
-  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
-}
+const readBody = requestSecurity.readJSON;
 
 // Checagem pontual de uma página pública, sem pesquisa em massa.
 // Conservador: não lê o site se robots.txt restringir este robô,
@@ -1394,12 +1379,9 @@ async function collectAIEvidence(row) {
   return value;
 }
 
-const server = http.createServer(async (request, response) => {
-  response.setHeader("X-Content-Type-Options", "nosniff");
-  response.setHeader("Referrer-Policy", "no-referrer");
-  response.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-  response.setHeader("X-Frame-Options", "DENY");
-  if (HOSTED && ORIGIN.startsWith("https:")) response.setHeader("Strict-Transport-Security", "max-age=31536000");
+const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInterval: 1000 }, async (request, response) => {
+  requestSecurity.headers(response, HOSTED && ORIGIN.startsWith("https:"));
+  let release;
   try {
     const url = new URL(request.url, ORIGIN);
 
@@ -1418,6 +1400,8 @@ const server = http.createServer(async (request, response) => {
         error: "Use o endereço configurado da aplicação."
       });
     }
+
+    if (accountService) release = requestGate.enter(url.pathname, request.method);
 
     let identity = null;
     let ownerId = "legacy";
@@ -1541,6 +1525,10 @@ const server = http.createServer(async (request, response) => {
         }
         return json(response, 404, { error: "Rota não encontrada." });
       } catch (error) {
+        if (error.safeRequestError) {
+          if (error.closeRequest) response.setHeader("Connection", "close");
+          return json(response, error.status, { error: error.message });
+        }
         if (error.name === "SyntaxError") return json(response, 400, { error: "Dados inválidos." });
         if (error.message === "Pedido grande demais.") return json(response, 413, { error: "A solicitação excede o limite permitido." });
         return json(response, error.status || 503, { error: error.status ? error.message : "Não foi possível acessar suas listas. Tente novamente." });
@@ -1768,29 +1756,30 @@ const server = http.createServer(async (request, response) => {
       );
     }
 
-    if (["GET", "HEAD"].includes(request.method)) {
-      response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-      response.setHeader("Content-Security-Policy",
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
-        "connect-src 'self'; img-src 'self' data:; object-src 'none'; " +
-        "base-uri 'none'; frame-ancestors 'none'");
-      if (await serveStatic(request, response, url.pathname)) return;
-    }
+    if (await serveStatic(request, response, url.pathname)) return;
 
     json(response, 404, { error: "Rota não encontrada." });
   } catch (error) {
+    if (response.destroyed) return;
     if (!response.headersSent) {
+      if (error.safeRequestError) {
+        if (error.retryAfter) response.setHeader("Retry-After", String(error.retryAfter));
+        if (error.closeRequest) response.setHeader("Connection", "close");
+        return json(response, error.status, { error: error.message });
+      }
       json(response, 400, {
         error: "Não foi possível processar a solicitação."
       });
     } else {
       response.end();
     }
-  }
+  } finally { release?.(); }
 });
 
 server.requestTimeout = 15000;
 server.headersTimeout = 10000;
+server.maxHeadersCount = 100;
+server.maxRequestsPerSocket = 100;
 
 server.listen(
   PORT,
