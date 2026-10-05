@@ -188,6 +188,20 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       assert.ok(!JSON.stringify(row).includes(oldPhone));
       await store.deleteCompany(userA.id,listA.id,saved.item.id);
     });
+    await t.test("qualidade e origem dos contatos persistem cifradas e divergência bloqueia WhatsApp ao reabrir",async()=>{
+      const company={osmId:"node/contact-quality",name:"Empresa de fixture",phone:"(11) 3456-7890",countryCode:"BR",
+        sitePhone:"+5511991234567",phoneSource:"OpenStreetMap · phone",phoneVerification:"conflict",
+        website:"https://fixture.example/",websiteSource:"OpenStreetMap · website",websiteVerification:"compatible",websiteCheckedAt:new Date().toISOString()};
+      const saved=await store.saveCompany(userA.id,listA.id,company);
+      const result=await alice.call("GET",`/api/lists/${listA.id}/companies`);
+      const restored=result.data.find(item=>item.id===saved.item.id).company;
+      for(const key of ["phone","sitePhone","phoneSource","phoneVerification","websiteVerification","websiteCheckedAt"])assert.equal(restored[key],company[key]);
+      assert.equal(restored.whatsappUrl,"");
+      const raw=(await sql.query("SELECT company_encrypted FROM prospect_list_companies WHERE id=$1",[saved.item.id])).rows[0];
+      for(const text of [company.phone,company.sitePhone,company.phoneSource])assert.ok(!JSON.stringify(raw).includes(text));
+      assert.equal((await bob.call("GET",`/api/lists/${listA.id}/companies`)).status,404);
+      await store.deleteCompany(userA.id,listA.id,saved.item.id);
+    });
     await t.test("notas e status persistem cifrados e não são sobrescritos ao favoritar novamente",async()=>{
       const value={note:"Retornar na sexta-feira\n<script>texto privado</script>",status:"interested"};
       const update=await alice.call("PATCH",`/api/lists/${listA.id}/companies/${savedA.id}`,value);

@@ -8,7 +8,7 @@ const prospectLists = (() => {
     return item;
   };
   const labels = { new: "Novo", contacted: "Contatado", interested: "Interessado" };
-  const websiteLabels = { WEBSITE_LISTED: "Site listado", WEBSITE_FOUND: "Site encontrado", LIKELY_NO_WEBSITE: "Provavelmente sem site", UNCERTAIN: "Site incerto" };
+  const websiteLabels = { WEBSITE_LISTED: "Site na fonte", WEBSITE_FOUND: "Site compatível", LIKELY_NO_WEBSITE: "Site não identificado", UNCERTAIN: "Site não confirmado" };
   let enabled = false, lists = [], companies = [], selected = "", epoch = 0, listRead = 0, companyRead = 0;
   let saving = null, naming = null;
   let loadState = "ready";
@@ -35,13 +35,44 @@ const prospectLists = (() => {
       const number = "+" + url.split("/").pop();
       const adjusted = company.whatsappAdjustment === "br_ninth_digit";
       item.append(node("small", number + (adjusted ? " · nono dígito incluído" : ""), "whatsapp-number"));
-      item.title = "Abrir WhatsApp para " + number;
+      item.title = "Abrir WhatsApp para " + number + ". A existência da conta e a titularidade não foram confirmadas.";
       item.setAttribute("aria-label", `Entrar em contato com ${company.name} pelo WhatsApp, número ${number}`);
     } else {
       item.type = "button"; item.disabled = true;
-      item.title = "É necessário um telefone completo com código de país para abrir o WhatsApp.";
+      item.title = company.phoneVerification === "conflict"
+        ? "Há divergência entre os números das fontes. Revise o contato antes de abrir o WhatsApp."
+        : "É necessário um telefone completo com código de país para abrir o WhatsApp.";
     }
     return item;
+  }
+  function information(company) {
+    const box = node("div",undefined,"contact-information");
+    const phoneNotes = {
+      listed:"Telefone informado na fonte; titularidade e atualização não confirmadas.",
+      website_match:"O telefone coincide com o cadastro da empresa no site compatível; titularidade e atualização não confirmadas.",
+      website_published:"Telefone publicado no cadastro da empresa no site compatível; titularidade e atualização não confirmadas.",
+      conflict:"Telefones divergentes. Revise o contato na fonte e no site antes de entrar em contato."
+    };
+    box.append(node("p",company.phone ? phoneNotes[company.phoneVerification] || phoneNotes.listed
+      : "Telefone não informado nas fontes consultadas; isso não comprova ausência de telefone.","reason"));
+    if (company.sitePhone) box.append(node("p","Telefone publicado no site: " + company.sitePhone,"reason"));
+    if (company.phoneSource) {
+      const source = node("p","Fonte do telefone: ","reason");
+      source.append(validURL(company.phoneSource) ? link("Página consultada",company.phoneSource) : document.createTextNode(company.phoneSource));
+      box.append(source);
+    }
+    const siteNotes = {
+      listed:"Site cadastrado na fonte; verificação ainda pendente.",
+      compatible:"A página apresentou identidade compatível. Isso não comprova propriedade nem atualização do cadastro.",
+      inconclusive:"Site informado na fonte; identidade ou disponibilidade não confirmadas.",
+      profile:"Este endereço é um perfil ou diretório. Site próprio não confirmado.",
+      not_identified:"Site não identificado na consulta limitada. Isso não comprova ausência de site."
+    };
+    box.append(node("p",siteNotes[company.websiteVerification] || (company.website
+      ? "Registro anterior: refaça a busca para verificar o site com os critérios atuais."
+      : siteNotes.not_identified),"reason"));
+    if (company.websiteSource) box.append(node("p","Fonte do site: " + company.websiteSource,"reason"));
+    return box;
   }
   function clear() {
     epoch++; listRead++; companyRead++; enabled = false; lists = []; companies = []; selected = ""; saving = null; naming = null;
@@ -103,7 +134,10 @@ const prospectLists = (() => {
     if (contactButton) sources.append(contactButton);
     if (validURL(company.website)) sources.append(link("Abrir site", company.website));
     if (/^(node|way|relation)\/\d+$/.test(company.osmId)) sources.append(link("Ver fonte", `https://www.openstreetmap.org/${company.osmId}`));
-    sources.append(node("span", websiteLabels[company.status] || "Site incerto"));
+    sources.append(node("span", company.websiteVerification === "profile" ? "Perfil na fonte"
+      : company.status === "WEBSITE_FOUND" && company.websiteVerification !== "compatible" ? "Verificação anterior"
+      : websiteLabels[company.status] || "Site incerto"));
+    sources.append(information(company));
     article.append(sources);
     const form = node("form", undefined, "prospect-edit-form");
     const select = node("select"); select.id = "company-status-" + item.id;
@@ -234,6 +268,7 @@ const prospectLists = (() => {
   window.addEventListener("hashchange", () => { if ($("workspace").hidden) clear(); });
   return {
     whatsappButton,
+    information,
     initialize() {
       enabled = accountUI.mode === "password" && Boolean(accountUI.profile);
       $("lists-section").hidden = !enabled;

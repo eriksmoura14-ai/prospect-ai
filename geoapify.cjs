@@ -127,7 +127,15 @@ function element(feature) {
   for (const [target,source] of [["addr:street","street"],["addr:housenumber","housenumber"],["addr:postcode","postcode"],["addr:city","city"]]) {
     if (!tags[target] && typeof (raw[source] ?? feature.properties?.[source]) === "string") tags[target] = raw[source] ?? feature.properties[source];
   }
-  return {type, id, lat, lon, tags};
+  const result = {type, id, lat, lon, tags};
+  // Some provider responses include normalized contacts. Preserve them
+  // separately instead of turning provider categories or contacts into OSM tags.
+  const contact = {};
+  for (const [key,value] of [["phone",feature.properties?.contact?.phone],["website",feature.properties?.website]]) {
+    if (typeof value === "string" && value.trim() && value.length <= (key === "phone" ? 200 : 2000)) contact[key] = value.trim();
+  }
+  if (Object.keys(contact).length) result.providerContact = contact;
+  return result;
 }
 async function discover(place, {apiKey, onTrace, onProgress = () => {}, transport = request, categories = CATEGORIES, budget = {remaining:4}} = {}) {
   const filter = spatialFilter(place), elements = [], seen = new Set();

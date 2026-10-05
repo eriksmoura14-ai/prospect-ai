@@ -63,6 +63,15 @@ test("componentes públicos de endereço são normalizados sem alterar classific
  assert.equal(e.tags["addr:street"],"Rua Teste");assert.equal(e.tags["addr:housenumber"],"12");assert.equal(e.tags.shop,"barber");
 });
 
+test("contatos normalizados não são descartados nem apresentados como tags OSM originais",()=>{
+ const f=feature(8);f.properties.contact={phone:"+1 212 555 0100",email:"private@example.com"};f.properties.website="https://provider.example/";
+ const before=structuredClone(f.properties.datasource.raw),e=element(f);
+ assert.deepEqual(e.tags,before);
+ assert.deepEqual(e.providerContact,{phone:"+1 212 555 0100",website:"https://provider.example/"});
+ assert.equal(e.providerContact.email,undefined);
+ assert.equal(e.tags["contact:phone"],undefined);
+});
+
 test("orçamento de páginas é compartilhado entre categorias e alternativa",async()=>{
  const budget={remaining:1};await discover(place,{budget,transport:async()=>({features:[]})});
  await assert.rejects(discover(place,{budget,transport:async()=>{throw new Error("não deve chamar");}}),{code:"geoapify_budget"});

@@ -841,25 +841,25 @@
     </div>
     <section class="stats" aria-label="Resumo da pesquisa">
       <div class="panel stat"><span>Encontradas</span><strong id="total">0</strong></div>
-      <div class="panel stat highlight"><span>Oportunidades</span><strong id="prospects">0</strong></div>
-      <div class="panel stat"><span>Sites encontrados</span><strong id="websites">0</strong></div>
+      <div class="panel stat highlight"><span>Site não identificado</span><strong id="prospects">0</strong></div>
+      <div class="panel stat"><span>Sites informados</span><strong id="websites">0</strong></div>
       <div class="panel stat"><span>Incertos</span><strong id="uncertain">0</strong></div>
-      <div class="panel stat"><span>Com telefone</span><strong id="phones">0</strong></div>
+      <div class="panel stat"><span>Telefone informado</span><strong id="phones">0</strong></div>
     </section>
     <div class="filters">
       <div class="tabs" role="group" aria-label="Filtrar por status do website">
         <button type="button" data-filter="all" aria-pressed="true">Todas</button>
-        <button type="button" data-filter="prospect" aria-pressed="false">Oportunidades</button>
-        <button type="button" data-filter="found" aria-pressed="false">Com site</button>
+        <button type="button" data-filter="prospect" aria-pressed="false">Site não identificado</button>
+        <button type="button" data-filter="found" aria-pressed="false">Sites informados</button>
         <button type="button" data-filter="uncertain" aria-pressed="false">Incerto</button>
       </div>
       <div class="selects">
-        <label for="phone-filter">Telefone<select id="phone-filter"><option value="all">Todos</option><option value="yes">Com telefone</option><option value="no">Sem telefone</option></select></label>
+        <label for="phone-filter">Telefone<select id="phone-filter"><option value="all">Todos</option><option value="yes">Informado</option><option value="no">Não informado</option></select></label>
         <label for="sort">Ordenar por<select id="sort"><option value="score">Prioridade</option><option value="confidence">Confiança</option><option value="name">Nome</option></select></label>
       </div>
     </div>
     <div id="cards" class="cards"><div class="panel empty"><h3>Sua pesquisa começa aqui</h3><p>Escolha um local e um nicho para encontrar empresas com informações comerciais públicas.</p></div></div>
-    <div class="notice">Dados públicos do OpenStreetMap. A ausência de website cadastrado não significa ausência de site. Revise as evidências antes de priorizar um negócio.</div>
+    <div class="notice">Cadastros públicos podem estar incompletos ou desatualizados. Telefone ou site não informado não significa inexistente. Confira as fontes e eventuais divergências antes de entrar em contato.</div>
     </section>
 
     <details id="lists-section" class="panel workspace-section" hidden>

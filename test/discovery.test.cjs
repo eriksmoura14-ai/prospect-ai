@@ -199,6 +199,39 @@ const scenarios = [
   ["القاهرة", [29.9, 30.2, 31.1, 31.5], "node"]
 ];
 
+test("filiais próximas com o mesmo nome não recebem o telefone ou site umas das outras",async()=>{
+  const city="New York",p=place(city,99,[40.6,40.9,-74.1,-73.8]);
+  const items=[{type:"node",id:100,lat:40.7,lon:-74,tags:{name:"Central Barber",shop:"barber","addr:city":city,"addr:street":"Main Street","addr:housenumber":"10"}},
+    {type:"node",id:101,lat:40.7003,lon:-74,tags:{name:"Central Barber",shop:"barber","addr:city":city,"addr:street":"Main Street","addr:housenumber":"20",phone:"+1 212 555 0100",website:"https://fixture.example/"}}];
+  const h=harness({locations:{[city]:[p]},answers:[items]});const result=await h.discover(city,"Barber");
+  assert.equal(result.rows.length,2);assert.equal(result.rows[0].phone,"");assert.equal(result.rows[0].website,"");
+  assert.equal(result.rows[1].phone,"+1 212 555 0100");
+});
+
+test("nomes distintos de alfabetos não latinos não são deduplicados pela proximidade",async()=>{
+  const city="東京",items=[{type:"node",id:1,lat:35.7,lon:139.7,tags:{name:"中央理髪店",shop:"barber",phone:"+81 90 1234 5678"}},
+    {type:"node",id:2,lat:35.70001,lon:139.7,tags:{name:"南理髪店",shop:"barber",phone:"+81 90 1234 5678"}}];
+  const h=harness({locations:{[city]:[place(city,99,[35.5,35.9,139.5,139.9])]},answers:[items]});
+  assert.equal((await h.discover(city,"Barber")).rows.length,2);
+});
+
+test("telefone de central compartilhado não mistura filiais com endereços diferentes",async()=>{
+  const city="New York",items=[1,2].map(id=>({type:"node",id,lat:40.7+id*0.0001,lon:-74,
+    tags:{name:"Central Barber",shop:"barber","addr:city":city,"addr:street":"Main Street","addr:housenumber":String(id),phone:"+1 212 555 0100"}}));
+  const h=harness({locations:{[city]:[place(city,99,[40.6,40.9,-74.1,-73.8])]},answers:[items]});
+  assert.equal((await h.discover(city,"Barber")).rows.length,2);
+});
+
+test("contato móvel e dados normalizados do Geoapify chegam à empresa com origem própria",async()=>{
+  const city="São Paulo",p={...place(city,99,[-24,-23,-47,-46]),address:{country_code:"br"}};
+  const item={type:"node",id:1,lat:-23.5,lon:-46.5,tags:{name:"Central Barber",shop:"barber","contact:mobile":"(11) 99123-4567"},providerContact:{website:"https://fixture.example/"}};
+  const h=harness({locations:{[city]:[p]},provider:"geoapify",geoAnswers:[[item]]});
+  const row=(await h.discover(city,"Barber")).rows[0];
+  assert.equal(row.phone,"(11) 99123-4567");assert.equal(row.website,"https://fixture.example/");
+  assert.equal(row.websiteSource,"Geoapify · website");assert.match(row.phoneSource,/contact:mobile/);
+  assert.equal(row.matchMethod,"tag");assert.equal(row.websiteVerification,"listed");
+});
+
 for (const [city, bounds, type] of scenarios) {
   test(`alcance completo e classificação preservados: ${city}`, async () => {
     const locations = { [city]: [place(city.split(",")[0], 12345, bounds, type)] };
@@ -210,7 +243,8 @@ for (const [city, bounds, type] of scenarios) {
     assert.equal(b.rows.length, 1);
     assert.equal(b.rows[0].status, "WEBSITE_LISTED");
     assert.equal(b.rows[0].matchMethod, "tag");
-    assert.equal(b.rows[0].confidence, 1);
+    assert.equal(b.rows[0].confidence, 0.4);
+    assert.equal(b.rows[0].websiteVerification, "listed");
     assert.ok(after.queries[0].includes('["shop"="barber"]["name"]'));
     assert.ok(after.queries[0].includes('["hairdresser"="barber"]["name"]'));
     if (type === "relation") assert.match(after.queries[0], /area\(3600012345\)/);
