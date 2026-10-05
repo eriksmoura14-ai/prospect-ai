@@ -48,6 +48,8 @@ O esquema está em `db/schema.sql` e é aplicado de maneira idempotente, com tra
 
 O transporte de e-mail dos testes é capturado localmente, de modo explícito. Não envia mensagens reais e não verifica antispam ou aprovação do remetente. A entrega final só pode ser validada com a configuração real e um Gmail de teste autorizado.
 
+Nos logs privados do Render, `EMAIL_DIAGNOSTIC` distingue uma solicitação aceita pela API (HTTP 201) de uma rejeição, timeout ou falha de conexão. Aceitação não comprova entrega ao Gmail. A inicialização hospedada faz uma verificação somente de leitura da conta, do remetente configurado e de até 50 eventos recentes da Brevo; não envia mensagem de teste nem bloqueia login ou health check. O resumo registra apenas estados, contagens e classificações fixas, sem chaves, endereços, dados pessoais da conta ou links de confirmação. Consulte os eventos transacionais da Brevo para confirmar o destino e o estado de uma mensagem específica.
+
 Após ativar no Render, verifique `/health`, faça um cadastro real, abra a confirmação recebida, defina a senha e entre. Faça uma busca, recarregue e abra o histórico. Teste uma segunda conta: ela não deve ver resultados da primeira. Depois valide recuperação e logout. Uma resposta positiva de `/health` comprova disponibilidade do banco, mas não comprova entrega de e-mail, descoberta de empresas ou uso da IA.
 
 ### Fontes consultadas

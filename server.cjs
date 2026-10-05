@@ -1818,6 +1818,10 @@ server.listen(
   () => {
     console.log(`Prospect AI iniciado na porta ${PORT}.`);
     console.log(`Endereço: ${ORIGIN}`);
+    if (HOSTED && accountService) {
+      void require("./email.cjs").probeConfiguration(authConfig.email)
+        .catch(() => console.log("EMAIL_DIAGNOSTIC", JSON.stringify({ event: "email_configuration", outcome: "diagnostic_unavailable" })));
+    }
     if (process.env.RENDER_SERVICE_NAME === "prospect-ai-discovery-test" &&
         ["1", "categories"].includes(process.env.GEOAPIFY_DISCOVERY_CHECK)) {
       (async () => {
