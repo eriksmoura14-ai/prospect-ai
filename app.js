@@ -12,6 +12,7 @@ let progressText = "";
 let lastJob = null;
 let searchError = "";
 let globeJobLocationKey = "";
+const resultCards = new Map();
 
 const fields = [
   "name", "category", "city", "address", "phone", "website",
@@ -204,11 +205,10 @@ function render() {
     rows.filter(row => Boolean(row.phone)).length;
 
   const visible = visibleRows();
-  const openDetails = new Set(
-    [...$("cards").querySelectorAll("details[open]")]
-      .map(element => element.dataset.osmId)
-  );
-  $("cards").replaceChildren();
+  const existing = new Set(rows.map(row => row.osmId));
+  for (const [key, cached] of resultCards) {
+    if (!existing.has(key)) { cached.card.remove(); resultCards.delete(key); }
+  }
   $("csv").disabled = visible.length === 0;
   $("json").disabled = visible.length === 0;
 
@@ -243,16 +243,30 @@ function render() {
     }
     const empty = node("div", "panel empty");
     empty.append(node("h3", "", title), node("p", "", description));
-    $("cards").append(empty);
+    $("cards").replaceChildren(empty);
     return;
   }
 
+  // Keep unchanged cards in place while progress updates or filters change.
+  // This also preserves keyboard focus and expanded verification details.
+  let cursor = $("cards").firstChild;
   for (const row of visible) {
-    const card = makeCard(row);
-    const details = card.querySelector("details");
-    if (details && openDetails.has(row.osmId)) details.open = true;
-    $("cards").append(card);
+    const signature = JSON.stringify([row, lastJob?.id, lastJob?.state === "running"]);
+    let cached = resultCards.get(row.osmId);
+    if (!cached || cached.signature !== signature) {
+      const wasOpen = cached?.card.querySelector("details")?.open;
+      const card = makeCard(row);
+      if (wasOpen && card.querySelector("details")) card.querySelector("details").open = true;
+      if (cached?.card.parentNode === $("cards")) {
+        if (cursor === cached.card) cursor = card;
+        cached.card.replaceWith(card);
+      }
+      cached = { signature, card }; resultCards.set(row.osmId, cached);
+    }
+    if (cached.card === cursor) cursor = cursor.nextSibling;
+    else $("cards").insertBefore(cached.card, cursor);
   }
+  while (cursor) { const next = cursor.nextSibling; cursor.remove(); cursor = next; }
 }
 
 async function api(url, options = {}) {
