@@ -120,6 +120,8 @@ function makeCard(row) {
   business.append(website);
 
   const actions = node("div", "actions");
+  const contactButton = prospectLists.whatsappButton(row);
+  if (contactButton) actions.append(contactButton);
   if (Number.isFinite(row.latitude) && Number.isFinite(row.longitude)) {
     actions.append(link("Ver no mapa",
       `https://www.openstreetmap.org/?mlat=${row.latitude}` +

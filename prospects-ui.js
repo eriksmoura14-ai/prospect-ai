@@ -25,6 +25,21 @@ const prospectLists = (() => {
     const item = node("a", label); item.href = url; item.target = "_blank"; item.rel = "noopener noreferrer";
     return item;
   }
+  function whatsappButton(company) {
+    if (typeof company.phone !== "string" || !company.phone.trim()) return null;
+    const url = typeof company.whatsappUrl === "string" && /^https:\/\/wa\.me\/[1-9]\d{6,14}$/.test(company.whatsappUrl)
+      ? company.whatsappUrl : "";
+    const item = node(url ? "a" : "button", url ? "Entrar em contato · WhatsApp" : "WhatsApp indisponível", "whatsapp-contact");
+    if (url) {
+      item.href = url; item.target = "_blank"; item.rel = "noopener noreferrer";
+      item.title = "Abrir WhatsApp para +" + url.split("/").pop();
+      item.setAttribute("aria-label", `Entrar em contato com ${company.name} pelo WhatsApp`);
+    } else {
+      item.type = "button"; item.disabled = true;
+      item.title = "É necessário um telefone completo com código de país para abrir o WhatsApp.";
+    }
+    return item;
+  }
   function clear() {
     epoch++; listRead++; companyRead++; enabled = false; lists = []; companies = []; selected = ""; saving = null; naming = null;
     drafts.clear(); working.clear(); feedback.clear();
@@ -81,6 +96,8 @@ const prospectLists = (() => {
       node("p", company.address || "Endereço não informado", "prospect-contact"),
       node("p", company.phone || "Telefone não informado", "prospect-contact"));
     const sources = node("div", undefined, "prospect-links");
+    const contactButton = whatsappButton(company);
+    if (contactButton) sources.append(contactButton);
     if (validURL(company.website)) sources.append(link("Abrir site", company.website));
     if (/^(node|way|relation)\/\d+$/.test(company.osmId)) sources.append(link("Ver fonte", `https://www.openstreetmap.org/${company.osmId}`));
     sources.append(node("span", websiteLabels[company.status] || "Site incerto"));
@@ -213,6 +230,7 @@ const prospectLists = (() => {
   window.addEventListener("prospect:session-expired", clear);
   window.addEventListener("hashchange", () => { if ($("workspace").hidden) clear(); });
   return {
+    whatsappButton,
     initialize() {
       enabled = accountUI.mode === "password" && Boolean(accountUI.profile);
       $("lists-section").hidden = !enabled;

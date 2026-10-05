@@ -1,6 +1,7 @@
 "use strict";
 
 const crypto = require("node:crypto");
+const contacts = require("./contacts.cjs");
 const LIMITS = Object.freeze({ lists: 20, companiesPerList: 250, companiesPerAccount: 1000, note: 3000 });
 const STATUSES = Object.freeze(["new", "contacted", "interested"]);
 const fail = (status, message) => { throw Object.assign(new Error(message), { status }); };
@@ -28,14 +29,14 @@ function snapshot(row) {
   for (const key of ["confidence", "prospectScore", "latitude", "longitude"]) {
     if (Number.isFinite(row[key])) result[key] = row[key];
   }
-  return result;
+  return contacts.details({ ...result, countryCode: contacts.countryCode(row.countryCode) });
 }
 
 function createProspectStore({ pool, ready, transaction, cipher, uuid }) {
   const listData = row => ({ id: row.id, name: cipher.decrypt(row.name_encrypted, `list:${row.account_id}:${row.id}`),
     count: Number(row.count || 0), createdAt: row.created_at, updatedAt: row.updated_at });
   const companyData = row => ({ id: row.id, listId: row.list_id, createdAt: row.created_at, updatedAt: row.updated_at,
-    company: cipher.decrypt(row.company_encrypted, `company:${row.account_id}:${row.list_id}:${row.id}`),
+    company: contacts.details(cipher.decrypt(row.company_encrypted, `company:${row.account_id}:${row.list_id}:${row.id}`)),
     ...cipher.decrypt(row.details_encrypted, `company-details:${row.account_id}:${row.list_id}:${row.id}`) });
   const lock = async (client, accountId) => {
     const { rows } = await client.query("SELECT id FROM prospect_accounts WHERE id=$1 FOR UPDATE", [accountId]);

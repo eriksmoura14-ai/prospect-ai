@@ -32,7 +32,8 @@ async function start() {
     }
     const job = { id: crypto.randomUUID(), ownerId: users.alice.id, state: "done", city: "Cidade de fixture", niche: "Barber", limit: 2,
       message: "Resultados controlados para testar listas.", total: 2, totalDiscovered: 2, completed: 2, createdAt: Date.now(),
-      rows: [{ osmId: "node/10001", name: "Barbearia <img src=x onerror=window.listXss=1>", category: "Barber", city: "Cidade de fixture", address: "Rua de teste, 1", phone: "+55 11 1234-5678", status: "UNCERTAIN", confidence: 0.5, prospectScore: 40, source: "OpenStreetMap" },
+      discoveryDiagnostics: { geocode: { selected: { address: { country_code: "br" } } } },
+      rows: [{ osmId: "node/10001", name: "Barbearia <img src=x onerror=window.listXss=1>", category: "Barber", city: "Cidade de fixture", address: "Rua de teste, 1", phone: "(11) 91234-5678", status: "UNCERTAIN", confidence: 0.5, prospectScore: 40, source: "OpenStreetMap" },
         { osmId: "node/10002", name: "Oficina de exemplo", category: "Auto Detailing", city: "Cidade de fixture", address: "Avenida de teste, 2", phone: "", status: "WEBSITE_LISTED", website: "https://fixture.example", confidence: 0.9, prospectScore: 0, source: "OpenStreetMap" }] };
     await store.saveSearch(users.alice.id, job, { city: job.city, niche: job.niche, state: job.state, total: 2 });
     backend.jobs.set(job.id, job); fixtures[device] = { ...users, password: phrase, jobId: job.id };

@@ -116,9 +116,12 @@ test("geocoder respeita país/estado escolhidos e mantém limite administrativo 
     address: { country_code: "br", state: "Minas Gerais", "ISO3166-2-lvl4": "BR-MG" } };
   const wrongState = { ...correct, osm_id: 999, address: { country_code: "br", state: "São Paulo", "ISO3166-2-lvl4": "BR-SP" } };
   const wrongCountry = { ...correct, osm_id: 1000, address: { country_code: "us", state: "Minas Gerais" } };
-  const h = harness({ locations: { [selection.query]: [wrongCountry, wrongState, correct] } });
+  const h = harness({ locations: { [selection.query]: [wrongCountry, wrongState, correct] },
+    answers: [[{ type: "node", id: 1, lat: -18.9, lon: -48.3, tags: { name: "Empresa fictícia", shop: "barber", phone: "(34) 91234-5678" } }]] });
   const result = await h.discover(selection.query, "Barber", () => {}, () => {}, selection);
-  assert.equal(result.rows.length, 0);
+  assert.equal(result.rows.length, 1);
+  assert.equal(result.rows[0].countryCode, "BR");
+  assert.equal(result.rows[0].phone, "(34) 91234-5678");
   assert.equal(h.geocodeRequests[0].searchParams.get("countrycodes"), "br");
   assert.equal(h.geocodeRequests[0].searchParams.get("q"), "Uberlândia, Minas Gerais, Brazil");
   assert.match(h.queries[0], /area\(3600314875\)/);
