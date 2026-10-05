@@ -26,3 +26,19 @@ test("avaliação não aprova valor inventado nem preço copiado do rascunho", a
   assert.equal(report.passed, 0); assert.equal(report.cases[0].checks.noInventedQuote, false);
   assert.equal(report.cases[1].checks.noDraftDiscount, false);
 });
+
+test("respostas capturadas do modelo real com itens inventados e convite após recusa falham", async () => {
+  // Captured from the first real Groq run on Render on 2026-10-05.
+  // Replaying these records is a regression check, not a fresh model evaluation.
+  const captured=[
+    "O valor varia conforme o escopo do site institucional que você precisa. Para elaborar um orçamento preciso, poderia me informar quantas páginas pretende, se haverá integração com sistemas externos, necessidade de área de blog ou loja, e se já possui conteúdo pronto (texto, imagens, identidade visual). Com esses detalhes consigo definir o custo e o prazo.",
+    "O valor para um site institucional, com até cinco páginas, é R$ 1.850. Esse preço já inclui o design, a estrutura responsiva e a publicação. Caso precise de mais páginas ou funcionalidades adicionais, podemos ajustar o orçamento. Há alguma informação específica que você gostaria de saber sobre o escopo ou o prazo de entrega?",
+    "Entendido. Obrigado por avisar; não entrarei mais em contato. Caso mude de ideia no futuro, estarei à disposição."
+  ];
+  let index=0;
+  const report=await evaluation.run({limit:3,generate:async()=>({text:captured[index++],model:"captured-record-not-live-provider"})});
+  assert.equal(report.passed,0);
+  assert.equal(report.cases[0].checks.conciseScopeQuestion,false);
+  assert.equal(report.cases[1].checks.noUnsupportedFeatures,false);
+  assert.equal(report.cases[2].checks.noFuturePitch,false);
+});

@@ -28,7 +28,7 @@ Os exemplos demonstram comportamento para serviços distintos, não fornecem pre
 
 ## Validação
 
-`npm test` com PostgreSQL 17 descartável: **176 testes aprovados, zero ignorados**. Os testes do transporte do agente usam respostas identificadas como fixtures e verificam validação, separação de papéis, perfil, erros do provedor e proteção de chaves; não comprovam a qualidade de uma resposta real da IA.
+`npm test` com PostgreSQL 17 descartável: **177 testes aprovados, zero ignorados**. Os testes do transporte do agente usam respostas identificadas como fixtures e verificam validação, separação de papéis, perfil, erros do provedor e proteção de chaves; não comprovam a qualidade de uma resposta real da IA.
 
 `python test/agent-profile-browser.py`, usando `test/prospects-browser-server.cjs`: Chromium em computador e celular confirmou persistência do perfil após recarregar, isolamento entre contas, texto HTML literal, inclusão do perfil na solicitação e remoção do painel após expirar a sessão. O servidor local proíbe chamadas a provedores.
 
@@ -42,11 +42,13 @@ npm run eval:agent -- --limit=3
 
 Há 12 casos fictícios; `--limit=12` executa todos. A avaliação usa o mesmo modelo e instruções do aplicativo, sem e-mail ou busca de empresas. Os três primeiros casos testam preço não informado, preço falso no rascunho anterior e pedido para parar. Não há repetição automática após falha ou cota esgotada. As chamadas consomem a cota atual da Groq; não foi contratado plano pago.
 
-Para diagnóstico temporário no Render, a variável opcional `AGENT_EVALUATION_RUN` aceita um identificador de 8–80 caracteres (`a-z`, `A-Z`, dígitos ou hífen). Ela habilita somente os três primeiros casos na inicialização hospedada. O PostgreSQL limita o mesmo identificador a uma execução por 24 horas. A avaliação é desativada por padrão; deixe a variável vazia após registrar os resultados. Não existe rota pública que habilite a avaliação.
+Para diagnóstico temporário no Render, a variável opcional `AGENT_EVALUATION_RUN` aceita um identificador de 8–80 caracteres (`a-z`, `A-Z`, dígitos ou hífen). Ela habilita somente os três primeiros casos na inicialização hospedada. O PostgreSQL limita o mesmo identificador/revisão a uma execução por 24 horas. A avaliação é desativada por padrão; deixe a variável vazia após registrar os resultados. Não existe rota pública que habilite a avaliação.
 
 Os logs `AGENT_EVALUATION` registram somente os casos fictícios, respostas, revisão do prompt, modelo e critérios automáticos. Nenhuma chave é registrada. `checks_passed`, `checks_failed` e `incomplete` distinguem os resultados. O relatório de um gerador simulado indica `fixture-generator-not-provider-evidence` e não pode ser utilizado como prova do modelo real.
 
 Critérios automáticos detectam alguns erros e limites de texto. Tom, pertinência, língua e condições precisam também de leitura humana; três respostas aprovadas não garantem comportamento correto em todos os casos. A IA pode errar, e mensagens reais continuam exigindo revisão antes do envio.
+
+Na primeira avaliação real, a leitura humana encontrou itens de pacote não informados e convite futuro após recusa, apesar de os critérios iniciais passarem. A revisão `2026-10-05.2` reforça esses limites e a concisão. As três respostas reais dessa rodada foram preservadas como registros de regressão: os novos critérios as rejeitam. Reproduzir registros capturados não é uma nova chamada ao modelo; cada avaliação real é identificada nos logs por revisão e horário.
 
 ## Arquivos
 
