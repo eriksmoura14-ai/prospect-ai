@@ -53,6 +53,22 @@ function node(tag, className, text) {
   return element;
 }
 
+function uiIcon(name) {
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("class", "ui-icon");
+  icon.setAttribute("aria-hidden", "true");
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  use.setAttribute("href", "#icon-" + name);
+  icon.append(use);
+  return icon;
+}
+
+function businessIcon() {
+  const mark = node("span", "business-icon");
+  mark.append(uiIcon("store"));
+  return mark;
+}
+
 function link(text, href) {
   const element = node("a", "", text);
   element.href = href;
@@ -99,16 +115,20 @@ function makeCard(row) {
   const state = states[row.status] || states.UNCERTAIN;
   const card = node("article", "panel card");
   const business = node("div", "business");
-  business.append(
+  const heading = node("div", "business-heading");
+  const identity = node("div");
+  identity.append(
     node("h3", "", row.name),
     node("p", "meta", `${row.category} · ${row.city} · OpenStreetMap`)
   );
+  heading.append(businessIcon(), identity);
+  business.append(heading, node("span", `badge ${state.className}`, state.label));
 
   const contact = node("div", "contact");
-  contact.append(
-    node("span", "", row.phone || "Telefone não informado"),
-    node("span", "", row.address || "Endereço não informado")
-  );
+  const phone = node("span", "", row.phone || "Telefone não informado");
+  const address = node("span", "", row.address || "Endereço não informado");
+  phone.prepend(uiIcon("phone")); address.prepend(uiIcon("pin"));
+  contact.append(phone, address);
   business.append(contact);
 
   const website = node("div", "website");
@@ -117,36 +137,37 @@ function makeCard(row) {
   else website.textContent = row.status === "LIKELY_NO_WEBSITE"
     ? "Nenhum website encontrado nas verificações realizadas."
     : "Website não confirmado.";
-  business.append(website);
-
+  const evidenceLinks = node("div", "evidence-links");
   const actions = node("div", "actions");
   const contactButton = prospectLists.whatsappButton(row);
   if (contactButton) actions.append(contactButton);
   if (Number.isFinite(row.latitude) && Number.isFinite(row.longitude)) {
-    actions.append(link("Ver no mapa",
+    evidenceLinks.append(link("Ver no mapa",
       `https://www.openstreetmap.org/?mlat=${row.latitude}` +
       `&mlon=${row.longitude}#map=18/${row.latitude}/${row.longitude}`));
   }
-  actions.append(link("Pesquisar manualmente",
+  evidenceLinks.append(link("Pesquisar manualmente",
     "https://www.google.com/search?q=" +
     encodeURIComponent(`${row.name} ${row.city} website`)));
   if (/^(node|way|relation)\/\d+$/.test(row.osmId)) {
-    actions.append(link("Ver fonte",
+    evidenceLinks.append(link("Ver fonte",
       `https://www.openstreetmap.org/${row.osmId}`));
   }
-  const aiButton = node("button", "", "Abrir assistente de IA");
+  const tools = node("div", "card-tools");
+  const aiButton = node("button", "card-agent", "Assistente de IA");
+  aiButton.setAttribute("aria-label", "Abrir assistente de IA");
   aiButton.type = "button";
   aiButton.disabled = !lastJob?.id || lastJob.state === "running";
   aiButton.title = aiButton.disabled ? "Aguarde a pesquisa terminar." : "Revisar empresa e preparar mensagens";
   aiButton.addEventListener("click", () => openAIPanel(row, lastJob.id));
-  actions.append(aiButton);
+  tools.append(aiButton);
   const saveButton = prospectLists.button(row, lastJob);
-  if (saveButton) actions.append(saveButton);
+  if (saveButton) tools.append(saveButton);
+  actions.append(tools);
   business.append(actions);
 
   const verification = node("div", "verification");
   verification.append(
-    node("span", `badge ${state.className}`, state.label),
     node("div", "confidence",
       `Confidence: ${Number(row.confidence).toFixed(2)}`),
     node("p", "reason", row.reason || "Verificação ainda não concluída.")
@@ -188,7 +209,12 @@ function makeCard(row) {
   bar.value = row.prospectScore;
   bar.setAttribute("aria-label", "Prospect Score");
   score.append(bar);
-  card.append(business, verification, score);
+  const analysis = node("details", "card-analysis");
+  analysis.dataset.osmId = row.osmId;
+  const analysisHeading = node("summary");
+  analysisHeading.append(node("span", "", "Ver análise e evidências"), uiIcon("arrow"));
+  analysis.append(analysisHeading, website, verification, score, evidenceLinks);
+  card.append(business, analysis);
   return card;
 }
 
@@ -216,6 +242,9 @@ function render() {
 
   const countKnown = searched &&
     (rows.length > 0 || lastJob?.state === "done");
+  $("results-count").hidden = !countKnown;
+  $("results-count").textContent = `${rows.length} ${rows.length === 1 ? "resultado" : "resultados"}`;
+  document.querySelector(".stats").hidden = !countKnown && !busy;
   $("summary").textContent = [
     progressText,
     countKnown ? `${visible.length} de ${rows.length} resultados visíveis` : ""
@@ -244,7 +273,8 @@ function render() {
       description = "Informe cidade e nicho para procurar negócios públicos.";
     }
     const empty = node("div", "panel empty");
-    empty.append(node("h3", "", title), node("p", "", description));
+    const mark = node("div", "empty-mark"); mark.append(uiIcon("search"));
+    empty.append(mark, node("h3", "", title), node("p", "", description));
     $("cards").replaceChildren(empty);
     return;
   }
@@ -506,7 +536,7 @@ async function initialize() {
     "cadastrado não significa ausência de site. Durante a busca, " +
     "os negócios ainda não verificados aparecem como incertos.";
   document.querySelector(".form-note").replaceChildren(
-    node("span", "", "Pesquisas manuais · cache"),
+    node("span", "", "Busca em toda a área selecionada."),
     node("span", "", "A quantidade escolhida é um limite, não uma garantia de resultados.")
   );
   document.querySelector("footer").replaceChildren(
@@ -518,7 +548,8 @@ async function initialize() {
     node("span", "", " · "),
     link("Localidades: Countries States Cities Database · ODbL", "https://github.com/dr5hn/countries-states-cities-database"),
     node("span", "", " · "),
-    link("Terra: NASA / Blue Marble e Black Marble", "https://science.nasa.gov/earth/earth-observatory/earth-at-night/maps/")
+    link("Terra: NASA / Blue Marble e Black Marble", "https://science.nasa.gov/earth/earth-observatory/earth-at-night/maps/"),
+    node("span", "", " · "), link("Privacidade", "/privacy.html")
   );
   setBusy(true);
   progressText = "Conectando ao servidor…";
@@ -526,6 +557,7 @@ async function initialize() {
 
   try {
     if (!await accountUI.initialize()) return;
+    $("workspace").hidden = false;
     prospectLists.initialize();
     void locationPicker.initialize();
     const names = await api("/api/niches");
@@ -618,6 +650,8 @@ function createAIPanel() {
   document.head.append(style);
   const dialog = node("dialog", "ai-dialog");
   const title = node("h2", "", "Assistente de IA");
+  title.id = "ai-panel-title";
+  dialog.setAttribute("aria-labelledby", title.id);
   const close = node("button", "", "Fechar");
   close.type = "button";
   const heading = node("div", "ai-row");
@@ -651,6 +685,8 @@ function createAIPanel() {
   for (const value of ["Português", "English", "Español"]) {
     const option = node("option", "", value); option.value = value; language.append(option);
   }
+
+  const companyElementStart = dialog.children.length;
 
   const status = node("p", "ai-status", "Selecione uma ação.");
   status.setAttribute("role", "status");
@@ -687,14 +723,17 @@ function createAIPanel() {
     "Os campos informados serão enviados à Groq quando você usar a IA. Remova dados pessoais sensíveis. " +
     (accountUI.mode === "password" ? "Sua oferta e as informações de atendimento ficam salvas na sua conta; " : "A oferta e as informações de atendimento ficam salvas neste navegador; ") +
     "o histórico da conversa fica apenas nesta aba. Copie-o antes de recarregar."));
+  const companyElements = [...dialog.children].slice(companyElementStart);
+  const profileNote = node("p", "ai-profile-note", "Sua oferta e suas preferências são salvas automaticamente. Para revisar uma empresa ou preparar uma mensagem, abra o assistente no cartão da empresa.");
+  profileNote.hidden = true;
+  dialog.append(profileNote);
   document.body.append(dialog);
   const panel = { dialog, title, seller, offer, tone, knowledge, language, status, audit, sourceBody,
     draft, history, clientMessage, auditButton, draftButton, replyButton,
-    copy, record, busy: false, selection: null };
+    copy, record, companyElements, profileNote, busy: false, selection: null };
 
   function saveState() {
-    if (!panel.selection) return;
-    Object.assign(panel.selection.state, {
+    if (panel.selection) Object.assign(panel.selection.state, {
       draft: draft.value, history: history.value, clientMessage: clientMessage.value
     });
     saveOfferSettings({ seller: seller.value, offer: offer.value, tone: tone.value, knowledge: knowledge.value, language: language.value });
@@ -711,6 +750,7 @@ function createAIPanel() {
     catch { draft.focus(); draft.select(); status.textContent = "Texto selecionado. Use a opção Copiar do seu navegador."; }
   });
   record.addEventListener("click", () => {
+    if (!panel.selection) return;
     if (!draft.value.trim()) { status.textContent = "Não há mensagem para registrar."; return; }
     const state = panel.selection.state;
     const pending = state.draftAction === "reply" && clientMessage.value.trim()
@@ -728,7 +768,7 @@ function createAIPanel() {
   });
 
   async function run(action) {
-    if (panel.busy) return;
+    if (panel.busy || !panel.selection) return;
     if (action !== "audit" && (!seller.value.trim() || !offer.value.trim())) {
       status.textContent = "Preencha seu nome e sua oferta antes de gerar a mensagem."; return;
     }
@@ -809,6 +849,8 @@ function openAIPanel(row, jobId) {
   // Não substitui a seleção que uma geração pendente está usando.
   if (!aiPanel.busy) aiPanel.selection = { row, jobId, state };
   const settings = readOfferSettings();
+  for (const element of aiPanel.companyElements) element.hidden = false;
+  aiPanel.profileNote.hidden = true;
   aiPanel.title.textContent = "Assistente · " + row.name;
   aiPanel.seller.value = settings.seller; aiPanel.offer.value = settings.offer;
   aiPanel.tone.value = settings.tone; aiPanel.knowledge.value = settings.knowledge;
@@ -820,3 +862,22 @@ function openAIPanel(row, jobId) {
   if (!aiPanel.busy) aiPanel.status.textContent = "Selecione uma ação.";
   aiPanel.dialog.showModal();
 }
+
+function openAgentSettings() {
+  if ($("workspace").hidden) return;
+  if (!aiPanel) aiPanel = createAIPanel();
+  if (aiPanel.busy) {
+    aiPanel.dialog.showModal();
+    aiPanel.status.textContent = "Aguarde a geração atual antes de alterar o perfil.";
+    return;
+  }
+  aiPanel.selection = null;
+  const settings = readOfferSettings();
+  aiPanel.title.textContent = "Seu agente de prospecção";
+  for (const key of ["seller", "offer", "tone", "knowledge", "language"]) aiPanel[key].value = settings[key];
+  for (const element of aiPanel.companyElements) element.hidden = true;
+  aiPanel.profileNote.hidden = false;
+  aiPanel.dialog.showModal();
+}
+
+window.addEventListener("prospect:agent-settings", openAgentSettings);
