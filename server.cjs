@@ -16,6 +16,7 @@ const agent = require("./agent.cjs");
 const overpass = require("./overpass.cjs");
 const geoapify = require("./geoapify.cjs");
 const locations = require("./locations.cjs");
+const contacts = require("./contacts.cjs");
 const GEOAPIFY_KEY = (process.env.GEOAPIFY_API_KEY || "").trim();
 const BUSINESS_PROVIDER = process.env.BUSINESS_PROVIDER || "overpass";
 if (!["overpass", "geoapify"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
@@ -676,6 +677,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
         city.split(",")[0].trim(),
       address,
       phone: tags.phone || tags["contact:phone"] || "",
+      countryCode: contacts.countryCode(place.address?.country_code) || contacts.countryCode(selection?.countryCode),
       website,
       latitude,
       longitude,
@@ -1285,7 +1287,12 @@ async function ownedJob(id, ownerId) {
   return accountService ? accountService.store.search(ownerId, id) : null;
 }
 
-function publicJob(job) { const value = { ...job }; delete value.ownerId; return value; }
+function publicJob(job) {
+  const value = { ...job }; delete value.ownerId;
+  const country = contacts.jobCountry(job);
+  if (Array.isArray(job.rows)) value.rows = job.rows.map(row => contacts.details(row, country));
+  return value;
+}
 
 function conflict(ownerId) {
   const data = { error: "Uma pesquisa já está em andamento. Aguarde alguns instantes." };
@@ -1519,7 +1526,7 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
             const row = job?.rows?.find(item => item.osmId === input.osmId);
             if (!row) return json(response, 404, { error: "Empresa não encontrada nos seus resultados." });
             if (job.state === "running") return json(response, 409, { error: "Aguarde a pesquisa terminar antes de salvar." });
-            const result = await store.saveCompany(ownerId, parts[0], row);
+            const result = await store.saveCompany(ownerId, parts[0], contacts.details(row, contacts.jobCountry(job)));
             return json(response, result.created ? 201 : 200, result);
           }
         }

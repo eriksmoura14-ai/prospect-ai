@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@countrystatecity/countries": "1.0.9",
+    "libphonenumber-js": "1.13.14",
     "pg": "8.23.1",
     "three": "0.180.0"
   }

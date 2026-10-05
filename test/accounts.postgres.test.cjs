@@ -103,10 +103,13 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       await store.deleteAccount(results.find(Boolean).id,hashA);
     });
     await t.test("histórico, empresas e preferências ficam separados por dono",async()=>{
-      job={id:crypto.randomUUID(),ownerId:userA.id,state:"done",city:"Local de fixture",niche:"Barber",rows:[{osmId:"node/fixture",name:"Empresa de fixture",status:"UNCERTAIN"}],done:1,total:1};
+      job={id:crypto.randomUUID(),ownerId:userA.id,state:"done",city:"Local de fixture",niche:"Barber",rows:[{osmId:"node/fixture",name:"Empresa de fixture",status:"UNCERTAIN",phone:"(212) 555-0100"}],done:1,total:1,
+        discoveryDiagnostics:{geocode:{selected:{address:{country_code:"us"}}}}};
       const summary={city:job.city,niche:job.niche,total:1};
       await store.saveSearch(userA.id,job,summary);backend.jobs.set(job.id,job);
       assert.equal((await alice.call("GET","/api/jobs/"+job.id)).status,200);
+      const restored=(await alice.call("GET","/api/jobs/"+job.id)).data.rows[0];
+      assert.equal(restored.phone,"(212) 555-0100");assert.equal(restored.whatsappUrl,"https://wa.me/12125550100");
       assert.equal((await bob.call("GET","/api/jobs/"+job.id)).status,404);
       assert.equal((await alice.call("GET","/api/history")).data.length,1);
       assert.equal((await bob.call("GET","/api/history")).data.length,0);
@@ -148,11 +151,13 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       const forged={jobId:job.id,osmId:job.rows[0].osmId,company:{name:"Nome forjado",website:"https://forged.example"}};
       const response=await alice.call("POST",`/api/lists/${listA.id}/companies`,forged);
       assert.equal(response.status,201);savedA=response.data.item;
+      assert.equal(savedA.company.countryCode,"US");assert.equal(savedA.company.whatsappUrl,"https://wa.me/12125550100");
       assert.equal(savedA.company.name,"Empresa de fixture");assert.equal(savedA.company.website,"");
       assert.equal(savedA.status,"new");assert.equal(savedA.note,"");
       const concurrent=await Promise.all([alice.call("POST",`/api/lists/${listA.id}/companies`,forged),alice.call("POST",`/api/lists/${listA.id}/companies`,forged)]);
       assert.ok(concurrent.every(value=>value.status===200 && value.data.item.id===savedA.id && value.data.created===false));
       assert.equal((await alice.call("GET",`/api/lists/${listA.id}/companies`)).data.length,1);
+      assert.equal((await alice.call("GET",`/api/lists/${listA.id}/companies`)).data[0].company.whatsappUrl,"https://wa.me/12125550100");
       assert.equal((await alice.call("GET","/api/lists")).data[0].count,1);
       job.state="running";
       assert.equal((await alice.call("POST",`/api/lists/${listA.id}/companies`,forged)).status,409);
