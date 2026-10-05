@@ -33,6 +33,10 @@ async def check_device(browser, device, fixture):
     await page.locator("#login-password").fill(fixture["password"])
     await page.locator("#account-login-form button[type=submit]").click()
     await expect(page.locator("#workspace")).to_be_visible()
+    await expect(page.locator("#niche option")).to_have_count(24)
+    options = await page.locator("#niche option").all_text_contents()
+    for name in ["Hamburguerias", "Sorveterias", "Restaurantes", "Pizzarias", "Padarias", "Confeitarias", "Cafeterias", "Lanchonetes", "Açaiterias", "Churrascarias"]:
+        assert name in options
     await expect(page.locator("#history-list button")).to_have_count(1)
     await page.locator("#account-history>summary").click()
     await page.locator("#history-list button").click()
@@ -40,6 +44,7 @@ async def check_device(browser, device, fixture):
     contact = page.locator("#cards a.whatsapp-contact")
     await expect(contact).to_have_count(1)
     await expect(contact).to_have_attribute("href", URL)
+    await expect(contact.locator(".whatsapp-number")).to_have_text("+5511912345678")
     await expect(page.locator("#cards .contact").filter(has_text="(11) 91234-5678")).to_have_count(1)
     await expect(page.locator("#cards article").filter(has_text="Oficina de exemplo").locator(".whatsapp-contact")).to_have_count(0)
     await expect(page.locator("#country")).to_be_enabled()
@@ -56,6 +61,21 @@ async def check_device(browser, device, fixture):
     assert requests and requests[0]["url"] == URL
     assert not any(key in requests[0]["headers"] for key in ["cookie", "authorization", "referer"])
     await popup.close()
+
+    # The real local Node contact helper supplies this legacy-number fixture.
+    # Verify its displayed destination and actual browser navigation, without
+    # contacting WhatsApp or modifying the source phone in a customer record.
+    await page.evaluate("company => document.querySelector('#cards').append(prospectLists.whatsappButton(company))", fixture["legacyMobile"])
+    legacy = page.locator("#cards > a.whatsapp-contact")
+    await expect(legacy).to_have_attribute("href", "https://wa.me/5534991234567")
+    await expect(legacy.locator(".whatsapp-number")).to_have_text("+5534991234567 · nono dígito incluído")
+    async with page.expect_popup() as popup_event:
+        await legacy.click()
+    legacy_popup = await popup_event.value
+    await legacy_popup.wait_for_load_state("domcontentloaded")
+    assert legacy_popup.url == "https://wa.me/5534991234567"
+    await legacy_popup.close()
+    await legacy.evaluate("element => element.remove()")
 
     await page.locator(".save-to-list").first.click()
     await expect(page.locator("#list-save-submit")).to_be_enabled()
@@ -75,14 +95,14 @@ async def check_device(browser, device, fixture):
     await popup.wait_for_load_state("domcontentloaded")
     assert popup.url == URL
     await popup.close()
-    assert len(requests) == 2
+    assert len(requests) == 3
     assert not await page.evaluate("() => document.documentElement.scrollWidth > innerWidth")
     assert not errors, errors
     assert await page.evaluate("() => window.listXss || null") is None
     ARTIFACTS.mkdir(exist_ok=True)
     await page.screenshot(path=str(ARTIFACTS / f"whatsapp-{device}.png"))
     REPORT["devices"].append({"device": device, "passed": True, "href": URL, "navigationIntercepted": True,
-        "checks": ["national-phone-country", "no-phone-no-link", "country-selection-does-not-change-recipient", "results-popup", "no-opener-no-auth-no-referrer", "saved-list-reload-popup", "touch-target", "no-overflow", "literal-source-text"]})
+        "checks": ["ten-new-food-niches", "national-phone-country", "visible-destination", "legacy-ninth-digit-popup", "no-phone-no-link", "country-selection-does-not-change-recipient", "results-popup", "no-opener-no-auth-no-referrer", "saved-list-reload-popup", "touch-target", "no-overflow", "literal-source-text"]})
     print("PASS WhatsApp browser " + device, flush=True)
     await context.close()
 

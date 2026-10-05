@@ -4,6 +4,7 @@ const fs = require("node:fs"), path = require("node:path"), crypto = require("no
 const { createRequire } = require("node:module");
 const { Pool } = require("pg");
 const accounts = require("../accounts.cjs"), auth = require("../auth.cjs"), passwords = require("../passwords.cjs");
+const contacts = require("../contacts.cjs");
 const root = path.resolve(__dirname, ".."), localRequire = createRequire(path.join(root, "server.cjs"));
 const databaseUrl = process.env.TEST_DATABASE_URL;
 if (!databaseUrl || !["127.0.0.1", "localhost"].includes(new URL(databaseUrl).hostname)) throw new Error("Use apenas PostgreSQL local descartável em TEST_DATABASE_URL.");
@@ -36,7 +37,8 @@ async function start() {
       rows: [{ osmId: "node/10001", name: "Barbearia <img src=x onerror=window.listXss=1>", category: "Barber", city: "Cidade de fixture", address: "Rua de teste, 1", phone: "(11) 91234-5678", status: "UNCERTAIN", confidence: 0.5, prospectScore: 40, source: "OpenStreetMap" },
         { osmId: "node/10002", name: "Oficina de exemplo", category: "Auto Detailing", city: "Cidade de fixture", address: "Avenida de teste, 2", phone: "", status: "WEBSITE_LISTED", website: "https://fixture.example", confidence: 0.9, prospectScore: 0, source: "OpenStreetMap" }] };
     await store.saveSearch(users.alice.id, job, { city: job.city, niche: job.niche, state: job.state, total: 2 });
-    backend.jobs.set(job.id, job); fixtures[device] = { ...users, password: phrase, jobId: job.id };
+    backend.jobs.set(job.id, job); fixtures[device] = { ...users, password: phrase, jobId: job.id,
+      legacyMobile: contacts.details({ name: "Celular antigo fictício", phone: "(34) 9123-4567", countryCode: "BR" }) };
   }
   const realHandler = backend.server.listeners("request")[0]; backend.server.removeAllListeners("request");
   backend.server.on("request", async (request, response) => {

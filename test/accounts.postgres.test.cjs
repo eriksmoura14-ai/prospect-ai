@@ -177,6 +177,17 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
         [crypto.randomUUID(),userB.id,listA.id,"0".repeat(64),"invalid","invalid"]);
       await assert.rejects(illegal,error=>error.code==="23503");
     });
+    await t.test("lista reabre celular antigo com nono dígito e preserva o telefone original cifrado",async()=>{
+      const oldPhone="(34) 9123-4567";
+      const saved=await store.saveCompany(userA.id,listA.id,{osmId:"node/legacy-phone",name:"Empresa de fixture",phone:oldPhone,countryCode:"BR"});
+      const restored=(await alice.call("GET",`/api/lists/${listA.id}/companies`)).data.find(item=>item.id===saved.item.id);
+      assert.equal(restored.company.phone,oldPhone);
+      assert.equal(restored.company.whatsappUrl,"https://wa.me/5534991234567");
+      assert.equal(restored.company.whatsappAdjustment,"br_ninth_digit");
+      const row=(await sql.query("SELECT company_encrypted FROM prospect_list_companies WHERE id=$1",[saved.item.id])).rows[0];
+      assert.ok(!JSON.stringify(row).includes(oldPhone));
+      await store.deleteCompany(userA.id,listA.id,saved.item.id);
+    });
     await t.test("notas e status persistem cifrados e não são sobrescritos ao favoritar novamente",async()=>{
       const value={note:"Retornar na sexta-feira\n<script>texto privado</script>",status:"interested"};
       const update=await alice.call("PATCH",`/api/lists/${listA.id}/companies/${savedA.id}`,value);

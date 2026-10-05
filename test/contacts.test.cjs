@@ -52,3 +52,31 @@ test("listas preservam o país necessário e não aceitam uma URL de contato for
   assert.equal(contacts.details({ phone: "+1 212 555 0100" }).whatsappUrl, "https://wa.me/12125550100");
   assert.equal(contacts.details({ phone: "020 7946 0958" }).whatsappUrl, "");
 });
+
+test("celular brasileiro antigo sem nono dígito gera link atual e explicita o ajuste", () => {
+  for (const phone of ["+55 34 9123-4567", "(34) 9123-4567", "034 9123-4567"]) {
+    const result = contacts.details({ phone, countryCode: "BR" });
+    assert.equal(result.phone, phone);
+    assert.equal(result.whatsappUrl, "https://wa.me/5534991234567");
+    assert.equal(result.whatsappNumber, "+5534991234567");
+    assert.equal(result.whatsappAdjustment, "br_ninth_digit");
+  }
+  assert.equal(contacts.whatsappURL("+55 34 8765-4321"), "https://wa.me/5534987654321");
+  assert.equal(contacts.whatsappURL("+55 34 6543-2109"), "https://wa.me/5534965432109");
+});
+
+test("nono dígito não duplica em celular completo nem altera fixos, faixa 7 ou outros países", () => {
+  for (const [phone, country, url] of [
+    ["+55 34 99123-4567", "BR", "https://wa.me/5534991234567"],
+    ["(34) 3456-7890", "BR", "https://wa.me/553434567890"],
+    ["+55 34 7654-3210", "BR", "https://wa.me/553476543210"],
+    ["+1 212 555 0100", "BR", "https://wa.me/12125550100"],
+    ["020 7946 0958", "GB", "https://wa.me/442079460958"]
+  ]) {
+    const result = contacts.details({ phone, countryCode: country });
+    assert.equal(result.whatsappUrl, url); assert.equal(result.whatsappAdjustment, "");
+  }
+  assert.equal(contacts.whatsappURL("(00) 9123-4567", "BR"), "");
+  assert.equal(contacts.whatsappURL("9123-4567", "BR"), "");
+  assert.equal(contacts.whatsappURL("(34) 912-4567", "BR"), "");
+});
