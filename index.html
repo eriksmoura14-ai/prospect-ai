@@ -11,6 +11,7 @@
 
   <title>Prospect AI</title>
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/account.css">
 
   <style>
     :root {
@@ -591,6 +592,7 @@
   <link rel="stylesheet" href="/earth.css">
   <script type="module" src="/earth-background.js"></script>
   <script src="/location-picker.js" defer></script>
+  <script src="/account-ui.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 
@@ -608,8 +610,14 @@
     </div>
 
     <div class="header-actions">
-      <span class="version">Pesquisa de empresas · v0.5</span>
+      <span class="version">Pesquisa de empresas · v0.6</span>
       <button id="earth-motion" class="earth-motion" type="button" aria-pressed="false" hidden>Pausar animação</button>
+      <details id="account-controls" hidden>
+        <summary id="account-email">Minha conta</summary>
+        <button id="account-logout" type="button">Sair</button>
+        <button id="account-delete-open" type="button" class="account-danger">Excluir conta</button>
+        <p id="account-actions-status" role="status"></p>
+      </details>
     </div>
   </header>
 
@@ -624,6 +632,47 @@
       Explore negócios locais pelo mundo.
     </p>
 
+    <section id="login-panel" class="panel" hidden aria-labelledby="login-title">
+      <h2 id="login-title">Entre no Prospect AI</h2>
+      <p>Acesse suas pesquisas e continue de onde parou com sua conta Gmail.</p>
+      <form id="account-login-form" class="account-form">
+        <label for="login-email">Seu Gmail
+          <input id="login-email" type="email" name="email" autocomplete="username" inputmode="email" maxlength="254" placeholder="voce@gmail.com" required>
+        </label>
+        <label for="login-password">Senha do Prospect AI
+          <input id="login-password" type="password" name="password" autocomplete="current-password" maxlength="128" required>
+        </label>
+        <button type="submit" class="primary">Entrar</button>
+        <div class="account-links">
+          <button id="account-register-open" type="button">Criar conta</button>
+          <button id="account-forgot-open" type="button">Esqueci minha senha</button>
+        </div>
+      </form>
+      <form id="account-email-form" class="account-form" hidden>
+        <p id="account-email-help"></p>
+        <label for="account-request-email">Seu Gmail
+          <input id="account-request-email" type="email" name="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="voce@gmail.com" required>
+        </label>
+        <button id="account-email-submit" type="submit" class="primary">Enviar confirmação</button>
+        <button class="account-back" type="button">Voltar ao login</button>
+      </form>
+      <form id="account-password-form" class="account-form" hidden>
+        <p>Crie uma senha de pelo menos 15 caracteres, exclusiva do Prospect AI. Você pode usar uma frase.</p>
+        <label for="account-new-password">Nova senha do Prospect AI
+          <input id="account-new-password" type="password" name="password" autocomplete="new-password" minlength="15" maxlength="128" required>
+        </label>
+        <label for="account-repeat-password">Repita a senha
+          <input id="account-repeat-password" type="password" name="password-repeat" autocomplete="new-password" minlength="15" maxlength="128" required>
+        </label>
+        <button type="submit" class="primary">Salvar senha e entrar</button>
+        <button class="account-back" type="button">Voltar ao login</button>
+      </form>
+      <p class="account-login-note">Aceitamos somente @gmail.com. Use sua senha do Prospect AI; não informe a senha do Gmail.</p>
+      <p class="account-login-note">Veja como cuidamos dos seus dados na <a href="/privacy.html">política de privacidade</a>.</p>
+      <p id="account-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <div id="workspace">
     <div class="notice">
       Dados públicos do OpenStreetMap. A ausência de website
       cadastrado não significa ausência de site.
@@ -852,6 +901,12 @@
       </div>
     </section>
 
+    <details id="account-history" hidden>
+      <summary>Minhas pesquisas · últimas 20, por até 30 dias</summary>
+      <div id="history-list"></div>
+    </details>
+    </div>
+
     <footer>
       Confidence e Prospect Score são heurísticas,
       não probabilidades calibradas nem garantias comerciais.
@@ -867,5 +922,17 @@
       · <a href="https://github.com/dr5hn/countries-states-cities-database" target="_blank" rel="noopener">Localidades: Countries States Cities Database · ODbL</a>
     </footer>
   </main>
+  <dialog id="account-delete-dialog" aria-labelledby="account-delete-title">
+    <form id="account-delete-form">
+      <h2 id="account-delete-title">Excluir conta e dados</h2>
+      <p>Seu perfil, suas pesquisas, preferências e sessões serão excluídos. Esta ação não pode ser desfeita.</p>
+      <label for="account-delete-confirmation">Digite EXCLUIR para confirmar</label>
+      <input id="account-delete-confirmation" autocomplete="off" required pattern="EXCLUIR">
+      <label for="account-delete-password">Senha do Prospect AI</label>
+      <input id="account-delete-password" type="password" autocomplete="current-password" maxlength="128" required>
+      <p id="account-delete-status" role="status"></p>
+      <div><button id="account-delete-cancel" type="button">Cancelar</button> <button id="account-delete-submit" class="account-danger" type="submit">Excluir minha conta</button></div>
+    </form>
+  </dialog>
 </body>
 </html>

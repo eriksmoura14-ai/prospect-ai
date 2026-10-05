@@ -1,0 +1,28 @@
+#login-panel { max-width: 500px; margin: 48px 0 100px; padding: 36px; background: rgba(5, 14, 25, .94); }
+#login-panel h2 { margin: 0 0 16px; font-size: 30px; letter-spacing: -.03em; }
+#login-panel p { color: var(--muted); }
+.account-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; margin: 24px 0; padding: 0; }
+.account-form label { display: grid; gap: 8px; }
+.account-form input { width: 100%; min-height: 46px; }
+.account-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.account-links button, .account-back { background: transparent; padding: 4px 0; border: 0; color: var(--muted); font-size: 13px; }
+.account-links button:hover, .account-back:hover { color: var(--text); }
+#account-status { overflow-wrap: anywhere; color: #a6d4ee; }
+#account-controls { font-size: 12px; text-align: right; }
+#account-controls summary { max-width: 250px; overflow-wrap: anywhere; cursor: pointer; }
+#account-controls button { padding: 6px 10px; margin: 8px 0 0 8px; font-size: 12px; }
+#account-actions-status { max-width: 260px; color: #f2be9b; }
+#account-history { margin: 24px 0; max-width: 980px; }
+#account-history summary { cursor: pointer; color: var(--muted); }
+#history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+#history-list button { text-align: left; padding: 12px; }
+#account-delete-dialog { max-width: 460px; padding: 28px; border: 1px solid var(--border); border-radius: 14px; background: #0b1524; color: var(--text); }
+#account-delete-dialog::backdrop { background: #000a; }
+#account-delete-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 0; }
+.account-danger { color: #ffb4a1; border-color: #b36251; }
+.account-login-note { font-size: 13px; }
+.account-logged-out main { min-height: calc(100vh - 96px); }
+@media(max-width:700px) {
+  #login-panel { margin: 38px 0; padding: 24px; }
+  #account-controls summary { max-width: 175px; font-size: 11px; }
+}

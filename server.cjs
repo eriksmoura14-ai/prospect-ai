@@ -26,6 +26,9 @@ const hosting = require("./hosting.cjs").configuration(process.env);
 const HOSTED = hosting.hosted;
 const PORT = hosting.port;
 const ORIGIN = hosting.origin;
+const accountAuth = require("./auth.cjs");
+const authConfig = accountAuth.configuration(process.env, hosting);
+const accountService = accountAuth.createService(authConfig);
 
 const USER = process.env.APP_USER || "admin";
 const PASSWORD = process.env.APP_PASSWORD || "";
@@ -53,7 +56,7 @@ const overpassClient = overpass.createClient({ endpoints: OVERPASS_ENDPOINTS,
   method: (process.env.OVERPASS_HTTP_METHOD || "POST").toUpperCase(),
   family: Number(process.env.OVERPASS_IP_FAMILY || 0) });
 
-if (HOSTED && PASSWORD.length < 16) {
+if (HOSTED && authConfig.mode === "basic" && PASSWORD.length < 16) {
   console.error(
     "Configure APP_PASSWORD na hospedagem com pelo menos 16 caracteres."
   );
@@ -1262,8 +1265,34 @@ async function run(job, city, niche, limit, selection = null) {
     }
     job.timings.totalMs = Date.now() - started;
     console.log(`Pesquisa concluída: descoberta=${job.timings.discoveryMs ?? "falhou"}ms, verificação=${job.timings.verificationMs ?? 0}ms, total=${job.timings.totalMs}ms, empresas=${job.total}, estado=${job.state}`);
+    if (accountService) {
+      try { await accountService.store.saveSearch(job.ownerId, job, jobSummary(job)); }
+      catch { job.persistenceWarning = "Não foi possível salvar o histórico. Exporte os resultados antes de sair."; }
+    }
     activeJob = null;
   }
+}
+
+function jobSummary(job) {
+  return { city: job.city || "", niche: job.niche || "", limit: job.limit,
+    place: job.place || "", state: job.state, total: job.total };
+}
+
+async function ownedJob(id, ownerId) {
+  let live = jobs.get(id);
+  if (accountService && live && live.createdAt < Date.now() - 30 * 24 * HOUR) {
+    jobs.delete(id); live = null;
+  }
+  if (live) return live.ownerId === ownerId ? live : null;
+  return accountService ? accountService.store.search(ownerId, id) : null;
+}
+
+function publicJob(job) { const value = { ...job }; delete value.ownerId; return value; }
+
+function conflict(ownerId) {
+  const data = { error: "Uma pesquisa já está em andamento. Aguarde alguns instantes." };
+  if (jobs.get(activeJob)?.ownerId === ownerId) data.jobId = activeJob;
+  return data;
 }
 
 function json(response, status, data) {
@@ -1276,16 +1305,16 @@ function json(response, status, data) {
 }
 
 async function readBody(request, maxBytes = 4096) {
-  let body = "";
+  const chunks = [];
   let size = 0;
 
   for await (const chunk of request) {
     size += chunk.length;
     if (size > maxBytes) throw new Error("Pedido grande demais.");
-    body += chunk.toString();
+    chunks.push(Buffer.from(chunk));
   }
 
-  return JSON.parse(body);
+  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
 
 // Checagem pontual de uma página pública, sem pesquisa em massa.
@@ -1364,11 +1393,21 @@ async function collectAIEvidence(row) {
 }
 
 const server = http.createServer(async (request, response) => {
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.setHeader("Referrer-Policy", "no-referrer");
+  response.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  response.setHeader("X-Frame-Options", "DENY");
+  if (HOSTED && ORIGIN.startsWith("https:")) response.setHeader("Strict-Transport-Security", "max-age=31536000");
   try {
     const url = new URL(request.url, ORIGIN);
 
     // Endpoint sem dados de usuário, para o health check.
     if (request.method === "GET" && url.pathname === "/health") {
+      if (accountService) {
+        for (const [id, job] of jobs) if (job.createdAt < Date.now() - 30 * 24 * HOUR) jobs.delete(id);
+        try { await accountService.ready(); }
+        catch { return json(response, 503, { ok: false }); }
+      }
       return json(response, 200, { ok: true });
     }
 
@@ -1378,7 +1417,43 @@ const server = http.createServer(async (request, response) => {
       });
     }
 
-    if (!authenticated(request)) {
+    let identity = null;
+    let ownerId = "legacy";
+    if (accountService) {
+      if (url.pathname.startsWith("/api/") || url.pathname === "/auth/logout") {
+        try { identity = await accountService.identity(request); }
+        catch { return json(response, 503, { error: "Não foi possível verificar a sessão. Tente novamente." }); }
+        if (request.method === "GET" && url.pathname === "/api/account") {
+          const result = accountService.account(request, identity);
+          if (result.cookies.length) response.setHeader("Set-Cookie", result.cookies);
+          return json(response, 200, result.data);
+        }
+        if (request.method === "POST" && ["/api/auth/register", "/api/auth/forgot", "/api/auth/login", "/api/auth/activate", "/api/auth/reset"].includes(url.pathname)) {
+          if (!accountService.checkMutation(request, identity)) return json(response, 403, { error: "Solicitação inválida. Recarregue a página e tente novamente." });
+          const input = await readBody(request, 4096);
+          if (!input || typeof input !== "object" || Array.isArray(input)) return json(response, 400, { error: "Dados inválidos." });
+          const action = url.pathname.split("/").pop();
+          try {
+            if (["register", "forgot"].includes(action)) {
+              const result = await accountService.requestEmail(request, input, action === "register" ? "activate" : "reset");
+              return json(response, 202, result);
+            }
+            const result = action === "login" ? await accountService.login(request, input) : await accountService.complete(request, input, action);
+            response.setHeader("Set-Cookie", result.cookies);
+            return json(response, 200, { ok: true });
+          } catch (error) {
+            const status = error.status || 503;
+            return json(response, status, { error: error.status ? error.message : "O login está indisponível no momento. Tente novamente mais tarde." });
+          }
+        }
+        if (!identity) return json(response, 401, { error: "Entre com seu Gmail e sua senha do Prospect AI para continuar." });
+        ownerId = identity.user.id;
+        if (["POST", "PATCH", "DELETE", "PUT"].includes(request.method) &&
+            !accountService.checkMutation(request, identity)) {
+          return json(response, 403, { error: "Solicitação inválida. Recarregue a página e tente novamente." });
+        }
+      }
+    } else if (!authenticated(request)) {
       response.writeHead(401, {
         "WWW-Authenticate": 'Basic realm="Prospect AI", charset="UTF-8"',
         "Content-Type": "text/plain; charset=utf-8",
@@ -1388,7 +1463,46 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
+    if (!accountService && request.method === "GET" && url.pathname === "/api/account") {
+      return json(response, 200, { mode: "basic", authenticated: true, user: null, csrfToken: null });
+    }
+    if (accountService && request.method === "POST" && url.pathname === "/auth/logout") {
+      try {
+        const cookies = await accountService.logout(identity);
+        response.setHeader("Set-Cookie", cookies);
+        return json(response, 200, { ok: true });
+      } catch { return json(response, 503, { error: "Não foi possível encerrar a sessão. Tente novamente." }); }
+    }
+    if (accountService && request.method === "PATCH" && url.pathname === "/api/account/preferences") {
+      const value = await readBody(request, 8192);
+      if (typeof value.seller !== "string" || value.seller.length > 100 ||
+          typeof value.offer !== "string" || value.offer.length > 3000 ||
+          !["Português", "English", "Español"].includes(value.language)) {
+        return json(response, 400, { error: "Preferências inválidas." });
+      }
+      try {
+        await accountService.store.preferences(ownerId, { seller: value.seller, offer: value.offer, language: value.language });
+        return json(response, 200, { ok: true });
+      } catch { return json(response, 503, { error: "Não foi possível salvar as preferências." }); }
+    }
+    if (accountService && request.method === "DELETE" && url.pathname === "/api/account") {
+      const input = await readBody(request, 4096);
+      if (input.confirmation !== "EXCLUIR") return json(response, 400, { error: "Confirme a exclusão da conta." });
+      try {
+        const passwordHash = await accountService.confirmPassword(request, identity, input.password);
+        if (!await accountService.store.deleteAccount(ownerId, passwordHash)) return json(response, 400, { error: "Sua senha mudou. Entre novamente para excluir a conta." });
+        for (const [id, job] of jobs) if (job.ownerId === ownerId) jobs.delete(id);
+        response.setHeader("Set-Cookie", accountService.clearCookies());
+        return json(response, 200, { ok: true });
+      } catch (error) { return json(response, error.status || 503, { error: error.status ? error.message : "Não foi possível excluir a conta." }); }
+    }
+    if (accountService && request.method === "GET" && url.pathname === "/api/history") {
+      try { return json(response, 200, await accountService.store.history(ownerId)); }
+      catch { return json(response, 503, { error: "Não foi possível carregar o histórico." }); }
+    }
+
     if (request.method === "GET" && url.pathname === "/api/diagnostics/overpass") {
+      if (accountService && !accountService.isAdmin(identity.user)) return json(response, 404, { error: "Rota não encontrada." });
       // Protegido pela mesma autenticação da aplicação. Sem chave do LocationIQ.
       // A consulta real só aparece depois de uma pesquisa; não é repetida aqui.
       let probe = null;
@@ -1453,7 +1567,7 @@ const server = http.createServer(async (request, response) => {
       if (typeof input.jobId !== "string" || typeof input.osmId !== "string") {
         return json(response, 400, { error: "Selecione uma empresa da pesquisa." });
       }
-      const job = jobs.get(input.jobId);
+      const job = await ownedJob(input.jobId, ownerId);
       const row = job?.rows.find(item => item.osmId === input.osmId);
       if (!row) return json(response, 404, { error: "A pesquisa expirou no servidor. Faça a busca novamente." });
       if (job.state === "running") {
@@ -1513,10 +1627,7 @@ const server = http.createServer(async (request, response) => {
       }
 
       if (activeJob) {
-        return json(response, 409, {
-          error: "Uma pesquisa já está em andamento.",
-          jobId: activeJob
-        });
+        return json(response, 409, conflict(ownerId));
       }
 
       if (Date.now() - lastSearch < 3000) {
@@ -1554,7 +1665,7 @@ const server = http.createServer(async (request, response) => {
       // A leitura do corpo e a validação de localidades são assíncronas.
       // Reconfere os limites antes de reservar o único job de descoberta.
       if (activeJob) {
-        return json(response, 409, { error: "Uma pesquisa já está em andamento.", jobId: activeJob });
+        return json(response, 409, conflict(ownerId));
       }
       if (Date.now() - lastSearch < 3000) {
         return json(response, 429, { error: "Aguarde alguns segundos entre pesquisas." });
@@ -1568,6 +1679,8 @@ const server = http.createServer(async (request, response) => {
 
       const job = {
         id,
+        ownerId,
+        city: city.trim(), niche, limit,
         state: "running",
         message: "Iniciando…",
         rows: [],
@@ -1580,6 +1693,14 @@ const server = http.createServer(async (request, response) => {
       activeJob = id;
       lastSearch = Date.now();
 
+      if (accountService) {
+        try { await accountService.store.saveSearch(ownerId, job, jobSummary(job)); }
+        catch {
+          jobs.delete(id); if (activeJob === id) activeJob = null;
+          return json(response, 503, { error: "Não foi possível salvar a pesquisa. Tente novamente." });
+        }
+      }
+
       json(response, 202, { jobId: id });
       void run(job, city.trim(), niche, limit, selection);
       return;
@@ -1590,12 +1711,12 @@ const server = http.createServer(async (request, response) => {
       url.pathname.startsWith("/api/jobs/")
     ) {
       const id = url.pathname.slice("/api/jobs/".length);
-      const job = jobs.get(id);
+      const job = await ownedJob(id, ownerId);
 
       return json(
         response,
         job ? 200 : 404,
-        job || {
+        job ? publicJob(job) : {
           error: "Pesquisa não encontrada. Inicie outra busca."
         }
       );
@@ -1605,6 +1726,9 @@ const server = http.createServer(async (request, response) => {
       "/": ["index.html", "text/html; charset=utf-8"],
       "/index.html": ["index.html", "text/html; charset=utf-8"],
       "/app.js": ["app.js", "text/javascript; charset=utf-8"],
+      "/account-ui.js": ["account-ui.js", "text/javascript; charset=utf-8"],
+      "/account.css": ["account.css", "text/css; charset=utf-8"],
+      "/privacy.html": ["privacy.html", "text/html; charset=utf-8"],
       "/location-picker.js": ["location-picker.js", "text/javascript; charset=utf-8"],
       "/earth.css": ["earth.css", "text/css; charset=utf-8"],
       "/earth-background.js": ["earth-background.js", "text/javascript; charset=utf-8"],
@@ -1654,6 +1778,7 @@ const server = http.createServer(async (request, response) => {
         "Content-Type": type,
         "Cache-Control": type.startsWith("image/") ? "private, max-age=3600" : "no-store",
         "X-Content-Type-Options": "nosniff",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
         "Referrer-Policy": "no-referrer",
         ...(useGzip ? { "Content-Encoding": "gzip" } : {}),
         Vary: "Accept-Encoding",
@@ -1673,7 +1798,7 @@ const server = http.createServer(async (request, response) => {
     }
 
     json(response, 404, { error: "Rota não encontrada." });
-  } catch {
+  } catch (error) {
     if (!response.headersSent) {
       json(response, 400, {
         error: "Não foi possível processar a solicitação."
