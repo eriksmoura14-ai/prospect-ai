@@ -17,16 +17,17 @@ const resultCards = new Map();
 const fields = [
   "name", "category", "city", "address", "phone", "website",
   "status", "confidence", "prospectScore", "latitude", "longitude",
-  "osmId", "source"
+  "osmId", "source", "phoneSource", "phoneVerification", "sitePhone",
+  "websiteSource", "websiteVerification", "websiteCheckedAt"
 ];
 
 const states = {
-  WEBSITE_LISTED: { label: "Site listado", className: "found" },
-  WEBSITE_FOUND: { label: "Site encontrado", className: "found" },
+  WEBSITE_LISTED: { label: "Site na fonte", className: "found" },
+  WEBSITE_FOUND: { label: "Site compatível", className: "found" },
   LIKELY_NO_WEBSITE: {
-    label: "Provavelmente sem site", className: "prospect"
+    label: "Site não identificado", className: "prospect"
   },
-  UNCERTAIN: { label: "Incerto", className: "uncertain" }
+  UNCERTAIN: { label: "Site não confirmado", className: "uncertain" }
 };
 
 function storedJob() {
@@ -89,7 +90,18 @@ function safeWebsite(value) {
 }
 
 function hasWebsite(row) {
-  return ["WEBSITE_LISTED", "WEBSITE_FOUND"].includes(row.status);
+  return Boolean(safeWebsite(row.website)) && row.websiteVerification !== "profile" &&
+    ["WEBSITE_LISTED", "WEBSITE_FOUND"].includes(row.status);
+}
+
+function websiteNotIdentified(row) {
+  return !safeWebsite(row.website) &&
+    (row.websiteVerification === "not_identified" || row.status === "LIKELY_NO_WEBSITE");
+}
+
+function websiteUnconfirmed(row) {
+  return row.status === "UNCERTAIN" || row.status === "WEBSITE_LISTED" ||
+    (row.status === "WEBSITE_FOUND" && row.websiteVerification !== "compatible");
 }
 
 function visibleRows() {
@@ -97,9 +109,9 @@ function visibleRows() {
   const sort = $("sort").value;
   return rows.filter(row => {
     const statusOK = filter === "all" ||
-      (filter === "prospect" && row.status === "LIKELY_NO_WEBSITE") ||
+      (filter === "prospect" && websiteNotIdentified(row)) ||
       (filter === "found" && hasWebsite(row)) ||
-      (filter === "uncertain" && row.status === "UNCERTAIN");
+      (filter === "uncertain" && websiteUnconfirmed(row));
     const phoneOK = phoneFilter === "all" ||
       (phoneFilter === "yes" && Boolean(row.phone)) ||
       (phoneFilter === "no" && !row.phone);
@@ -112,7 +124,9 @@ function visibleRows() {
 }
 
 function makeCard(row) {
-  const state = states[row.status] || states.UNCERTAIN;
+  const state = row.websiteVerification === "profile" ? {label:"Perfil na fonte",className:"uncertain"}
+    : row.status === "WEBSITE_FOUND" && row.websiteVerification !== "compatible" ? {label:"Verificação anterior",className:"uncertain"}
+    : states[row.status] || states.UNCERTAIN;
   const card = node("article", "panel card");
   const business = node("div", "business");
   const heading = node("div", "business-heading");
@@ -129,6 +143,7 @@ function makeCard(row) {
   const address = node("span", "", row.address || "Endereço não informado");
   phone.prepend(uiIcon("phone")); address.prepend(uiIcon("pin"));
   contact.append(phone, address);
+  if (row.phoneVerification === "conflict") contact.append(node("span","reason","Telefones divergentes; revise antes de entrar em contato."));
   business.append(contact);
 
   const website = node("div", "website");
@@ -169,9 +184,11 @@ function makeCard(row) {
   const verification = node("div", "verification");
   verification.append(
     node("div", "confidence",
-      `Confidence: ${Number(row.confidence).toFixed(2)}`),
+      row.websiteVerification === "compatible" ? "Evidência: identidade compatível"
+        : row.website ? "Evidência: endereço informado na fonte" : "Evidência: insuficiente para confirmar um site"),
     node("p", "reason", row.reason || "Verificação ainda não concluída.")
   );
+  verification.append(prospectLists.information(row));
 
   if (row.verification) {
     const details = node("details", "reason");
@@ -224,11 +241,11 @@ function render() {
     !searchError && (!lastJob || lastJob.totalDiscovered == null);
   $("total").textContent = awaitingResults ? "—" : rows.length;
   $("prospects").textContent = awaitingResults ? "—" :
-    rows.filter(row => row.status === "LIKELY_NO_WEBSITE").length;
+    rows.filter(websiteNotIdentified).length;
   $("websites").textContent = awaitingResults ? "—" :
     rows.filter(hasWebsite).length;
   $("uncertain").textContent = awaitingResults ? "—" :
-    rows.filter(row => row.status === "UNCERTAIN").length;
+    rows.filter(websiteUnconfirmed).length;
   $("phones").textContent = awaitingResults ? "—" :
     rows.filter(row => Boolean(row.phone)).length;
 

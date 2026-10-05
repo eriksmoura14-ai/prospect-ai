@@ -15,14 +15,14 @@ function harness({ service, records = {}, pages = {} } = {}) {
     const request = new EventEmitter(); request.destroy = () => {};
     queueMicrotask(() => {
       const page = pages[url.href] || { status: 200, html: "<title>Public site</title>" };
-      const response = Readable.from([page.html || ""]);
+      const response = Readable.from([Buffer.from(page.html || "")]);
       response.statusCode = page.status;
-      response.headers = { "content-type": "text/html", ...(page.location ? { location: page.location } : {}) };
+      response.headers = { "content-type": page.contentType || "text/html", ...(page.location ? { location: page.location } : {}) };
       callback(response);
     });
     return request;
   };
-  class Resolver { async resolve4(host) { return records[host] || ["93.184.215.14"]; } }
+  class Resolver { async resolve4(host) { if (records[host] instanceof Error) throw records[host]; return records[host] || ["93.184.215.14"]; } }
   const fixtureFS = { ...fs, readFileSync: () => { throw new Error("No persistent discovery cache in fixtures"); }, mkdirSync() {}, writeFileSync() {}, renameSync() {} };
   const context = {
     require: name => name === "node:http" ? { ...http, get }
@@ -37,7 +37,7 @@ function harness({ service, records = {}, pages = {} } = {}) {
   };
   const source = fs.readFileSync(path.join(root, "server.cjs"), "utf8");
   vm.runInNewContext(source.slice(0, source.lastIndexOf("server.listen(")) +
-    "\nmodule.exports={server,publicIPv4,resolveHost,pageRequestUncached,analyze};", context);
+    "\nmodule.exports={server,publicIPv4,resolveHost,pageRequest,pageRequestUncached,analyze,verify,candidates};", context);
   return { ...context.module.exports, outbound };
 }
 
@@ -118,10 +118,57 @@ test("verificador bloqueia rede privada, metadata, DNS misto e redirecionamento 
 });
 
 test("limite do título exibido mantém a correspondência comercial após 400 caracteres", () => {
-  const h = harness(), business = { name: "Empresa Central", city: "São Paulo", phone: "+55 11 1234-5678", street: "Rua Central", houseNumber: "123" };
-  const page = { status: 200, html: "<title>" + "x".repeat(600) + " Empresa Central</title><p>São Paulo, Rua Central 123, +55 (11) 1234-5678</p>" };
+  const h = harness(), business = { name: "Empresa Central", city: "São Paulo", phone: "+55 11 3456-7890", countryCode:"BR", street: "Rua Central", houseNumber: "123" };
+  const page = { status: 200, html: "<title>" + "x".repeat(600) + " Empresa Central</title><p>São Paulo, Rua Central 123, +55 (11) 3456-7890</p>" };
   const result = h.analyze(page, business);
   assert.equal(result.compatible, true); assert.equal(result.nameMatch, true); assert.equal(result.phoneMatch, true);
   assert.equal(result.cityMatch, true); assert.equal(result.addressMatch, true); assert.equal(result.title.length, 400);
   assert.equal(h.analyze({ ...page, html: page.html + "<p>domain for sale</p>" }, business).compatible, false);
+});
+
+test("site cadastrado recebe verificação real do transporte e histórico de evidências", async () => {
+  const row={osmId:"node/1",name:"Empresa Central",city:"São Paulo",countryCode:"BR",address:"Rua Central 123",street:"Rua Central",houseNumber:"123",
+    website:"https://fixture.example/",status:"WEBSITE_LISTED",phone:"",phoneVerification:"not_listed",websiteSource:"OpenStreetMap · website"};
+  const json={name:row.name,address:{addressLocality:row.city,streetAddress:row.address,addressCountry:"BR"},telephone:"+55 11 3456-7890"};
+  const h=harness({pages:{"https://fixture.example/robots.txt":{status:200,contentType:"text/plain",html:"User-agent: *\nDisallow: /admin"},
+    "https://fixture.example/":{status:200,html:'<title>Empresa Central</title><p>São Paulo Rua Central 123</p><script type="application/ld+json">'+JSON.stringify(json)+'</script><!--'+"x".repeat(425344)+'-->'}}});
+  const result=await h.verify(row);
+  assert.equal(h.outbound.length,2);assert.equal(result.status,"WEBSITE_FOUND");assert.equal(result.websiteVerification,"compatible");
+  assert.equal(result.phone,"+551134567890");assert.equal(result.phoneVerification,"website_published");assert.equal(result.phoneSource,row.website);
+  assert.equal(result.verification.candidatesChecked,1);assert.equal(result.verification.evidence[0].matching.address,true);
+  const second=await h.verify(row);assert.equal(h.outbound.length,2);assert.equal(second.phone,result.phone);
+});
+
+test("site cadastrado de identidade errada permanece informado, sem confirmação de 100%", async () => {
+  const row={osmId:"node/2",name:"Empresa Central",city:"São Paulo",phone:"",website:"https://wrong.example/",status:"WEBSITE_LISTED"};
+  const h=harness({pages:{"https://wrong.example/robots.txt":{status:404,html:""},"https://wrong.example/":{status:200,html:"<title>Outra Empresa</title><p>Curitiba</p>"}}});
+  const result=await h.verify(row);
+  assert.equal(result.website,row.website);assert.equal(result.status,"WEBSITE_LISTED");assert.equal(result.confidence,0.4);
+  assert.equal(result.websiteVerification,"inconclusive");assert.equal(result.verification.evidence[0].matching.name,false);
+});
+
+test("ausência de todos os domínios sugeridos permanece incerta e não prova que a empresa não tem site", async () => {
+  const row={osmId:"node/3",name:"Empresa Central",city:"São Paulo",countryCode:"BR",phone:"",website:"",status:"UNCERTAIN"};
+  const values=require("../website-evidence.cjs").candidates(row.name,row.city,row.countryCode);
+  const missing=Object.assign(new Error("No DNS record"),{code:"ENOTFOUND"});
+  const h=harness({records:Object.fromEntries(values.map(domain=>[domain,missing]))});
+  const result=await h.verify(row);
+  assert.equal(result.status,"UNCERTAIN");assert.equal(result.confidence,0);assert.equal(result.websiteVerification,"not_identified");
+  assert.match(result.reason,/ausência não comprovada/);assert.equal(h.outbound.length,0);
+});
+
+test("perfis sociais são identificados como perfis sem serem lidos automaticamente",async()=>{
+  const h=harness();const result=await h.verify({osmId:"node/4",name:"Empresa Central",phone:"",website:"https://instagram.com/company",status:"WEBSITE_LISTED"});
+  assert.equal(result.websiteVerification,"profile");assert.equal(result.status,"WEBSITE_LISTED");assert.equal(h.outbound.length,0);
+});
+
+test("página acima de 768 KB é interrompida e limite de memória do cache provoca nova leitura",async()=>{
+  const pages={"https://fixture.example/too-large":{status:200,html:"x".repeat(768*1024+1)}};
+  for(let i=0;i<13;i++)pages[`https://fixture.example/page-${i}`]={status:200,html:"x".repeat(700*1024)};
+  const h=harness({pages});
+  await assert.rejects(h.pageRequest("https://fixture.example/too-large",Date.now()+3000),/limite de leitura/);
+  for(let i=0;i<13;i++)await h.pageRequest(`https://fixture.example/page-${i}`,Date.now()+3000);
+  const before=h.outbound.length;
+  await h.pageRequest("https://fixture.example/page-0",Date.now()+3000);
+  assert.equal(h.outbound.length,before+1);
 });

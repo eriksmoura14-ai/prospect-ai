@@ -18,6 +18,7 @@ const overpass = require("./overpass.cjs");
 const geoapify = require("./geoapify.cjs");
 const locations = require("./locations.cjs");
 const contacts = require("./contacts.cjs");
+const websiteEvidence = require("./website-evidence.cjs");
 const GEOAPIFY_KEY = (process.env.GEOAPIFY_API_KEY || "").trim();
 const BUSINESS_PROVIDER = process.env.BUSINESS_PROVIDER || "overpass";
 if (!["overpass", "geoapify"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
@@ -32,7 +33,6 @@ const authConfig = accountAuth.configuration(process.env, hosting);
 const accountService = accountAuth.createService(authConfig);
 const requestSecurity = require("./request-security.cjs");
 const requestGate = requestSecurity.createGate();
-const htmlText = require("./html-text.cjs");
 
 const USER = process.env.APP_USER || "admin";
 const PASSWORD = process.env.APP_PASSWORD || "";
@@ -73,6 +73,8 @@ if (HOSTED && authConfig.mode === "basic" && PASSWORD.length < 16) {
 console.log("Business discovery:", JSON.stringify({provider: BUSINESS_PROVIDER, geoapifyConfigured: Boolean(GEOAPIFY_KEY)}));
 
 const HOUR = 3600000;
+const PAGE_MAX_BYTES = 768 * 1024;
+const PAGE_CACHE_MAX_BYTES = 8 * 1024 * 1024;
 const CACHE_DIR = path.join(__dirname, ".cache");
 const CACHE_FILE = path.join(CACHE_DIR, "data.json");
 
@@ -115,9 +117,6 @@ const normalizeLocation = value =>
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
-
-const digits = value =>
-  String(value || "").replace(/\D/g, "");
 
 try {
   cache = JSON.parse(fs.readFileSync(CACHE_FILE, "utf8"));
@@ -431,30 +430,6 @@ function businessMatch(tags, niche) {
   );
 }
 
-function websiteURL(value) {
-  if (!value) return "";
-
-  try {
-    const raw = String(value).split(";")[0].trim();
-
-    const url = new URL(
-      /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
-    );
-
-    if (
-      !["http:", "https:"].includes(url.protocol) ||
-      url.username ||
-      url.password
-    ) {
-      return "";
-    }
-
-    return url.href;
-  } catch {
-    return "";
-  }
-}
-
 function prospectScore(row) {
   let score = 20;
 
@@ -487,7 +462,8 @@ function deduplicate(rows) {
     const previous = output.find(other => {
       if (other.osmId === row.osmId) return true;
 
-      if (normalize(other.name) !== normalize(row.name)) {
+      if (normalizeLocation(other.name) !== normalizeLocation(row.name) ||
+          normalizeLocation(other.city) !== normalizeLocation(row.city)) {
         return false;
       }
 
@@ -498,9 +474,12 @@ function deduplicate(rows) {
       const sameAddress =
         row.address &&
         other.address &&
-        normalize(row.address) === normalize(other.address);
+        normalizeLocation(row.address) === normalizeLocation(other.address);
 
-      return near || sameAddress;
+      const phones = contacts.numbers(row.phone, row.countryCode);
+      const sharedPhone = contacts.numbers(other.phone, other.countryCode).some(value => phones.includes(value));
+      // Proximity and a brand name alone do not identify the same branch.
+      return near && (sameAddress || ((!row.address || !other.address) && sharedPhone));
     });
 
     if (!previous) {
@@ -509,7 +488,7 @@ function deduplicate(rows) {
     }
 
     for (const key of [
-      "phone", "address", "website", "street", "houseNumber"
+      "phone", "phoneSource", "mobilePhone", "whatsappPhone", "address", "website", "websiteSource", "street", "houseNumber"
     ]) {
       if (!previous[key] && row[key]) previous[key] = row[key];
     }
@@ -520,10 +499,12 @@ function deduplicate(rows) {
 
     if (previous.website) {
       previous.status = "WEBSITE_LISTED";
-      previous.confidence = 1;
+      previous.websiteVerification = "listed";
+      previous.confidence = 0.4;
       previous.reason =
-        "Website informado diretamente no OpenStreetMap.";
+        "Site informado na fonte; identidade e disponibilidade ainda não verificadas.";
     }
+    if (previous.phone) previous.phoneVerification = "listed";
 
     previous.prospectScore = prospectScore(previous);
   }
@@ -533,7 +514,7 @@ function deduplicate(rows) {
 
 async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}, selection = null) {
   const constraint = selection ? `${selection.countryCode}:${selection.stateCode}:${normalizeLocation(selection.stateName)}` : "legacy";
-  const key = `discovery:v10:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
+  const key = `discovery:v11:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
   if (hit) {
     onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });
@@ -656,10 +637,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
       continue;
     }
 
-    const rawWebsite =
-      tags.website || tags["contact:website"] || tags.url;
-
-    const website = websiteURL(rawWebsite);
+    const contactData = contacts.sourceData(tags, element.providerContact);
 
     const address = tags["addr:full"] || [
       [
@@ -678,9 +656,8 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
         place.name ||
         city.split(",")[0].trim(),
       address,
-      phone: tags.phone || tags["contact:phone"] || "",
+      ...contactData,
       countryCode: contacts.countryCode(place.address?.country_code) || contacts.countryCode(selection?.countryCode),
-      website,
       latitude,
       longitude,
       osmId: `${element.type}/${element.id}`,
@@ -688,15 +665,14 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
       source: BUSINESS_PROVIDER === "geoapify" ? "OpenStreetMap via Geoapify" : "OpenStreetMap",
       street: tags["addr:street"] || "",
       houseNumber: tags["addr:housenumber"] || "",
-      invalidListedWebsite: Boolean(rawWebsite && !website),
       chainSignal: Boolean(
         tags["brand:wikidata"] || tags["operator:wikidata"]
       ),
       matchMethod: nicheMatching.matchesTags(tags, config) ? "tag" : "keyword",
-      status: website ? "WEBSITE_LISTED" : "UNCERTAIN",
-      confidence: website ? 1 : 0,
-      reason: website
-        ? "Website informado diretamente no OpenStreetMap."
+      status: contactData.website ? "WEBSITE_LISTED" : "UNCERTAIN",
+      confidence: contactData.website ? 0.4 : 0,
+      reason: contactData.website
+        ? "Site informado na fonte; identidade e disponibilidade ainda não verificadas."
         : "Aguardando verificação.",
       verification: null
     };
@@ -820,8 +796,14 @@ async function pageRequest(input, deadline, redirects = 3, acceptPlain = false) 
   try {
     const result = await pending;
     if (result.status >= 200 && result.status < 300) {
-      if (pageCache.size >= 32) pageCache.delete(pageCache.keys().next().value);
-      pageCache.set(key, { value: result, expires: Date.now() + 10 * 60000 });
+      const bytes = Buffer.byteLength(result.html || "");
+      let cacheBytes = [...pageCache.values()].reduce((total,item) => total + item.bytes, 0);
+      while (pageCache.size >= 32 || cacheBytes + bytes > PAGE_CACHE_MAX_BYTES) {
+        const oldest = pageCache.keys().next().value;
+        cacheBytes -= pageCache.get(oldest).bytes;
+        pageCache.delete(oldest);
+      }
+      pageCache.set(key, { value: result, bytes, expires: Date.now() + 10 * 60000 });
     }
     return result;
   } finally {
@@ -916,6 +898,7 @@ async function pageRequestUncached(input, deadline, redirects = 3, acceptPlain =
         finish(null, {
           status,
           html: "",
+          policyReadable: false,
           finalUrl: url.href
         });
         response.destroy();
@@ -928,8 +911,8 @@ async function pageRequestUncached(input, deadline, redirects = 3, acceptPlain =
       response.on("data", chunk => {
         bytes += chunk.length;
 
-        if (bytes > 384 * 1024) {
-          finish(new Error("Página excedeu o limite de leitura."));
+        if (bytes > PAGE_MAX_BYTES) {
+          finish(new Error("Página excedeu o limite de leitura segura (768 KB)."));
           response.destroy();
           return;
         }
@@ -940,6 +923,7 @@ async function pageRequestUncached(input, deadline, redirects = 3, acceptPlain =
       response.on("end", () => finish(null, {
         status,
         finalUrl: url.href,
+        policyReadable: !acceptPlain || type.includes("text/plain"),
         html: Buffer.concat(chunks).toString("utf8")
       }));
 
@@ -959,6 +943,9 @@ async function pageRequestUncached(input, deadline, redirects = 3, acceptPlain =
   });
 
   if (result.redirect) {
+    // Expose redirect metadata for the public-page reader, which checks the
+    // new origin's robots.txt and DNS before reading each destination.
+    if (redirects < 0) return result;
     if (redirects === 0) {
       throw new Error("Excesso de redirecionamentos.");
     }
@@ -974,213 +961,91 @@ async function pageRequestUncached(input, deadline, redirects = 3, acceptPlain =
   return result;
 }
 
-function candidates(name, city) {
-  const original = normalize(name);
-
-  const simplified = original
-    .replace(
-      /\b(inc|incorporated|ltd|limited|llc|corp|corporation)\b/g,
-      ""
-    )
-    .replace(/\s+/g, " ")
-    .trim();
-
-  const compact = simplified.replaceAll(" ", "");
-
-  const variants = [...new Set([
-    original.replaceAll(" ", ""),
-    compact,
-    simplified.replaceAll(" ", "-"),
-    compact + normalize(city).replaceAll(" ", "")
-  ])].filter(value =>
-    value.length >= 3 && value.length <= 63
-  );
-
-  return variants.flatMap(value =>
-    [".com", ".ca", ".net", ".org"].map(tld => value + tld)
-  );
+function candidates(name, city, country) {
+  return websiteEvidence.candidates(name, city, country);
 }
 
 function analyze(page, business) {
-  const title = htmlText.title(page.html);
-  const text = htmlText.text(page.html);
-
-  const normalizedText = normalize(text);
-  const name = normalize(business.name);
-
-  const nameMatch =
-    name.length >= 6 &&
-    normalize(title).includes(name);
-
-  const phone = digits(business.phone);
-
-  // Compara sequências com formato de telefone, não todos
-  // os dígitos da página concatenados.
-  const pagePhones =
-    text.match(/\+?\d[\d(). \t-]{7,24}\d/g) || [];
-
-  const phoneMatch =
-    phone.length >= 10 &&
-    pagePhones.some(value =>
-      digits(value).endsWith(phone.slice(-10))
-    );
-
-  const city = normalize(business.city);
-  const cityMatch =
-    city.length >= 3 && normalizedText.includes(city);
-
-  const street = normalize(business.street);
-
-  const addressMatch =
-    street.length >= 5 &&
-    Boolean(business.houseNumber) &&
-    normalizedText.includes(street) &&
-    normalizedText.includes(normalize(business.houseNumber));
-
-  const parked =
-    /\b(domain for sale|buy this domain|website coming soon|parked domain)\b/i
-      .test(text);
-
-  const compatible =
-    page.status >= 200 &&
-    page.status < 300 &&
-    !parked &&
-    nameMatch &&
-    cityMatch &&
-    (phoneMatch || addressMatch);
-
-  return {
-    title: title.slice(0, 400),
-    compatible,
-    nameMatch,
-    phoneMatch,
-    cityMatch,
-    addressMatch
-  };
+  return websiteEvidence.analyze(page, business);
 }
 
 async function verify(business) {
-  if (business.status === "WEBSITE_LISTED") return business;
-
-  const key =
-    `verify:v3:${business.osmId}:${normalize(business.name)}:` +
-    `${business.city}:${business.phone}:${business.address}`;
-
+  const key = "verify:v4:" + createHash("sha256").update(JSON.stringify([
+    business.osmId, business.name, business.city, business.countryCode,
+    business.phone, business.address, business.website, business.mobilePhone, business.whatsappPhone
+  ])).digest("hex");
   const hit = cached(key);
-
   if (hit) {
     const row = { ...business, ...hit };
     row.prospectScore = prospectScore(row);
     return row;
   }
 
-  const domains = candidates(business.name, business.city);
-  const deadline = Date.now() + 25000;
+  const listed = Boolean(business.website);
+  if (listed && websiteEvidence.isProfile(business.website)) {
+    const row = {...business, status:"WEBSITE_LISTED", confidence:0.4, websiteVerification:"profile",
+      reason:"Perfil ou diretório informado na fonte; site próprio da empresa não confirmado."};
+    row.prospectScore = prospectScore(row);
+    return row;
+  }
+  const domains = listed ? [business.website] : candidates(business.name, business.city, business.countryCode);
+  const deadline = Date.now() + (listed ? 12000 : 25000);
   const evidence = [];
-
-  let uncertain =
-    domains.length === 0 || business.invalidListedWebsite;
-
-  let checked = 0;
-  let found = null;
-
+  let checked = 0, found = null, phoneData = {}, incomplete = false;
   for (const domain of domains) {
     if (Date.now() >= deadline) {
-      uncertain = true;
-      evidence.push({
-        reason: "Verificação parcial: limite de tempo atingido."
-      });
+      incomplete = true;
+      evidence.push({reason: "Verificação parcial: limite de tempo atingido."});
       break;
     }
-
-    await sleep(80);
-
-    const resolved = await resolveHost(domain);
     checked++;
-
-    if (resolved.state === "absent") {
-      evidence.push({ domain, dns: "absent" });
-      continue;
-    }
-
-    uncertain = true;
-
-    if (resolved.state !== "public") {
-      evidence.push({
-        domain,
-        dns: resolved.state,
-        reason: resolved.reason
-      });
-      continue;
-    }
-
-    for (const protocol of ["https:", "http:"]) {
-      try {
-        const page = await pageRequest(
-          `${protocol}//${domain}`,
-          deadline
-        );
-
-        const match = analyze(page, business);
-
-        evidence.push({
-          domain,
-          protocol,
-          dns: "public",
-          httpStatus: page.status,
-          finalUrl: page.finalUrl,
-          title: match.title,
-          matching: {
-            name: match.nameMatch,
-            city: match.cityMatch,
-            phone: match.phoneMatch,
-            address: match.addressMatch
-          }
-        });
-
-        if (match.compatible) {
-          found = page.finalUrl;
-          break;
-        }
-      } catch (error) {
-        evidence.push({
-          domain,
-          protocol,
-          error: error.message
-        });
+    if (!listed) {
+      const resolved = await resolveHost(domain);
+      if (resolved.state !== "public") {
+        evidence.push({domain, dns:resolved.state, reason:resolved.reason});
+        incomplete ||= resolved.state !== "absent";
+        continue;
       }
     }
-
-    if (found) break;
-  }
-
-  const result = {
-    website: found || "",
-    status: found
-      ? "WEBSITE_FOUND"
-      : uncertain
-        ? "UNCERTAIN"
-        : "LIKELY_NO_WEBSITE",
-    confidence: found ? 0.95 : uncertain ? 0.40 : 0.65,
-    reason: found
-      ? "Nome, cidade e telefone ou endereço compatíveis."
-      : uncertain
-        ? "Verificação incompleta ou domínio duvidoso. Revise manualmente."
-        : "Nenhum website encontrado nos candidatos verificados. Isso não comprova ausência.",
-    verification: {
-      checkedAt: new Date().toISOString(),
-      candidatesTotal: domains.length,
-      candidatesChecked: checked,
-      evidence
+    // Guesses use HTTPS only. Never downgrade a failed HTTPS request.
+    const input = listed ? domain : `https://${domain}`;
+    try {
+      const page = await websiteEvidence.readPublicPage(input, deadline, pageRequest);
+      const match = analyze(page, business);
+      evidence.push({domain, protocol:new URL(input).protocol, httpStatus:page.status,
+        finalUrl:page.finalUrl, title:match.title,
+        matching:{name:match.nameMatch,city:match.cityMatch,phone:match.phoneMatch,address:match.addressMatch},
+        reason:match.compatible ? "Identidade compatível com a página pública." : "A página não confirmou a identidade da empresa."});
+      if (match.compatible) {
+        found = page.finalUrl;
+        phoneData = {...(match.phoneMatch ? {phoneVerification:"website_match",sitePhone:match.matchedPhone} : {}),
+          ...websiteEvidence.enrichPhone(page, business)};
+        if (phoneData.phoneVerification === "conflict") evidence.push({reason:"O telefone da fonte diverge do cadastro da mesma empresa na página. Revise antes de entrar em contato."});
+        break;
+      }
+    } catch (error) {
+      incomplete = true;
+      evidence.push({domain, error:String(error.message).slice(0,300)});
     }
+  }
+  const checkedAt = new Date().toISOString();
+  const result = {
+    ...phoneData,
+    website: found || business.website || "",
+    websiteSource: business.websiteSource || (found ? "Página pública com identidade compatível" : ""),
+    websiteVerification: found ? "compatible" : listed ? "inconclusive" : "not_identified",
+    websiteCheckedAt: checkedAt,
+    status: found ? "WEBSITE_FOUND" : listed ? "WEBSITE_LISTED" : "UNCERTAIN",
+    confidence: found ? 0.95 : listed ? 0.4 : 0,
+    reason: found
+      ? "Nome, cidade e telefone ou endereço compatíveis na página pública. Isso não comprova propriedade nem atualização do cadastro."
+      : listed
+        ? "Site informado na fonte, mas sua identidade ou disponibilidade não foi confirmada. Revise manualmente."
+        : "Nenhum site identificado nesta verificação limitada. Os domínios sugeridos não cobrem todos os sites possíveis; ausência não comprovada.",
+    verification: {method:listed ? "listed" : "domain_candidates", checkedAt,
+      candidatesTotal:domains.length,candidatesChecked:checked,incomplete,evidence}
   };
-
-  saveCache(
-    key,
-    result,
-    uncertain && !found ? 5 * 60000 : 6 * HOUR
-  );
-
+  saveCache(key, result, found ? 6 * HOUR : 5 * 60000);
   const row = { ...business, ...result };
   row.prospectScore = prospectScore(row);
   return row;
@@ -1313,9 +1178,9 @@ const readBody = requestSecurity.readJSON;
 
 // Checagem pontual de uma página pública, sem pesquisa em massa.
 // Conservador: não lê o site se robots.txt restringir este robô,
-// se robots.txt falhar ou se houver redirecionamento não revisado.
+// se robots.txt falhar; cada redirecionamento passa por DNS e permissões próprios.
 async function collectAIEvidence(row) {
-  const key = `${row.osmId}:${row.website}:${row.phone}:${row.address}`;
+  const key = `${row.osmId}:${row.website}:${row.phone}:${row.address}:${row.phoneVerification}:${row.phoneSource}`;
   const cachedEvidence = aiEvidenceCache.get(key);
   if (cachedEvidence && cachedEvidence.expires > Date.now()) {
     return cachedEvidence.value;
@@ -1328,7 +1193,12 @@ async function collectAIEvidence(row) {
       status: row.status
     },
     source: `https://www.openstreetmap.org/${row.osmId}`,
-    contactStatus: "Telefone e endereço informados no OpenStreetMap; não confirmados independentemente.",
+    contactStatus: row.phoneVerification === "conflict"
+      ? "Telefone da fonte diverge do telefone publicado no cadastro da mesma empresa no site. Revise antes de entrar em contato."
+      : row.phoneVerification === "website_published"
+        ? "Telefone publicado em página pública com identidade compatível. Titularidade, atualização e conta WhatsApp não confirmadas."
+        : "Telefone e endereço informados na fonte; titularidade, atualização e conta WhatsApp não confirmadas.",
+    contactSource: row.phoneSource || "OpenStreetMap",
     websiteCheck: { state: "not_identified", note: "Site não identificado. Isso não comprova ausência de site." },
     previousVerification: row.verification ? {
       checkedAt: row.verification.checkedAt,
@@ -1339,31 +1209,7 @@ async function collectAIEvidence(row) {
   if (row.website) {
     const deadline = Date.now() + 12000;
     try {
-      const website = new URL(row.website);
-      const robots = await pageRequest(new URL("/robots.txt", website).href, deadline, 0, true);
-      if (robots.status !== 404 && (robots.status < 200 || robots.status >= 300)) {
-        throw new Error("Não foi possível consultar as permissões do site.");
-      }
-      let applies = false;
-      let inRules = false;
-      let restricted = false;
-      for (const raw of robots.html.split(/\r?\n/)) {
-        const line = raw.split("#")[0].trim();
-        const colon = line.indexOf(":");
-        if (colon < 0) continue;
-        const name = line.slice(0, colon).trim().toLowerCase();
-        const content = line.slice(colon + 1).trim();
-        if (name === "user-agent") {
-          if (inRules) { applies = false; inRules = false; }
-          applies ||= content === "*" || content.toLowerCase().includes("prospectai");
-        } else {
-          inRules = true;
-          if (name === "disallow" && applies && content) restricted = true;
-        }
-      }
-      if (restricted) throw new Error("O site possui restrições para robôs. Revise manualmente.");
-      // Não segue redirecionamentos para evitar ler outro destino sem robots.txt.
-      const page = await pageRequest(row.website, deadline, 0);
+      const page = await websiteEvidence.readPublicPage(row.website, deadline, pageRequest);
       const match = analyze(page, row);
       value.websiteCheck = {
         state: page.status >= 200 && page.status < 300 ? "accessible" : "http_error",
