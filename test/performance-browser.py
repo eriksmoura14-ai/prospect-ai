@@ -43,7 +43,9 @@ async def cards(browser, baseline=None):
         changes = await page.evaluate("""() => {
           const before=[...document.querySelectorAll('#cards article')];
           before[0].querySelector('details').open=true;
-          const focused=before[99].querySelector('button'); focused.focus();
+          // A missing/invalid WhatsApp number intentionally renders a disabled
+          // contact button. Focus an available action to test focus retention.
+          const focused=before[99].querySelector('button:not(:disabled)'); focused.focus();
           rows=rows.map(row=>({...row}));const first=rows.find(row=>row.osmId===before[0].querySelector('details').dataset.osmId);
           first.reason='Evidência atualizada';render();
           const after=[...document.querySelectorAll('#cards article')];
@@ -58,7 +60,9 @@ async def cards(browser, baseline=None):
         await expect(page.locator('#cards article')).to_have_count(100)
         await page.locator('#sort').select_option('name')
         await page.evaluate("lastJob.state='running';render()")
-        assert await page.locator('#cards article button:disabled').count()==100
+        ai_buttons=page.locator('#cards article').get_by_role('button',name='Abrir assistente de IA',exact=True)
+        await expect(ai_buttons).to_have_count(100)
+        assert await ai_buttons.evaluate_all('buttons=>buttons.every(button=>button.disabled)')
         await page.evaluate("lastJob.state='done';render()")
         await page.locator('#cards article').first.get_by_role('button',name='Abrir assistente de IA').click()
         await expect(page.locator('.ai-dialog')).to_be_visible()

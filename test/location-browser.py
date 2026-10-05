@@ -39,7 +39,10 @@ async def initialized(page):
 async def main():
     async with async_playwright() as p:
         browser=await p.chromium.launch(executable_path=os.environ.get('CHROMIUM_PATH','/usr/bin/chromium'),headless=True,args=['--no-sandbox'])
-        context=await browser.new_context(viewport={'width':1440,'height':1000})
+        # These checks exercise location/recovery logic, not animation timing.
+        # Reduce decorative GPU work across concurrent headless pages; the
+        # animated Earth is validated separately by earth-browser.py.
+        context=await browser.new_context(viewport={'width':1440,'height':1000}, reduced_motion='reduce')
         page=await context.new_page()
         page.on('pageerror', lambda e: REPORT['consoleErrors'].append(str(e)))
         await initialized(page)
@@ -219,7 +222,7 @@ async def main():
             return {'viewport':{'width':390,'height':844},'horizontalOverflow':False}
         await check('Mobile layout and selected values',mobile)
         async def recovery_case(country_mode):
-            recovery_context=await browser.new_context(viewport={'width':1280,'height':900})
+            recovery_context=await browser.new_context(viewport={'width':1280,'height':900}, reduced_motion='reduce')
             await recovery_context.add_init_script("localStorage.setItem('prospect-ai-active-job', 'ui-resume-fixture')")
             rp=await recovery_context.new_page()
             rp.on('pageerror', lambda e: REPORT['consoleErrors'].append(str(e)))

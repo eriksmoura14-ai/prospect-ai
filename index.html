@@ -625,26 +625,64 @@
 
   <link rel="stylesheet" href="/earth.css">
   <link rel="stylesheet" href="/prospects.css">
+  <link rel="stylesheet" href="/dashboard.css">
   <script src="/earth-loader.js" defer></script>
   <script src="/location-picker.js" defer></script>
   <script src="/account-ui.js" defer></script>
   <script src="/prospects-ui.js" defer></script>
   <script src="/app.js" defer></script>
+  <script src="/dashboard.js" defer></script>
 </head>
 
 <body>
+  <a class="skip-link" href="#main-content">Ir para o conteúdo</a>
+  <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="0" height="0">
+    <defs>
+      <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/></symbol>
+      <symbol id="icon-history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></symbol>
+      <symbol id="icon-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1"/></symbol>
+      <symbol id="icon-agent" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="4"/><path d="M12 3v4M8 12v2M16 12v2M9 18h6M1 11v5M23 11v5"/></symbol>
+      <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="m10 2 4 0 .6 3 2 .9 2.8-1 2 3.4-2.2 2 .2 2.4 2 2-2 3.4-2.8-1-2 .9-.6 3h-4l-.6-3-2-.9-2.8 1-2-3.4 2.2-2-.2-2.4-2-2 2-3.4 2.8 1 2-.9Z"/></symbol>
+      <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+      <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+      <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+      <symbol id="icon-phone" viewBox="0 0 24 24"><path d="m5 3 4 1 1 5-3 2c2 3 3 4 6 6l2-3 5 1 1 4c-1 5-8 2-12-2S2 4 5 3Z"/></symbol>
+      <symbol id="icon-store" viewBox="0 0 24 24"><path d="M4 10v11h16V10M3 10l2-7h14l2 7M3 10c0 4 4 4 4 0 0 4 5 4 5 0 0 4 5 4 5 0 0 4 4 4 4 0M9 21v-7h6v7"/></symbol>
+      <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+    </defs>
+  </svg>
   <div id="earth-scene" aria-hidden="true" data-earth-day="/assets/earth-day.jpg" data-earth-day-desktop="/assets/earth-day-desktop.jpg" data-earth-night="/assets/earth-night.jpg" data-earth-clouds="/assets/earth-clouds.webp" data-earth-clouds-desktop="/assets/earth-clouds-desktop.webp" data-earth-specular="/assets/earth-specular.jpg"></div>
   <noscript>
     Ative o JavaScript no navegador para pesquisar empresas
     e utilizar os filtros.
   </noscript>
 
-  <header>
+  <aside id="app-sidebar" class="app-sidebar" aria-label="Navegação principal">
     <div class="brand">
       <span class="logo" aria-hidden="true">P</span>
       <span>Prospect <small>AI</small></span>
     </div>
-
+    <button id="menu-close" class="icon-button" type="button" aria-label="Fechar menu"><svg class="ui-icon" aria-hidden="true"><use href="#icon-close"/></svg></button>
+    <p class="nav-caption">SEU WORKSPACE</p>
+    <nav class="sidebar-links" aria-label="Seções do Prospect AI">
+      <button type="button" data-nav-target="explore-section" aria-current="page"><svg class="ui-icon" aria-hidden="true"><use href="#icon-search"/></svg>Explorar</button>
+      <button type="button" data-nav-target="account-history" data-workspace-nav disabled><svg class="ui-icon" aria-hidden="true"><use href="#icon-history"/></svg>Histórico</button>
+      <button type="button" data-nav-target="lists-section" data-workspace-nav disabled><svg class="ui-icon" aria-hidden="true"><use href="#icon-list"/></svg>Minhas listas</button>
+      <button id="nav-agent" type="button" data-workspace-nav disabled><svg class="ui-icon" aria-hidden="true"><use href="#icon-agent"/></svg>Agente IA</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button id="nav-settings" type="button" data-workspace-nav disabled><svg class="ui-icon" aria-hidden="true"><use href="#icon-settings"/></svg>Minha conta</button>
+      <div class="sidebar-profile"><span id="sidebar-avatar" class="profile-avatar" aria-hidden="true">P</span><div><strong>Seu espaço de prospecção</strong><span>Conexões que começam aqui.</span></div></div>
+    </div>
+  </aside>
+  <button id="menu-backdrop" type="button" aria-label="Fechar menu" hidden></button>
+  <div class="app-content">
+  <header class="app-topbar">
+    <div class="topbar-heading">
+      <button id="menu-toggle" class="icon-button" type="button" aria-label="Abrir menu" aria-controls="app-sidebar" aria-expanded="false"><svg class="ui-icon" aria-hidden="true"><use href="#icon-menu"/></svg></button>
+      <span class="breadcrumb">Workspace <span aria-hidden="true">/</span> <strong id="nav-current">Explorar</strong></span>
+      <span class="version">Pesquisa de empresas · v0.6</span>
+    </div>
     <div class="header-actions">
       <span class="version">Pesquisa de empresas · v0.6</span>
       <button id="earth-motion" class="earth-motion" type="button" aria-pressed="false" hidden>Pausar animação</button>
@@ -657,16 +695,18 @@
     </div>
   </header>
 
-  <main>
+  <main id="main-content" tabindex="-1">
+    <div id="explore-section" class="hero-copy">
     <div class="eyebrow">
-      Pesquisa de negócios locais
+      Seu próximo cliente pode estar em qualquer lugar
     </div>
 
-    <h1>Encontre sua próxima <span class="hero-accent">oportunidade.</span></h1>
+    <h1>Encontre seu próximo <span class="hero-accent">cliente.</span></h1>
 
     <p class="intro">
-      Explore negócios locais pelo mundo.
+      Explore empresas locais em qualquer lugar do mundo.
     </p>
+    </div>
 
     <section id="login-panel" class="panel" hidden aria-labelledby="login-title">
       <h2 id="login-title">Entre no Prospect AI</h2>
@@ -708,27 +748,23 @@
       <p id="account-status" role="status" aria-live="polite"></p>
     </section>
 
-    <div id="workspace">
-    <div class="notice">
-      Dados públicos do OpenStreetMap. A ausência de website
-      cadastrado não significa ausência de site.
-      Revise as evidências antes de priorizar um negócio.
-    </div>
-
+    <div id="workspace" hidden>
+    <div class="search-stage">
     <form id="search" class="panel">
-      <label for="country">País
+      <div class="search-heading"><svg class="ui-icon" aria-hidden="true"><use href="#icon-pin"/></svg><h2>Onde vamos buscar?</h2><p>Escolha a região e o tipo de negócio.</p></div>
+      <label for="country"><span class="field-step">1</span> País
         <select id="country" name="country" required disabled aria-describedby="location-status">
           <option value="">Carregando países…</option>
         </select>
       </label>
 
-      <label for="region">Estado / província
+      <label for="region"><span class="field-step">2</span> Estado / província
         <select id="region" name="region" required disabled>
           <option value="">Selecione o país primeiro</option>
         </select>
       </label>
 
-      <label for="city">Cidade
+      <label for="city"><span class="field-step">3</span> Cidade
         <select id="city" name="city" required disabled>
           <option value="">Selecione o estado primeiro</option>
         </select>
@@ -749,7 +785,7 @@
         <button id="location-retry" type="button" hidden>Tentar carregar novamente</button>
       </p>
 
-      <label for="niche">
+      <label for="niche" class="niche-field">
         Nicho
 
         <select
@@ -762,8 +798,8 @@
         </select>
       </label>
 
-      <label for="quantity">
-        Quantidade
+      <label for="quantity" class="quantity-field">
+        Limite de empresas
 
         <select
           id="quantity"
@@ -788,7 +824,7 @@
 
     <p class="form-note">
       <span>
-        Pesquisas manuais · cache · sem APIs pagas
+        Busca em toda a área selecionada.
       </span>
 
       <span>
@@ -796,8 +832,37 @@
         não uma garantia de resultados.
       </span>
     </p>
+    </div>
 
-    <details id="lists-section" class="panel" hidden>
+    <section id="results-section" class="results-section panel" aria-labelledby="results-title">
+    <div class="result-head">
+      <div><div class="results-heading"><h2 id="results-title">Empresas encontradas</h2><span id="results-count" class="results-count" hidden></span></div><p id="summary" role="status" aria-live="polite" aria-atomic="true">Conectando ao servidor…</p></div>
+      <div class="exports"><button id="csv" type="button" title="Exportar os resultados que correspondem aos filtros" disabled>Exportar CSV</button><button id="json" type="button" title="Exportar os resultados e evidências disponíveis" disabled>Exportar JSON</button></div>
+    </div>
+    <section class="stats" aria-label="Resumo da pesquisa">
+      <div class="panel stat"><span>Encontradas</span><strong id="total">0</strong></div>
+      <div class="panel stat highlight"><span>Oportunidades</span><strong id="prospects">0</strong></div>
+      <div class="panel stat"><span>Sites encontrados</span><strong id="websites">0</strong></div>
+      <div class="panel stat"><span>Incertos</span><strong id="uncertain">0</strong></div>
+      <div class="panel stat"><span>Com telefone</span><strong id="phones">0</strong></div>
+    </section>
+    <div class="filters">
+      <div class="tabs" role="group" aria-label="Filtrar por status do website">
+        <button type="button" data-filter="all" aria-pressed="true">Todas</button>
+        <button type="button" data-filter="prospect" aria-pressed="false">Oportunidades</button>
+        <button type="button" data-filter="found" aria-pressed="false">Com site</button>
+        <button type="button" data-filter="uncertain" aria-pressed="false">Incerto</button>
+      </div>
+      <div class="selects">
+        <label for="phone-filter">Telefone<select id="phone-filter"><option value="all">Todos</option><option value="yes">Com telefone</option><option value="no">Sem telefone</option></select></label>
+        <label for="sort">Ordenar por<select id="sort"><option value="score">Prioridade</option><option value="confidence">Confiança</option><option value="name">Nome</option></select></label>
+      </div>
+    </div>
+    <div id="cards" class="cards"><div class="panel empty"><h3>Sua pesquisa começa aqui</h3><p>Escolha um local e um nicho para encontrar empresas com informações comerciais públicas.</p></div></div>
+    <div class="notice">Dados públicos do OpenStreetMap. A ausência de website cadastrado não significa ausência de site. Revise as evidências antes de priorizar um negócio.</div>
+    </section>
+
+    <details id="lists-section" class="panel workspace-section" hidden>
       <summary>Minhas listas <span id="lists-count"></span></summary>
       <p class="lists-intro">Salve empresas, organize seus contatos e retome suas notas em qualquer dispositivo.</p>
       <div class="lists-toolbar">
@@ -818,147 +883,7 @@
       <p class="lists-intro">Até 20 listas, 250 empresas por lista e 1.000 empresas salvas por conta. As listas ficam salvas até você removê-las ou excluir sua conta.</p>
     </details>
 
-    <section
-      class="stats"
-      aria-label="Resumo da pesquisa"
-    >
-      <div class="panel stat">
-        <span>Encontradas</span>
-        <strong id="total">0</strong>
-      </div>
-
-      <div class="panel stat highlight">
-        <span>Prospects</span>
-        <strong id="prospects">0</strong>
-      </div>
-
-      <div class="panel stat">
-        <span>Sites encontrados</span>
-        <strong id="websites">0</strong>
-      </div>
-
-      <div class="panel stat">
-        <span>Incertos</span>
-        <strong id="uncertain">0</strong>
-      </div>
-
-      <div class="panel stat">
-        <span>Com telefone</span>
-        <strong id="phones">0</strong>
-      </div>
-    </section>
-
-    <section aria-labelledby="results-title">
-      <div class="result-head">
-        <div>
-          <h2 id="results-title">Empresas</h2>
-
-          <p
-            id="summary"
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            Conectando ao servidor…
-          </p>
-        </div>
-
-        <div class="exports">
-          <button
-            id="csv"
-            type="button"
-            title="Exportar os resultados que correspondem aos filtros"
-            disabled
-          >
-            Exportar CSV
-          </button>
-
-          <button
-            id="json"
-            type="button"
-            title="Exportar os resultados e evidências disponíveis"
-            disabled
-          >
-            Exportar JSON
-          </button>
-        </div>
-      </div>
-
-      <div class="filters">
-        <div
-          class="tabs"
-          role="group"
-          aria-label="Filtrar por status do website"
-        >
-          <button
-            type="button"
-            data-filter="all"
-            aria-pressed="true"
-          >
-            Todos
-          </button>
-
-          <button
-            type="button"
-            data-filter="prospect"
-            aria-pressed="false"
-          >
-            Provavelmente sem site
-          </button>
-
-          <button
-            type="button"
-            data-filter="found"
-            aria-pressed="false"
-          >
-            Site encontrado
-          </button>
-
-          <button
-            type="button"
-            data-filter="uncertain"
-            aria-pressed="false"
-          >
-            Incerto
-          </button>
-        </div>
-
-        <div class="selects">
-          <label for="phone-filter">
-            Telefone
-
-            <select id="phone-filter">
-              <option value="all">Todos</option>
-              <option value="yes">Com telefone</option>
-              <option value="no">Sem telefone</option>
-            </select>
-          </label>
-
-          <label for="sort">
-            Ordenar por
-
-            <select id="sort">
-              <option value="score">Prospect Score</option>
-              <option value="confidence">Confidence</option>
-              <option value="name">Nome</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <div id="cards" class="cards">
-        <div class="panel empty">
-          <h3>Sua pesquisa começa aqui</h3>
-
-          <p>
-            Informe cidade e nicho para procurar negócios
-            usando informações comerciais públicas.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <details id="account-history" hidden>
+    <details id="account-history" class="panel workspace-section" hidden>
       <summary>Minhas pesquisas · últimas 20, por até 30 dias</summary>
       <div id="history-list"></div>
     </details>
@@ -979,6 +904,7 @@
       · <a href="https://github.com/dr5hn/countries-states-cities-database" target="_blank" rel="noopener">Localidades: Countries States Cities Database · ODbL</a>
     </footer>
   </main>
+  </div>
   <dialog id="account-delete-dialog" aria-labelledby="account-delete-title">
     <form id="account-delete-form">
       <h2 id="account-delete-title">Excluir conta e dados</h2>
