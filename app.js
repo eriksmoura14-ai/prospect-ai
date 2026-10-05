@@ -565,9 +565,11 @@ function readOfferSettings() {
     const saved = accountUI.mode === "password" ? accountUI.preferences() : JSON.parse(localStorage.getItem("prospect-ai-offer") || "{}");
     return { seller: typeof saved.seller === "string" ? saved.seller : "",
       offer: typeof saved.offer === "string" ? saved.offer : "",
+      knowledge: typeof saved.knowledge === "string" ? saved.knowledge : "",
+      tone: ["Natural", "Profissional"].includes(saved.tone) ? saved.tone : "Natural",
       language: ["Português", "English", "Español"].includes(saved.language)
         ? saved.language : "Português" };
-  } catch { return { seller: "", offer: "", language: "Português" }; }
+  } catch { return { seller: "", offer: "", knowledge: "", tone: "Natural", language: "Português" }; }
 }
 
 function saveOfferSettings(settings) {
@@ -634,6 +636,15 @@ function createAIPanel() {
   const seller = field("Seu nome ou nome da sua empresa", "input", 100, "Como você se apresenta ao cliente");
   const offer = field("Sua oferta", "textarea", 1800,
     "Descreva o serviço, o que está incluído e, se desejar, preço, moeda e prazo. A IA usará essas condições.");
+  const tone = field("Tom da conversa", "select");
+  tone.id = "ai-tone";
+  for (const value of ["Natural", "Profissional"]) {
+    const option = node("option", "", value); option.value = value; tone.append(option);
+  }
+  const knowledge = field("Informações de atendimento (opcional)", "textarea", 1800,
+    "Informe escopo, condições, descontos autorizados e respostas frequentes. Ex.: orçamento depende do número de páginas; manutenção é contratada separadamente.");
+  knowledge.id = "ai-knowledge";
+  dialog.append(node("p", "ai-note", "Essas informações orientam as respostas para qualquer empresa. Confira preços e condições; não inclua dados pessoais de clientes."));
   const language = field("Idioma das mensagens", "select");
   for (const value of ["Português", "English", "Español"]) {
     const option = node("option", "", value); option.value = value; language.append(option);
@@ -672,10 +683,10 @@ function createAIPanel() {
   replyButton.type = "button";
   dialog.append(replyButton, node("p", "ai-note",
     "Os campos informados serão enviados à Groq quando você usar a IA. Remova dados pessoais sensíveis. " +
-    (accountUI.mode === "password" ? "Sua oferta fica salva na sua conta; " : "A oferta fica salva neste navegador; ") +
+    (accountUI.mode === "password" ? "Sua oferta e as informações de atendimento ficam salvas na sua conta; " : "A oferta e as informações de atendimento ficam salvas neste navegador; ") +
     "o histórico da conversa fica apenas nesta aba. Copie-o antes de recarregar."));
   document.body.append(dialog);
-  const panel = { dialog, title, seller, offer, language, status, audit, sourceBody,
+  const panel = { dialog, title, seller, offer, tone, knowledge, language, status, audit, sourceBody,
     draft, history, clientMessage, auditButton, draftButton, replyButton,
     copy, record, busy: false, selection: null };
 
@@ -684,9 +695,9 @@ function createAIPanel() {
     Object.assign(panel.selection.state, {
       draft: draft.value, history: history.value, clientMessage: clientMessage.value
     });
-    saveOfferSettings({ seller: seller.value, offer: offer.value, language: language.value });
+    saveOfferSettings({ seller: seller.value, offer: offer.value, tone: tone.value, knowledge: knowledge.value, language: language.value });
   }
-  for (const element of [seller, offer, language, draft, history, clientMessage]) {
+  for (const element of [seller, offer, tone, knowledge, language, draft, history, clientMessage]) {
     element.addEventListener("input", saveState);
     element.addEventListener("change", saveState);
   }
@@ -733,6 +744,7 @@ function createAIPanel() {
         signal: AbortSignal.timeout(65000),
         body: JSON.stringify({ action, jobId: selection.jobId, osmId: selection.row.osmId,
           seller: seller.value, offer: offer.value, language: language.value,
+          tone: tone.value, knowledge: knowledge.value,
           history: history.value, clientMessage: clientMessage.value,
           previousDraft: draft.value })
       });
@@ -797,6 +809,7 @@ function openAIPanel(row, jobId) {
   const settings = readOfferSettings();
   aiPanel.title.textContent = "Assistente · " + row.name;
   aiPanel.seller.value = settings.seller; aiPanel.offer.value = settings.offer;
+  aiPanel.tone.value = settings.tone; aiPanel.knowledge.value = settings.knowledge;
   aiPanel.language.value = settings.language;
   aiPanel.draft.value = state.draft; aiPanel.history.value = state.history;
   aiPanel.clientMessage.value = state.clientMessage;

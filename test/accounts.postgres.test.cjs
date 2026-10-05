@@ -117,6 +117,19 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       const row=(await sql.query("SELECT * FROM prospect_searches WHERE id=$1",[job.id])).rows[0];
       assert.ok(!JSON.stringify(row).includes(job.city));assert.ok(!JSON.stringify(row).includes("Empresa de fixture"));
     });
+    await t.test("perfil de atendimento persiste cifrado, valida limites e não aparece para outra conta",async()=>{
+      const profile={seller:"Vendedor privado",offer:"Oferta privada",language:"Español",tone:"Profissional",knowledge:"Condições privadas; sem desconto não autorizado."};
+      assert.equal((await alice.call("PATCH","/api/account/preferences",profile)).status,200);
+      assert.deepEqual((await alice.refresh()).data.user.preferences,profile);
+      assert.equal((await bob.refresh()).data.user.preferences.knowledge,undefined);
+      for(const patch of [{tone:"Inventar"},{knowledge:"x".repeat(1801)},{knowledge:null}])assert.equal((await alice.call("PATCH","/api/account/preferences",{...profile,...patch})).status,400);
+      assert.deepEqual((await alice.refresh()).data.user.preferences,profile);
+      const encrypted=(await sql.query("SELECT preferences_encrypted FROM prospect_accounts WHERE id=$1",[userA.id])).rows[0];
+      assert.ok(!JSON.stringify(encrypted).includes(profile.knowledge));
+      const wide={...profile,offer:"字".repeat(3000),knowledge:"字".repeat(1800)};
+      assert.equal((await alice.call("PATCH","/api/account/preferences",wide)).status,200);
+      assert.equal((await alice.call("PATCH","/api/account/preferences",profile)).status,200);
+    });
     await t.test("listas exigem sessão, CSRF e nomes válidos",async()=>{
       assert.equal((await anonymous.call("GET","/api/lists")).status,401);
       assert.equal((await anonymous.call("POST","/api/lists",{name:"Lista proibida"})).status,401);

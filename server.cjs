@@ -1460,14 +1460,18 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       } catch { return json(response, 503, { error: "Não foi possível encerrar a sessão. Tente novamente." }); }
     }
     if (accountService && request.method === "PATCH" && url.pathname === "/api/account/preferences") {
-      const value = await readBody(request, 8192);
+      const value = await readBody(request, 16384);
+      const tone = value.tone === undefined ? "Natural" : value.tone;
+      const knowledge = value.knowledge === undefined ? "" : value.knowledge;
       if (typeof value.seller !== "string" || value.seller.length > 100 ||
           typeof value.offer !== "string" || value.offer.length > 3000 ||
+          !["Natural", "Profissional"].includes(tone) ||
+          typeof knowledge !== "string" || knowledge.length > 1800 ||
           !["Português", "English", "Español"].includes(value.language)) {
         return json(response, 400, { error: "Preferências inválidas." });
       }
       try {
-        await accountService.store.preferences(ownerId, { seller: value.seller, offer: value.offer, language: value.language });
+        await accountService.store.preferences(ownerId, { seller: value.seller, offer: value.offer, tone, knowledge, language: value.language });
         return json(response, 200, { ok: true });
       } catch { return json(response, 503, { error: "Não foi possível salvar as preferências." }); }
     }
@@ -1787,6 +1791,20 @@ server.listen(
   () => {
     console.log(`Prospect AI iniciado na porta ${PORT}.`);
     console.log(`Endereço: ${ORIGIN}`);
+    // Explicit, bounded diagnostics only. Never enabled by an API request.
+    const evaluationRun = process.env.AGENT_EVALUATION_RUN || "";
+    if (HOSTED && accountService && /^[a-zA-Z0-9-]{8,80}$/.test(evaluationRun)) {
+      (async () => {
+        await accountService.ready();
+        if (!await accountService.store.allow([{ key: `agent-evaluation:${evaluationRun}`, limit: 1, seconds: 86400 }])) return;
+        const report = await require("./agent-evaluation.cjs").run({ limit: 3,
+          onCase: item => console.log("AGENT_EVALUATION", JSON.stringify({ run: evaluationRun, ...item })) });
+        console.log("AGENT_EVALUATION", JSON.stringify({ run: evaluationRun, revision: report.revision,
+          outcome: report.completed !== report.planned ? "incomplete" : report.passed === report.planned ? "checks_passed" : "checks_failed",
+          planned: report.planned, completed: report.completed, passed: report.passed,
+          scope: report.scope, automaticChecksOnly: true }));
+      })().catch(() => console.log("AGENT_EVALUATION", JSON.stringify({ run: evaluationRun, outcome: "unavailable" })));
+    }
     if (HOSTED && accountService) {
       void require("./email.cjs").probeConfiguration(authConfig.email)
         .catch(() => console.log("EMAIL_DIAGNOSTIC", JSON.stringify({ event: "email_configuration", outcome: "diagnostic_unavailable" })));
