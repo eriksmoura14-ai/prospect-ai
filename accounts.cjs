@@ -98,6 +98,7 @@ function createStore({ databaseUrl, encryptionKey, local = false }) {
   };
   return {
     ready, maintain,
+    ...require("./prospects.cjs").createProspectStore({ pool, ready, transaction, cipher, uuid }),
     async close() { await pool.end(); },
     csrf(token) { return cipher.mac("csrf", token); },
     async allow(rules) {

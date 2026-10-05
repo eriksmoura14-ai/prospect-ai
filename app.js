@@ -137,6 +137,8 @@ function makeCard(row) {
   aiButton.title = aiButton.disabled ? "Aguarde a pesquisa terminar." : "Revisar empresa e preparar mensagens";
   aiButton.addEventListener("click", () => openAIPanel(row, lastJob.id));
   actions.append(aiButton);
+  const saveButton = prospectLists.button(row, lastJob);
+  if (saveButton) actions.append(saveButton);
   business.append(actions);
 
   const verification = node("div", "verification");
@@ -497,6 +499,7 @@ async function initialize() {
 
   try {
     if (!await accountUI.initialize()) return;
+    prospectLists.initialize();
     void locationPicker.initialize();
     const names = await api("/api/niches");
     $("niche").replaceChildren();

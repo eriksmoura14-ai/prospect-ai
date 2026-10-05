@@ -58,7 +58,7 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
   const alice=browser(),bob=browser(),anonymous=browser();
   const suffix=crypto.randomBytes(6).toString("hex");
   const emailA=`alice${suffix}@gmail.com`,emailB=`bob${suffix}@gmail.com`;
-  let userA,userB,hashA,job;
+  let userA,userB,hashA,job,listA,listB,savedA;
   try {
     await store.ready();
     await t.test("sessão obrigatória; Basic antigo não contorna contas",async()=>{
@@ -116,6 +116,112 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       assert.equal((await bob.call("GET","/api/diagnostics/overpass")).status,404);
       const row=(await sql.query("SELECT * FROM prospect_searches WHERE id=$1",[job.id])).rows[0];
       assert.ok(!JSON.stringify(row).includes(job.city));assert.ok(!JSON.stringify(row).includes("Empresa de fixture"));
+    });
+    await t.test("listas exigem sessão, CSRF e nomes válidos",async()=>{
+      assert.equal((await anonymous.call("GET","/api/lists")).status,401);
+      assert.equal((await anonymous.call("POST","/api/lists",{name:"Lista proibida"})).status,401);
+      assert.equal((await alice.call("POST","/api/lists",{name:"Lista proibida"},{origin:"https://evil.example"})).status,403);
+      assert.equal((await alice.call("POST","/api/lists",{name:"Lista proibida"},{"x-csrf-token":"wrong"})).status,403);
+      for(const name of ["", "x".repeat(81), "Nome\u0000", null]) assert.equal((await alice.call("POST","/api/lists",{name})).status,400);
+      assert.equal((await alice.call("POST","/api/lists",null)).status,400);
+      assert.equal((await alice.call("POST","/api/lists",{name:"x".repeat(17000)})).status,413);
+      const created=await alice.call("POST","/api/lists",{name:"  Favoritos privados  "});
+      assert.equal(created.status,201);listA=created.data;assert.equal(listA.name,"Favoritos privados");
+      listB=(await bob.call("POST","/api/lists",{name:"Lista de Bob"})).data;
+      assert.equal((await alice.call("GET","/api/lists")).data.length,1);
+      assert.equal((await bob.call("GET","/api/lists")).data[0].id,listB.id);
+    });
+    await t.test("empresas salvas vêm dos resultados do dono e cliques repetidos não duplicam",async()=>{
+      const forged={jobId:job.id,osmId:job.rows[0].osmId,company:{name:"Nome forjado",website:"https://forged.example"}};
+      const response=await alice.call("POST",`/api/lists/${listA.id}/companies`,forged);
+      assert.equal(response.status,201);savedA=response.data.item;
+      assert.equal(savedA.company.name,"Empresa de fixture");assert.equal(savedA.company.website,"");
+      assert.equal(savedA.status,"new");assert.equal(savedA.note,"");
+      const concurrent=await Promise.all([alice.call("POST",`/api/lists/${listA.id}/companies`,forged),alice.call("POST",`/api/lists/${listA.id}/companies`,forged)]);
+      assert.ok(concurrent.every(value=>value.status===200 && value.data.item.id===savedA.id && value.data.created===false));
+      assert.equal((await alice.call("GET",`/api/lists/${listA.id}/companies`)).data.length,1);
+      assert.equal((await alice.call("GET","/api/lists")).data[0].count,1);
+      job.state="running";
+      assert.equal((await alice.call("POST",`/api/lists/${listA.id}/companies`,forged)).status,409);
+      job.state="done";
+    });
+    await t.test("outro usuário não lê, renomeia, exclui ou modifica as listas e notas",async()=>{
+      for(const [method,path,input] of [["GET",`/api/lists/${listA.id}/companies`],
+        ["PATCH",`/api/lists/${listA.id}`,{name:"Ataque"}],["DELETE",`/api/lists/${listA.id}`],
+        ["PATCH",`/api/lists/${listA.id}/companies/${savedA.id}`,{note:"Ataque",status:"contacted"}],
+        ["DELETE",`/api/lists/${listA.id}/companies/${savedA.id}`],
+        ["POST",`/api/lists/${listB.id}/companies`,{jobId:job.id,osmId:job.rows[0].osmId}]]) {
+        assert.equal((await bob.call(method,path,input)).status,404);
+      }
+      assert.equal((await alice.call("PATCH",`/api/lists/${listB.id}/companies/${savedA.id}`,{note:"Ataque",status:"contacted"})).status,404);
+      assert.equal((await alice.call("GET","/api/lists/not-a-uuid/companies")).status,404);
+      const illegal=sql.query("INSERT INTO prospect_list_companies(id,account_id,list_id,company_key,company_encrypted,details_encrypted) VALUES($1,$2,$3,$4,$5,$6)",
+        [crypto.randomUUID(),userB.id,listA.id,"0".repeat(64),"invalid","invalid"]);
+      await assert.rejects(illegal,error=>error.code==="23503");
+    });
+    await t.test("notas e status persistem cifrados e não são sobrescritos ao favoritar novamente",async()=>{
+      const value={note:"Retornar na sexta-feira\n<script>texto privado</script>",status:"interested"};
+      const update=await alice.call("PATCH",`/api/lists/${listA.id}/companies/${savedA.id}`,value);
+      assert.equal(update.status,200);assert.equal(update.data.note,value.note);assert.equal(update.data.status,"interested");
+      for(const invalid of [{note:"x",status:"invalid"},{note:"x".repeat(3001),status:"new"},{note:"x\u0000",status:"new"},{note:"x",status:"new",accountId:userB.id}])
+        assert.equal((await alice.call("PATCH",`/api/lists/${listA.id}/companies/${savedA.id}`,invalid)).status,400);
+      const again=await alice.call("POST",`/api/lists/${listA.id}/companies`,{jobId:job.id,osmId:job.rows[0].osmId});
+      assert.equal(again.data.item.note,value.note);assert.equal(again.data.item.status,"interested");
+      const raw=JSON.stringify((await sql.query("SELECT * FROM prospect_lists WHERE account_id=$1",[userA.id])).rows)+
+        JSON.stringify((await sql.query("SELECT * FROM prospect_list_companies WHERE account_id=$1",[userA.id])).rows);
+      for(const text of [listA.name,job.rows[0].name,job.rows[0].osmId,value.note,"interested"])assert.ok(!raw.includes(text));
+      const encrypted=(await sql.query("SELECT details_encrypted FROM prospect_list_companies WHERE id=$1",[savedA.id])).rows[0].details_encrypted;
+      assert.throws(()=>accounts.vault(config.encryptionKey).decrypt(encrypted,`company-details:${userB.id}:${listA.id}:${savedA.id}`));
+      const reader=accounts.createStore({databaseUrl:config.databaseUrl,encryptionKey:config.encryptionKey,local:true});
+      try{assert.equal((await reader.listCompanies(userA.id,listA.id))[0].note,value.note);assert.equal((await reader.lists(userA.id))[0].name,listA.name);}
+      finally{await reader.close();}
+    });
+    await t.test("favoritos sobrevivem à expiração da busca sem alterar a classificação",async()=>{
+      const source={...job,id:crypto.randomUUID(),rows:[{...job.rows[0],osmId:"way/saved-fixture",status:"WEBSITE_LISTED",website:"https://fixture.example"}]};
+      await store.saveSearch(userA.id,source,{city:"Fonte temporária",total:1});
+      const saved=await alice.call("POST",`/api/lists/${listA.id}/companies`,{jobId:source.id,osmId:source.rows[0].osmId});
+      assert.equal(saved.status,201);
+      await sql.query("UPDATE prospect_searches SET expires_at=now()-interval '1 second' WHERE id=$1",[source.id]);
+      await store.maintain();
+      assert.equal(await store.search(userA.id,source.id),null);
+      const kept=(await store.listCompanies(userA.id,listA.id)).find(value=>value.id===saved.data.item.id);
+      assert.equal(kept.company.status,"WEBSITE_LISTED");assert.equal(kept.company.website,"https://fixture.example");
+      assert.equal((await alice.call("DELETE",`/api/lists/${listA.id}/companies/${kept.id}`)).status,200);
+      assert.equal((await alice.call("DELETE",`/api/lists/${listA.id}/companies/${kept.id}`)).status,404);
+    });
+    await t.test("excluir uma lista remove suas empresas e mantém os dados de outra conta",async()=>{
+      assert.equal((await alice.call("PATCH",`/api/lists/${listA.id}`,{name:"Lista renomeada"})).status,200);
+      assert.equal((await store.lists(userA.id))[0].name,"Lista renomeada");
+      const disposable=await store.createList(userA.id,"Lista para excluir");
+      const saved=await store.saveCompany(userA.id,disposable.id,job.rows[0]);
+      assert.equal((await alice.call("DELETE",`/api/lists/${disposable.id}`)).status,200);
+      assert.equal((await sql.query("SELECT 1 FROM prospect_list_companies WHERE id=$1",[saved.item.id])).rowCount,0);
+      assert.equal((await store.lists(userB.id))[0].id,listB.id);
+    });
+    await t.test("limite de listas permanece correto com duas criações concorrentes",async()=>{
+      for(let i=0;i<18;i++)await store.createList(userA.id,`Limite ${i}`);
+      const results=await Promise.allSettled([store.createList(userA.id,"Concorrente A"),store.createList(userA.id,"Concorrente B")]);
+      assert.equal(results.filter(value=>value.status==="fulfilled").length,1);
+      assert.equal(results.find(value=>value.status==="rejected").reason.status,409);
+      assert.equal((await store.lists(userA.id)).length,20);
+    });
+    await t.test("limites de empresas rejeitam novas entradas, mas permitem salvar novamente uma existente",async()=>{
+      const targets=[listB];
+      for(let i=0;i<3;i++)targets.push(await store.createList(userB.id,`Empresas de limite ${i}`));
+      const cipher=accounts.vault(config.encryptionKey), columns=[[],[],[],[],[],[]];
+      for(let i=0;i<1000;i++){
+        const id=crypto.randomUUID(),listId=targets[Math.floor(i/250)].id,company={osmId:`node/quota-${i}`,name:`Empresa de limite ${i}`,status:"UNCERTAIN"};
+        const values=[id,userB.id,listId,cipher.mac("saved-company",`${userB.id}:${company.osmId}`),
+          cipher.encrypt(company,`company:${userB.id}:${listId}:${id}`),cipher.encrypt({note:"",status:"new"},`company-details:${userB.id}:${listId}:${id}`)];
+        values.forEach((value,index)=>columns[index].push(value));
+      }
+      await sql.query("INSERT INTO prospect_list_companies(id,account_id,list_id,company_key,company_encrypted,details_encrypted) SELECT * FROM unnest($1::uuid[],$2::uuid[],$3::uuid[],$4::text[],$5::text[],$6::text[])",columns);
+      await assert.rejects(store.saveCompany(userB.id,listB.id,{osmId:"node/exceeds-list",name:"Extra"}),error=>error.status===409);
+      const extra=await store.createList(userB.id,"Lista além da cota de empresas");
+      await assert.rejects(store.saveCompany(userB.id,extra.id,{osmId:"node/exceeds-account",name:"Extra"}),error=>error.status===409);
+      const again=await store.saveCompany(userB.id,listB.id,{osmId:"node/quota-0",name:"Outro nome"});
+      assert.equal(again.created,false);assert.equal(again.item.company.name,"Empresa de limite 0");
+      assert.equal((await store.listCompanies(userB.id,listB.id)).length,250);
     });
     await t.test("ocupação não revela ID da pesquisa de outro usuário",async()=>{
       backend.activateJob(job);
@@ -184,6 +290,8 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       assert.equal((await anonymous.call("DELETE","/api/account",{confirmation:"EXCLUIR",password:phrase+" renovada"})).status,200);
       assert.equal(await store.credentials(emailA),null);assert.equal(await store.session(old),null);
       assert.equal((await store.history(userA.id)).length,0);
+      assert.equal((await sql.query("SELECT 1 FROM prospect_lists WHERE account_id=$1",[userA.id])).rowCount,0);
+      assert.equal((await sql.query("SELECT 1 FROM prospect_list_companies WHERE account_id=$1",[userA.id])).rowCount,0);
       assert.equal((await bob.refresh()).data.authenticated,true);
     });
   } finally {

@@ -160,7 +160,7 @@ const accountUI = (() => {
     window.dispatchEvent(new Event("prospect:session-expired"));
   }
   return {
-    initialize, refreshHistory, jobKey,
+    initialize, refreshHistory, jobKey, request,
     get mode() { return state.mode; },
     get csrf() { return state.csrfToken; },
     get profile() { return state.user; },

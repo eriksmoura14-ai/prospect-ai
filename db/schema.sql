@@ -44,4 +44,26 @@ CREATE TABLE IF NOT EXISTS prospect_searches (
 );
 CREATE INDEX IF NOT EXISTS prospect_searches_owner ON prospect_searches(account_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS prospect_searches_expiry ON prospect_searches(expires_at);
+CREATE TABLE IF NOT EXISTS prospect_lists (
+  id uuid PRIMARY KEY,
+  account_id uuid NOT NULL REFERENCES prospect_accounts(id) ON DELETE CASCADE,
+  name_encrypted text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(id, account_id)
+);
+CREATE INDEX IF NOT EXISTS prospect_lists_owner ON prospect_lists(account_id);
+CREATE TABLE IF NOT EXISTS prospect_list_companies (
+  id uuid PRIMARY KEY,
+  account_id uuid NOT NULL REFERENCES prospect_accounts(id) ON DELETE CASCADE,
+  list_id uuid NOT NULL,
+  company_key char(64) NOT NULL,
+  company_encrypted text NOT NULL,
+  details_encrypted text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY(list_id, account_id) REFERENCES prospect_lists(id, account_id) ON DELETE CASCADE,
+  UNIQUE(list_id, company_key)
+);
+CREATE INDEX IF NOT EXISTS prospect_list_companies_owner ON prospect_list_companies(account_id, list_id);
 COMMIT;
