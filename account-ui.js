@@ -5,16 +5,19 @@ const accountUI = (() => {
   let saveTimer = null;
   let view = "login";
   let linkToken = null;
+  let epoch = 0;
   const element = (tag, text) => { const item = document.createElement(tag); if (text != null) item.textContent = text; return item; };
   const jobKey = () => state.mode === "password" ? `prospect-ai-active-job:${state.user?.id || "anonymous"}` : "prospect-ai-active-job";
   async function request(url, options = {}) {
+    const generation = epoch;
     const response = await fetch(url, { ...options, credentials: "same-origin", cache: "no-store",
       headers: { "Content-Type": "application/json", ...(state.csrfToken ? { "X-CSRF-Token": state.csrfToken } : {}), ...options.headers },
       signal: AbortSignal.timeout(15000) });
     const value = await response.json();
+    if (generation !== epoch) throw Object.assign(new Error("Sua sessão terminou. Entre novamente."), { status: 401 });
     if (!response.ok) {
       if (response.status === 401 && state.authenticated && !url.startsWith("/api/auth/")) expire();
-      throw new Error(value.error || "Não foi possível concluir a solicitação.");
+      throw Object.assign(new Error(value.error || "Não foi possível concluir a solicitação."), { status: response.status });
     }
     return value;
   }
@@ -65,7 +68,7 @@ const accountUI = (() => {
         button.addEventListener("click", () => window.dispatchEvent(new CustomEvent("prospect:history", { detail: record.id })));
         list.append(button);
       }
-    } catch (error) { list.replaceChildren(element("p", error.message)); }
+    } catch (error) { if (state.authenticated) list.replaceChildren(element("p", error.message)); }
   }
   // URL fragments never reach HTTP logs. Remove the one-use email token promptly.
   function readLink() {
@@ -123,6 +126,7 @@ const accountUI = (() => {
     try {
       await request("/auth/logout", { method: "POST", body: "{}" });
       try { localStorage.removeItem(jobKey()); } catch { /* Optional browser storage. */ }
+      expire();
       location.assign("/");
     } catch (error) { button.disabled = false; document.getElementById("account-actions-status").textContent = error.message; }
   });
@@ -141,13 +145,19 @@ const accountUI = (() => {
     try {
       await request("/api/account", { method: "DELETE", body: JSON.stringify({ confirmation, password: document.getElementById("account-delete-password").value }) });
       try { localStorage.removeItem(jobKey()); } catch { /* Optional browser storage. */ }
+      expire();
       location.assign("/");
     } catch (error) { document.getElementById("account-delete-status").textContent = error.message; button.disabled = false; }
   });
   function expire() {
     if (state.mode !== "password") return;
+    epoch++;
     state.authenticated = false; state.csrfToken = null; state.user = null;
     clearTimeout(saveTimer);
+    deletion.close();
+    for (const id of ["login-password", "account-new-password", "account-repeat-password", "account-delete-password", "account-delete-confirmation"]) {
+      document.getElementById(id).value = "";
+    }
     document.getElementById("workspace").hidden = true;
     document.getElementById("login-panel").hidden = false;
     document.getElementById("account-controls").hidden = true;
@@ -163,6 +173,7 @@ const accountUI = (() => {
     initialize, refreshHistory, jobKey, request,
     get mode() { return state.mode; },
     get csrf() { return state.csrfToken; },
+    get epoch() { return epoch; },
     get profile() { return state.user; },
     preferences() { return state.user?.preferences || {}; },
     savePreferences(value) {

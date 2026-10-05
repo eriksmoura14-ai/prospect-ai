@@ -74,7 +74,7 @@ async function callAPI(h, url, { body, authorized = true } = {}) {
   const request = Readable.from(body === undefined ? [] : [Buffer.from(JSON.stringify(body))]);
   request.method = body === undefined ? "GET" : "POST";
   request.url = url;
-  request.headers = { host: "127.0.0.1:3000", origin: "http://127.0.0.1:3000",
+  request.headers = { host: "127.0.0.1:3000", origin: "http://127.0.0.1:3000", "content-type": "application/json",
     authorization: authorized ? "Basic " + Buffer.from("admin:local-only-test-password").toString("base64") : "" };
   const response = { status: null, headersSent: false, body: "",
     setHeader() {},
