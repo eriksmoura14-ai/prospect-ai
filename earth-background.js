@@ -18,6 +18,12 @@ function startEarth(host) {
   let previousFrame = 0;
   let needsPaint = true;
   let frameCount = 0;
+  let labelUpdates = 0;
+  let labelDirty = true;
+  let viewWidth = 0;
+  let viewHeight = 0;
+  let labelWidth = 0;
+  let labelHeight = 0;
   let journey = null;
   let renderer;
   let scene;
@@ -69,6 +75,7 @@ function startEarth(host) {
         return {
           profile: textureProfile,
           fpsLimit: 30,
+          labelUpdates,
           textures: Object.fromEntries(Object.entries(textureStatus)
             .map(([name, status]) => [name, { ...status }])),
           texturesLoaded: Object.fromEntries(Object.entries(textureStatus)
@@ -349,6 +356,8 @@ function startEarth(host) {
     const height = host.clientHeight || window.innerHeight;
     if (!width || !height) return;
     const mobile = width <= 640;
+    viewWidth = width; viewHeight = height;
+    labelWidth = labelHeight = 0; labelDirty = true;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,
       mobile ? 1.25 : 1.5));
     renderer.setSize(width, height, false);
@@ -417,7 +426,10 @@ function startEarth(host) {
         showLocation();
         updateMotionButton();
       }
-      positionLocationLabel();
+      if (labelDirty) {
+        positionLocationLabel();
+        labelDirty = Boolean(journey);
+      }
     } catch {
       fallback();
       return;
@@ -426,6 +438,8 @@ function startEarth(host) {
   }
 
   function showLocation() {
+    labelDirty = true;
+    labelWidth = labelHeight = 0;
     locationLabel.hidden = !ready || !currentTarget || !currentTarget.label;
     if (locationLabel.hidden) return;
     locationKicker.textContent = {
@@ -442,10 +456,11 @@ function startEarth(host) {
   const viewDirection = new THREE.Vector3();
 
   function positionLocationLabel() {
-    if (!ready || !currentTarget?.label || !marker.visible) {
+    if (!ready || !currentTarget?.label || !marker.visible || viewWidth <= 640) {
       locationLabel.hidden = true;
       return;
     }
+    labelUpdates++;
     marker.getWorldPosition(labelPoint);
     earth.getWorldPosition(earthCenter);
     labelNormal.copy(labelPoint).sub(earthCenter).normalize();
@@ -458,12 +473,12 @@ function startEarth(host) {
       return;
     }
     locationLabel.hidden = false;
-    const width = host.clientWidth || window.innerWidth;
-    const height = host.clientHeight || window.innerHeight;
+    const width = viewWidth;
+    const height = viewHeight;
     const pointX = (labelPoint.x + 1) * width / 2;
     const pointY = (1 - labelPoint.y) * height / 2;
-    const labelWidth = locationLabel.offsetWidth || Math.min(240, width - 24);
-    const labelHeight = locationLabel.offsetHeight || 48;
+    if (!labelWidth) labelWidth = locationLabel.offsetWidth || Math.min(240, width - 24);
+    if (!labelHeight) labelHeight = locationLabel.offsetHeight || 48;
     const preferredX = pointX + labelWidth + 32 < width
       ? pointX + 18 : pointX - labelWidth - 18;
     locationLabel.style.left = `${Math.max(12,

@@ -5,7 +5,6 @@ const https = require("node:https");
 const dns = require("node:dns").promises;
 const fs = require("node:fs");
 const path = require("node:path");
-const { gzipSync } = require("node:zlib");
 const {
   randomUUID,
   createHash,
@@ -37,6 +36,9 @@ const UA =
   `ProspectAI/0.2 (+${ORIGIN}; public business research)`;
 
 const LOCATIONIQ_KEY = (process.env.LOCATIONIQ_KEY || "").trim();
+const serveStatic = require("./static-resources.cjs").createResponder({
+  root: __dirname, locationIQ: Boolean(LOCATIONIQ_KEY)
+});
 
 const NOMINATIM =
   process.env.NOMINATIM_URL ||
@@ -1766,81 +1768,13 @@ const server = http.createServer(async (request, response) => {
       );
     }
 
-    const staticFiles = {
-      "/": ["index.html", "text/html; charset=utf-8"],
-      "/index.html": ["index.html", "text/html; charset=utf-8"],
-      "/app.js": ["app.js", "text/javascript; charset=utf-8"],
-      "/account-ui.js": ["account-ui.js", "text/javascript; charset=utf-8"],
-      "/account.css": ["account.css", "text/css; charset=utf-8"],
-      "/prospects-ui.js": ["prospects-ui.js", "text/javascript; charset=utf-8"],
-      "/prospects.css": ["prospects.css", "text/css; charset=utf-8"],
-      "/privacy.html": ["privacy.html", "text/html; charset=utf-8"],
-      "/location-picker.js": ["location-picker.js", "text/javascript; charset=utf-8"],
-      "/earth.css": ["earth.css", "text/css; charset=utf-8"],
-      "/earth-background.js": ["earth-background.js", "text/javascript; charset=utf-8"],
-      "/earth-math.js": ["earth-math.js", "text/javascript; charset=utf-8"],
-      "/vendor/three.module.js": ["node_modules/three/build/three.module.min.js", "text/javascript; charset=utf-8"],
-      "/vendor/three.core.min.js": ["node_modules/three/build/three.core.min.js", "text/javascript; charset=utf-8"],
-      "/assets/earth-day.jpg": ["assets/earth-day.jpg", "image/jpeg"],
-      "/assets/earth-day-desktop.jpg": ["assets/earth-day-desktop.jpg", "image/jpeg"],
-      "/assets/earth-clouds.webp": ["assets/earth-clouds.webp", "image/webp"],
-      "/assets/earth-clouds-desktop.webp": ["assets/earth-clouds-desktop.webp", "image/webp"],
-      "/assets/earth-specular.jpg": ["assets/earth-specular.jpg", "image/jpeg"],
-      "/assets/earth-night.jpg": ["assets/earth-night.jpg", "image/jpeg"],
-      "/assets/icon.svg": ["assets/icon.svg", "image/svg+xml"],
-      "/vendor/three.LICENSE.txt": ["node_modules/three/LICENSE", "text/plain; charset=utf-8"]
-    };
-
-    if (
-      request.method === "GET" &&
-      Object.hasOwn(staticFiles, url.pathname)
-    ) {
-      const [file, type] = staticFiles[url.pathname];
-
-      let content;
-      try {
-        content = fs.readFileSync(path.join(__dirname, file));
-      } catch {
-        return json(response, 503, {
-          error: `O arquivo ${file} ainda não foi adicionado ao projeto.`
-        });
-      }
-
-      if (file === "index.html" && LOCATIONIQ_KEY) {
-        content = content.toString("utf8").replace(
-          /<body\b[^>]*>/i,
-          body => body +
-            '<div style="padding:10px 24px;text-align:center">' +
-            '<a href="https://locationiq.com" target="_blank" ' +
-            'rel="noopener noreferrer">Search by LocationIQ.com</a>' +
-            '</div>'
-        );
-      }
-
-      const useGzip = (type.startsWith("text/javascript") || type.startsWith("text/css")) &&
-        /\bgzip\b/.test(request.headers["accept-encoding"] || "");
-      if (useGzip) content = gzipSync(content);
-      response.writeHead(200, {
-        "Content-Type": type,
-        "Cache-Control": type.startsWith("image/") ? "private, max-age=3600" : "no-store",
-        "X-Content-Type-Options": "nosniff",
-        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-        "Referrer-Policy": "no-referrer",
-        ...(useGzip ? { "Content-Encoding": "gzip" } : {}),
-        Vary: "Accept-Encoding",
-        "Content-Security-Policy":
-          "default-src 'self'; " +
-          "script-src 'self'; " +
-          "style-src 'self' 'unsafe-inline'; " +
-          "connect-src 'self'; " +
-          "img-src 'self' data:; " +
-          "object-src 'none'; " +
-          "base-uri 'none'; " +
-          "frame-ancestors 'none'"
-      });
-
-      response.end(content);
-      return;
+    if (["GET", "HEAD"].includes(request.method)) {
+      response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+      response.setHeader("Content-Security-Policy",
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+        "connect-src 'self'; img-src 'self' data:; object-src 'none'; " +
+        "base-uri 'none'; frame-ancestors 'none'");
+      if (await serveStatic(request, response, url.pathname)) return;
     }
 
     json(response, 404, { error: "Rota não encontrada." });
