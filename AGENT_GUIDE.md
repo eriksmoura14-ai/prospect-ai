@@ -50,6 +50,8 @@ Critérios automáticos detectam alguns erros e limites de texto. Tom, pertinên
 
 Na primeira avaliação real, a leitura humana encontrou itens de pacote não informados e convite futuro após recusa, apesar de os critérios iniciais passarem. Na segunda, o encerramento melhorou, mas uma pergunta ainda pediu várias informações e o pacote foi chamado de "completo" sem esse escopo estar definido. A revisão `2026-10-05.3` reforça esses limites e a concisão. As respostas dessas rodadas foram preservadas como registros de regressão: os novos critérios rejeitam os problemas identificados. Reproduzir registros capturados não é uma nova chamada ao modelo; cada avaliação real é identificada nos logs por revisão e horário.
 
+Na avaliação real da revisão `2026-10-05.3`, feita no Render às 17:03 UTC de 2026-10-05 com `openai/gpt-oss-120b`, os três casos foram concluídos. Dois passaram pelos critérios e pela leitura humana: o preço autorizado foi preservado sem inventar itens, e o pedido de encerrar recebeu somente um encerramento breve. O caso de preço ausente não passou pelo critério de uma única informação: a resposta ficou curta e não inventou valor, mas perguntou sobre páginas ou funcionalidades juntas. Essa limitação permanece; não há comprovação de aprovação dos 12 cenários nem de comportamento perfeito. A avaliação temporária é desativada após registrar os resultados.
+
 ## Arquivos
 
 `agent.cjs`, `agent-guidance.cjs`, `agent-evaluation.cjs`, `app.js` e `server.cjs` implementam as instruções, perfil, interface e avaliação opcional. `package.json` acrescenta o comando de avaliação. Os testes estão em `test/agent.test.cjs`, `test/agent-evaluation.test.cjs`, `test/accounts.postgres.test.cjs` e `test/agent-profile-browser.py`.
