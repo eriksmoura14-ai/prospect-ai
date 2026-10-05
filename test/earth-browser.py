@@ -19,7 +19,7 @@ BASE = os.environ.get("PROSPECT_UI_BASE_URL", "http://127.0.0.1:3041").rstrip("/
 REPORT = {
     "scope": "Real Chromium WebGL and local geographic metadata; no business searches or external provider requests.",
     "checks": [], "failures": [], "consoleErrors": [], "requests": [],
-    "failedResponses": [], "screenshots": []
+    "failedResponses": [], "screenshots": [], "performance": []
 }
 
 
@@ -47,7 +47,8 @@ async def earth_state(page):
         ready: prospectEarth.ready, target: prospectEarth.target,
         frameCount: prospectEarth.frameCount, zoom: prospectEarth.zoom,
         mode: prospectEarth.renderMode, paused: prospectEarth.paused,
-        reducedMotion: prospectEarth.reducedMotion, isAnimating: prospectEarth.isAnimating
+        reducedMotion: prospectEarth.reducedMotion, isAnimating: prospectEarth.isAnimating,
+        graphics: prospectEarth.graphics
     })""")
 
 
@@ -58,7 +59,7 @@ async def settled(page, stage, label, scale):
     return await earth_state(page)
 
 
-async def initialize(context, page=None, expected_ready=True):
+async def initialize(context, page=None, expected_ready=True, block_business=True):
     page = page or await context.new_page()
     page.on("pageerror", lambda error: REPORT["consoleErrors"].append(str(error)))
     if expected_ready:
@@ -67,12 +68,75 @@ async def initialize(context, page=None, expected_ready=True):
     page.on("request", lambda request: REPORT["requests"].append(request.url))
     page.on("response", lambda response: REPORT["failedResponses"].append({
         "url": response.url, "status": response.status}) if response.status >= 400 else None)
-    await page.route("**/api/search", lambda route: route.abort("blockedbyclient"))
+    if block_business:
+        await page.route("**/api/search", lambda route: route.abort("blockedbyclient"))
     await page.goto(BASE, wait_until="networkidle")
     await page.wait_for_function("() => !document.querySelector('#country').disabled")
     if expected_ready:
         await page.wait_for_function("() => window.prospectEarth?.ready", timeout=15000)
     return page
+
+
+async def graphics_loaded(page):
+    await page.wait_for_function("""() => window.prospectEarth?.graphics &&
+        ['day', 'night', 'clouds', 'specular'].every(kind =>
+            prospectEarth.graphics.textures[kind]?.loaded)""", timeout=15000)
+
+
+async def measure_graphics(page):
+    return await page.evaluate("""async () => {
+        const canvas = document.querySelector('.earth-canvas');
+        const gl = canvas.getContext('webgl2');
+        const extension = gl.getExtension('WEBGL_debug_renderer_info');
+        const started = performance.now();
+        const before = prospectEarth.frameCount;
+        const cloudBefore = prospectEarth.graphics.cloudRotation;
+        await new Promise(resolve => setTimeout(resolve, 1600));
+        const elapsed = performance.now() - started;
+        const frames = prospectEarth.frameCount - before;
+        const textures = performance.getEntriesByType('resource')
+            .filter(entry => new URL(entry.name).pathname.startsWith('/assets/') &&
+                /\\.(jpg|png|webp)$/.test(new URL(entry.name).pathname))
+            .map(entry => ({path: new URL(entry.name).pathname,
+                encodedBytes: entry.encodedBodySize,
+                decodedBodyBytes: entry.decodedBodySize,
+                transferBytes: entry.transferSize,
+                durationMs: Math.round(entry.duration)}));
+        const unique = new Map();
+        for (const texture of textures)
+            unique.set(texture.path, Math.max(unique.get(texture.path) || 0, texture.encodedBytes));
+        return {elapsedMs: Math.round(elapsed), renderedFrames: frames,
+            measuredFramesPerSecond: Number((frames * 1000 / elapsed).toFixed(2)),
+            renderer: extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL)
+                : gl.getParameter(gl.RENDERER),
+            canvas: {width: canvas.width, height: canvas.height},
+            viewport: {width: innerWidth, height: innerHeight, dpr: devicePixelRatio},
+            cloudBefore, cloudAfter: prospectEarth.graphics.cloudRotation,
+            graphics: prospectEarth.graphics, textures,
+            uniqueTextureBytes: [...unique.values()].reduce((sum, bytes) => sum + bytes, 0),
+            textureWireBytes: textures.reduce((sum, texture) => sum + texture.transferBytes, 0),
+            limitation: 'ANGLE SwiftShader software rendering; observations do not predict phone or hardware GPU frame rates'};
+    }""")
+
+
+async def capture_realism(page, kind):
+    await select(page, "#country", "BR")
+    await select(page, "#region", "MG")
+    await select(page, "#city", "15434")
+    await settled(page, "city", "Uberlândia", 1.16)
+    if not (await earth_state(page))["paused"]:
+        await page.click("#earth-motion")
+    await page.wait_for_timeout(100)
+    path = f"/tmp/earth-realism-after-{kind}.png"
+    await page.screenshot(path=path)
+    REPORT["screenshots"].append(path)
+    if kind == "desktop":
+        await page.evaluate("""() => document.querySelectorAll('header, main')
+            .forEach(element => element.style.visibility = 'hidden')""")
+        await page.screenshot(path="/tmp/earth-realism-after-scene.png")
+        REPORT["screenshots"].append("/tmp/earth-realism-after-scene.png")
+        await page.evaluate("""() => document.querySelectorAll('header, main')
+            .forEach(element => element.style.visibility = '')""")
 
 
 async def main():
@@ -101,6 +165,28 @@ async def main():
             return {"before": before, "after": after, "canvas": dimensions}
         await check("Real WebGL canvas renders and rotates before location selection", actual_canvas)
 
+        async def real_graphics():
+            await graphics_loaded(page)
+            graphics = (await earth_state(page))["graphics"]
+            assert graphics["profile"] == "desktop"
+            assert 1 <= graphics["fpsLimit"] <= 30
+            for kind in ["day", "night", "clouds", "specular"]:
+                texture = graphics["textures"][kind]
+                assert texture["loaded"] and texture["width"] >= 2048
+                assert texture["width"] == texture["height"] * 2, f"{kind} lost world projection"
+                assert urlsplit(texture["path"]).path.startswith("/assets/")
+                assert any(urlsplit(url).path == urlsplit(texture["path"]).path
+                    for url in REPORT["requests"]), f"{kind} status without an actual asset request"
+            assert graphics["textures"]["day"]["width"] == 4096
+            assert graphics["stars"]["layers"] >= 2
+            assert graphics["stars"]["count"] > 600
+            assert graphics["stars"]["galacticCount"] > 0
+            assert 4 <= graphics["gpuTextures"] <= 12
+            assert 3 <= graphics["drawCalls"] <= 25
+            assert 1000 <= graphics["triangles"] <= 250000
+            return graphics
+        await check("Decoded world maps and cloud layer render with a varied star field and bounded scene", real_graphics)
+
         async def brazil_journey():
             await select(page, "#country", "BR")
             country = await settled(page, "country", "Brasil", 1)
@@ -125,7 +211,9 @@ async def main():
             assert before["paused"] and not before["isAnimating"]
             assert await page.locator("#earth-motion").get_attribute("aria-pressed") == "true"
             await page.wait_for_timeout(350)
-            assert (await earth_state(page))["frameCount"] == before["frameCount"]
+            stationary = await earth_state(page)
+            assert stationary["frameCount"] == before["frameCount"]
+            assert stationary["graphics"]["cloudRotation"] == before["graphics"]["cloudRotation"]
             await select(page, "#country", "US")
             assert (await earth_state(page))["target"]["label"] == "Estados Unidos"
             await select(page, "#region", "NY")
@@ -269,6 +357,36 @@ async def main():
             return {"before": before, "after": after, "idleStable": True}
         await check("Reduced motion renders real Earth once and updates selections without animation", reduced_motion)
 
+        async def performance_profile(kind, viewport, dpr, budget):
+            performance_context = await browser.new_context(viewport=viewport, device_scale_factor=dpr)
+            # Playwright request routing disables HTTP caching. This separate
+            # page performs no search action and preserves real browser cache
+            # behavior so transferSize measures the actual asset download.
+            performance_page = await initialize(performance_context, block_business=False)
+            await graphics_loaded(performance_page)
+            result = await measure_graphics(performance_page)
+            assert result["graphics"]["profile"] == kind
+            assert result["renderedFrames"] > 0
+            assert result["cloudAfter"] != result["cloudBefore"], "Cloud layer does not drift while motion is enabled"
+            assert result["uniqueTextureBytes"] > 300000
+            assert result["uniqueTextureBytes"] <= budget
+            assert result["textureWireBytes"] <= budget + 10000
+            ratio_cap = 1.25 if kind == "mobile" else 1.5
+            assert result["canvas"]["width"] <= viewport["width"] * ratio_cap
+            assert result["canvas"]["height"] <= viewport["height"] * ratio_cap
+            if kind == "mobile":
+                assert result["graphics"]["textures"]["day"]["width"] == 2048
+                assert not [item for item in result["textures"]
+                    if "earth-day-desktop" in item["path"]], "Mobile downloads the desktop map"
+            await capture_realism(performance_page, kind)
+            REPORT["performance"].append({"profile": kind, **result})
+            await performance_context.close()
+            return result
+        await check("Desktop textures stay below 2 MB with real measured software rendering",
+            lambda: performance_profile("desktop", {"width": 1440, "height": 1000}, 1, 2000000))
+        await check("Mobile avoids HD desktop downloads and stays below 900 KB",
+            lambda: performance_profile("mobile", {"width": 390, "height": 844}, 2, 900000))
+
         async def lost_context():
             before = await earth_state(page)
             lost = await page.locator("#earth-scene canvas").evaluate("""canvas => {
@@ -324,8 +442,17 @@ async def main():
         await browser.close()
 
     REPORT["passed"] = not REPORT["failures"]
-    Path("/tmp/prospect-earth-browser.json").write_text(json.dumps(REPORT, ensure_ascii=False, indent=2))
-    print(json.dumps({key: value for key, value in REPORT.items() if key != "requests"}, ensure_ascii=False, indent=2))
+    report_path = "/tmp/prospect-earth-browser.json"
+    Path(report_path).write_text(json.dumps(REPORT, ensure_ascii=False, indent=2))
+    print(json.dumps({
+        "passed": REPORT["passed"], "checks": len(REPORT["checks"]),
+        "failures": REPORT["failures"], "consoleErrors": REPORT["consoleErrors"],
+        "failedResponses": REPORT["failedResponses"], "report": report_path,
+        "performance": [{key: result[key] for key in ["profile", "renderer",
+            "measuredFramesPerSecond", "uniqueTextureBytes", "textureWireBytes",
+            "limitation"]} for result in REPORT["performance"]],
+        "screenshots": REPORT["screenshots"]
+    }, ensure_ascii=False, indent=2))
     return 0 if REPORT["passed"] else 1
 
 

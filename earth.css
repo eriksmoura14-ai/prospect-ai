@@ -1,5 +1,5 @@
 :root {
-  --bg: #030811;
+  --bg: #02040a;
   --panel: rgba(11, 20, 34, .83);
   --border: rgba(141, 181, 218, .23);
   --text: #f0f5fb;
@@ -10,7 +10,7 @@
 body {
   isolation: isolate;
   min-height: 100vh;
-  background: radial-gradient(ellipse at 80% 20%, #072b43 0, #030811 65%);
+  background: #02040a;
 }
 
 #earth-scene {
@@ -20,11 +20,10 @@ body {
   overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(1px 1px at 18% 16%, #95b1d7 80%, transparent),
-    radial-gradient(1px 1px at 77% 57%, #d4e7ff 80%, transparent),
-    radial-gradient(1px 1px at 48% 29%, #a8caff 80%, transparent),
-    radial-gradient(1px 1px at 88% 11%, #7eadde 80%, transparent);
-  background-size: 173px 181px, 281px 267px, 317px 293px, 461px 419px;
+    radial-gradient(ellipse at 92% 8%, rgba(55, 72, 133, .13), transparent 42%),
+    radial-gradient(ellipse at 66% 86%, rgba(31, 56, 93, .10), transparent 46%),
+    radial-gradient(ellipse at 19% 48%, rgba(45, 32, 68, .07), transparent 35%),
+    #02040a;
 }
 
 /* O fundo estático mantém o visual disponível sem WebGL. */
@@ -36,11 +35,16 @@ body {
   width: min(86vw, 94vh);
   aspect-ratio: 1;
   border-radius: 50%;
+  background: radial-gradient(circle at 67% 22%, #163452, #051023 48%, #01030b 90%);
+  box-shadow: inset -30px -20px 75px #000c, inset 8px 2px 22px #76cbf85c, 0 0 32px #249ef535;
+  opacity: .82;
+}
+
+#earth-scene.earth-fallback::before {
   background:
     radial-gradient(circle at 67% 22%, transparent 12%, rgba(1, 7, 20, .2) 48%, #01030b 90%),
+    url("/assets/earth-clouds.webp") center / 200% 100%,
     url("/assets/earth-day.jpg") center / 200% 100%;
-  box-shadow: inset -30px -20px 75px #000c, inset 8px 2px 22px #76cbf85c, 0 0 32px #249ef535;
-  opacity: .66;
 }
 
 #earth-scene.webgl-ready::before { display: none; }
@@ -52,7 +56,7 @@ body::after {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(90deg, rgba(2, 7, 16, .88) 0, rgba(2, 7, 16, .63) 39%, rgba(2, 7, 16, .08) 78%);
+  background: linear-gradient(90deg, rgba(2, 5, 12, .88) 0, rgba(2, 5, 12, .54) 39%, rgba(2, 5, 12, .02) 80%);
 }
 
 header {
@@ -99,7 +103,7 @@ footer { border-color: rgba(142, 184, 217, .22); }
 .earth-location-name { display: block; font-weight: 650; }
 
 @media (max-width: 1100px) {
-  body::after { background: linear-gradient(90deg, #020710bd, #02071035); }
+  body::after { background: linear-gradient(90deg, rgba(2, 5, 12, .76), rgba(2, 5, 12, .10)); }
   #search, .form-note, .stats { width: 100%; }
   .notice { max-width: none; }
   h1 { max-width: 650px; }
