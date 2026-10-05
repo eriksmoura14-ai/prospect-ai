@@ -1501,6 +1501,50 @@ const server = http.createServer(async (request, response) => {
       catch { return json(response, 503, { error: "Não foi possível carregar o histórico." }); }
     }
 
+    if (url.pathname === "/api/lists" || url.pathname.startsWith("/api/lists/")) {
+      if (!accountService) return json(response, 404, { error: "Listas exigem uma conta pessoal." });
+      const parts = url.pathname.split("/").slice(3);
+      const method = request.method;
+      try {
+        if (["POST", "PATCH", "DELETE"].includes(method) &&
+            !await accountService.store.allow([{ key: `lists:${ownerId}`, limit: 120, seconds: 600 }])) {
+          return json(response, 429, { error: "Muitas alterações nas listas. Aguarde alguns minutos." });
+        }
+        const input = ["POST", "PATCH"].includes(method) ? await readBody(request, 16384) : null;
+        if (["POST", "PATCH"].includes(method) && (!input || typeof input !== "object" || Array.isArray(input))) return json(response, 400, { error: "Dados inválidos." });
+        const store = accountService.store;
+        if (!parts.length) {
+          if (method === "GET") return json(response, 200, await store.lists(ownerId));
+          if (method === "POST") return json(response, 201, await store.createList(ownerId, input.name));
+        }
+        if (parts.length === 1) {
+          if (method === "PATCH") return json(response, 200, await store.renameList(ownerId, parts[0], input.name));
+          if (method === "DELETE") return json(response, 200, await store.deleteList(ownerId, parts[0]));
+        }
+        if (parts.length === 2 && parts[1] === "companies") {
+          if (method === "GET") return json(response, 200, await store.listCompanies(ownerId, parts[0]));
+          if (method === "POST") {
+            if (typeof input.jobId !== "string" || typeof input.osmId !== "string") return json(response, 400, { error: "Selecione uma empresa dos seus resultados." });
+            const job = await ownedJob(input.jobId, ownerId);
+            const row = job?.rows?.find(item => item.osmId === input.osmId);
+            if (!row) return json(response, 404, { error: "Empresa não encontrada nos seus resultados." });
+            if (job.state === "running") return json(response, 409, { error: "Aguarde a pesquisa terminar antes de salvar." });
+            const result = await store.saveCompany(ownerId, parts[0], row);
+            return json(response, result.created ? 201 : 200, result);
+          }
+        }
+        if (parts.length === 3 && parts[1] === "companies") {
+          if (method === "PATCH") return json(response, 200, await store.updateCompany(ownerId, parts[0], parts[2], input));
+          if (method === "DELETE") return json(response, 200, await store.deleteCompany(ownerId, parts[0], parts[2]));
+        }
+        return json(response, 404, { error: "Rota não encontrada." });
+      } catch (error) {
+        if (error.name === "SyntaxError") return json(response, 400, { error: "Dados inválidos." });
+        if (error.message === "Pedido grande demais.") return json(response, 413, { error: "A solicitação excede o limite permitido." });
+        return json(response, error.status || 503, { error: error.status ? error.message : "Não foi possível acessar suas listas. Tente novamente." });
+      }
+    }
+
     if (request.method === "GET" && url.pathname === "/api/diagnostics/overpass") {
       if (accountService && !accountService.isAdmin(identity.user)) return json(response, 404, { error: "Rota não encontrada." });
       // Protegido pela mesma autenticação da aplicação. Sem chave do LocationIQ.
@@ -1728,6 +1772,8 @@ const server = http.createServer(async (request, response) => {
       "/app.js": ["app.js", "text/javascript; charset=utf-8"],
       "/account-ui.js": ["account-ui.js", "text/javascript; charset=utf-8"],
       "/account.css": ["account.css", "text/css; charset=utf-8"],
+      "/prospects-ui.js": ["prospects-ui.js", "text/javascript; charset=utf-8"],
+      "/prospects.css": ["prospects.css", "text/css; charset=utf-8"],
       "/privacy.html": ["privacy.html", "text/html; charset=utf-8"],
       "/location-picker.js": ["location-picker.js", "text/javascript; charset=utf-8"],
       "/earth.css": ["earth.css", "text/css; charset=utf-8"],

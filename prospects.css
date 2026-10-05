@@ -1,0 +1,34 @@
+#lists-section{padding:20px;margin:22px 0;min-width:0}
+#lists-section>summary{font-size:18px;font-weight:700;display:list-item;margin:0}
+#lists-count{color:var(--muted);font-size:13px;font-weight:400;margin-left:10px}
+.lists-intro{color:var(--muted);font-size:14px;margin:12px 0}
+.lists-toolbar,.lists-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin:16px 0}
+.lists-toolbar label,.lists-filters label{flex:1;min-width:180px;margin:0}
+.lists-toolbar button{padding:10px 13px}
+.lists-filters label:last-child{flex:0 1 210px}
+#lists-status,.prospect-message{font-size:14px;color:var(--accent);overflow-wrap:anywhere;min-height:20px}
+#list-summary{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+#list-companies{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.prospect-card{background:rgba(9,17,30,.82);border:1px solid var(--border);border-radius:12px;padding:18px;min-width:0}
+.prospect-heading{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.prospect-heading h3{margin:0;font-size:17px;overflow-wrap:anywhere;min-width:0}
+.prospect-contact-status{font-size:12px;white-space:nowrap;padding:4px 8px;border-radius:20px;background:#29374e;color:#d1e3ff}
+.prospect-contact-status.contacted{background:#352e55;color:#daceff}
+.prospect-contact-status.interested{background:#203d2b;color:#b6eabf}
+.prospect-contact{font-size:13px;color:#c4d0e1;margin:6px 0;overflow-wrap:anywhere}
+.prospect-links{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;margin:14px 0;color:var(--muted)}
+.prospect-edit-form{display:block;padding:0;border:0;box-shadow:none;background:transparent}
+.prospect-edit-form label{display:block;margin:12px 0 6px;font-size:13px}
+.prospect-edit-form textarea{box-sizing:border-box;display:block;width:100%;margin-top:6px;min-height:84px;resize:vertical;background:#0b1422;color:#edf2fa;border:1px solid #3b4860;border-radius:8px;padding:10px;font:inherit}
+.prospect-edit-form textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.prospect-note-count{display:block;text-align:right;color:var(--muted);font-size:12px}
+.prospect-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.prospect-buttons button{font-size:13px;padding:9px 12px}
+.save-to-list{border-color:#587348;color:#c0f39f}
+.lists-dialog{box-sizing:border-box;background:#121c2b;color:#edf2fa;border:1px solid #445675;border-radius:14px;width:min(520px,94vw);max-height:90vh;overflow:auto;padding:24px}
+.lists-dialog::backdrop{background:rgba(0,0,0,.72)}
+.lists-dialog h2{font-size:20px;margin:0 0 12px;overflow-wrap:anywhere}
+.lists-dialog form{display:block;padding:0;background:transparent;border:0;box-shadow:none}
+.lists-dialog label{display:block;margin:14px 0}
+.lists-dialog .prospect-buttons{margin-top:20px}
+@media(max-width:760px){#list-companies{grid-template-columns:1fr}#lists-section{padding:16px}.lists-toolbar label,.lists-filters label{flex:1 1 100%;min-width:0}.lists-filters label:last-child{flex:1 1 100%}.lists-toolbar button{flex:1}.prospect-heading{flex-wrap:wrap}.lists-dialog{padding:20px}}

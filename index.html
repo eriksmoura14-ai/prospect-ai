@@ -590,9 +590,11 @@
   </style>
 
   <link rel="stylesheet" href="/earth.css">
+  <link rel="stylesheet" href="/prospects.css">
   <script type="module" src="/earth-background.js"></script>
   <script src="/location-picker.js" defer></script>
   <script src="/account-ui.js" defer></script>
+  <script src="/prospects-ui.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 
@@ -760,6 +762,27 @@
         não uma garantia de resultados.
       </span>
     </p>
+
+    <details id="lists-section" class="panel" hidden>
+      <summary>Minhas listas <span id="lists-count"></span></summary>
+      <p class="lists-intro">Salve empresas, organize seus contatos e retome suas notas em qualquer dispositivo.</p>
+      <div class="lists-toolbar">
+        <label for="list-select">Lista<select id="list-select" disabled></select></label>
+        <button id="list-create" type="button">Criar lista</button>
+        <button id="list-rename" type="button" disabled>Renomear</button>
+        <button id="list-delete" type="button" disabled>Excluir lista</button>
+        <button id="lists-refresh" type="button">Atualizar</button>
+      </div>
+      <p id="list-empty" class="meta">Crie uma lista ou use “Salvar na lista” nos resultados de uma pesquisa.</p>
+      <div class="lists-filters">
+        <label for="list-search">Pesquisar na lista<input id="list-search" type="search" maxlength="200" placeholder="Empresa, cidade, telefone ou nota"></label>
+        <label for="list-status-filter">Status do contato<select id="list-status-filter"><option value="all">Todos</option><option value="new">Novo</option><option value="contacted">Contatado</option><option value="interested">Interessado</option></select></label>
+      </div>
+      <p id="lists-status" role="status" aria-live="polite"></p>
+      <p id="list-summary" aria-live="polite"></p>
+      <div id="list-companies"></div>
+      <p class="lists-intro">Até 20 listas, 250 empresas por lista e 1.000 empresas salvas por conta. As listas ficam salvas até você removê-las ou excluir sua conta.</p>
+    </details>
 
     <section
       class="stats"
@@ -932,6 +955,23 @@
       <input id="account-delete-password" type="password" autocomplete="current-password" maxlength="128" required>
       <p id="account-delete-status" role="status"></p>
       <div><button id="account-delete-cancel" type="button">Cancelar</button> <button id="account-delete-submit" class="account-danger" type="submit">Excluir minha conta</button></div>
+    </form>
+  </dialog>
+  <dialog id="list-save-dialog" class="lists-dialog" aria-labelledby="list-save-title">
+    <h2 id="list-save-title">Salvar empresa</h2>
+    <form id="list-save-form">
+      <label for="list-save-select">Escolha uma lista<select id="list-save-select" required></select></label>
+      <label id="list-save-new" for="list-save-name" hidden>Nome da nova lista<input id="list-save-name" maxlength="80" placeholder="Favoritos"></label>
+      <div class="prospect-buttons"><button id="list-save-submit" class="primary" type="submit">Salvar empresa</button><button id="list-save-cancel" type="button">Cancelar</button></div>
+      <p id="list-save-status" role="status" aria-live="polite"></p>
+    </form>
+  </dialog>
+  <dialog id="list-name-dialog" class="lists-dialog" aria-labelledby="list-name-title">
+    <h2 id="list-name-title">Criar lista</h2>
+    <form id="list-name-form">
+      <label for="list-name">Nome da lista<input id="list-name" maxlength="80" required autocomplete="off" placeholder="Ex.: Barbearias de São Paulo"></label>
+      <div class="prospect-buttons"><button id="list-name-submit" class="primary" type="submit">Salvar lista</button><button id="list-name-cancel" type="button">Cancelar</button></div>
+      <p id="list-name-status" role="status" aria-live="polite"></p>
     </form>
   </dialog>
 </body>

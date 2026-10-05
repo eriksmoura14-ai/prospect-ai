@@ -38,7 +38,9 @@ As variáveis de Geoapify, LocationIQ e Groq continuam no servidor e não precis
 - Origem e CSRF são verificados inclusive antes do login. Todas as consultas de dados usam o dono autenticado; conhecer um ID de busca não permite abrir dados de outra conta. Diagnósticos ficam restritos aos administradores configurados.
 - E-mail, preferências e resultados privados: AES-256-GCM com IV aleatório e contexto vinculado ao dono/registro. Identificação por HMAC, sem e-mail aberto no índice. Conexões externas ao banco exigem TLS validado.
 - Histórico: últimas 20 buscas por conta, por até 30 dias, incluindo empresas encontradas e os resultados das verificações. Registros vencidos deixam de ser acessíveis imediatamente; a limpeza ocorre nas verificações de saúde e nas solicitações de e-mail, no máximo a cada cinco minutos enquanto o serviço estiver ativo.
-- A exclusão exige a senha atual e remove perfil, sessões, links, preferências e buscas da conta. Backups do provedor seguem os próprios prazos. Guarde somente dados necessários; o histórico de conversa do assistente permanece na aba e não é salvo no banco.
+- A exclusão exige a senha atual e remove perfil, sessões, links, preferências, buscas, listas, empresas salvas e notas da conta. Backups do provedor seguem os próprios prazos. Guarde somente dados necessários; o histórico de conversa do assistente permanece na aba e não é salvo no banco.
+
+As [listas de prospecção](PROSPECT_LISTS.md) usam a mesma conta, PostgreSQL e chave de criptografia. Notas e cópias das empresas ficam cifradas, isoladas por usuário e independentes da expiração do histórico. Não exigem novas variáveis de ambiente.
 
 O esquema está em `db/schema.sql` e é aplicado de maneira idempotente, com transação e trava de migração. Na primeira inicialização, a conexão precisa poder criar as tabelas no banco exclusivo. Não utilize credenciais de um banco com dados de outros projetos. O arquivo não contém comandos para remover tabelas existentes.
 
