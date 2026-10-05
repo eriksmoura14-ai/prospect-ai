@@ -42,3 +42,16 @@ test("respostas capturadas do modelo real com itens inventados e convite após r
   assert.equal(report.cases[1].checks.noUnsupportedFeatures,false);
   assert.equal(report.cases[2].checks.noFuturePitch,false);
 });
+
+test("segunda rodada capturada não aprova lista de requisitos nem escopo completo não informado", async () => {
+  // Replays the second real run to check the evaluator, without calling the provider.
+  const captured = [
+    "O valor varia conforme o escopo do site institucional. Para elaborar um orçamento preciso, poderia informar quantas páginas, funcionalidades específicas, integrações ou tipos de conteúdo que pretende incluir?",
+    "O valor do site institucional é R$ 1.850, já incluindo até cinco páginas. Esse preço contempla o desenvolvimento completo, sem descontos adicionais. Caso queira saber mais detalhes sobre o que está incluído ou discutir algum ajuste no escopo, estou à disposição."
+  ];
+  let index = 0;
+  const report = await evaluation.run({ limit: 2, generate: async () => ({ text: captured[index++], model: "captured-record-not-live-provider" }) });
+  assert.equal(report.passed, 0);
+  assert.equal(report.cases[0].checks.oneScopeDimension, false);
+  assert.equal(report.cases[1].checks.noUnsupportedFeatures, false);
+});

@@ -63,7 +63,7 @@ function buildMessages(input, evidence) {
     ? `Faça uma revisão em português com três partes curtas: O que a fonte informa; O que a checagem do site confirmou; O que ainda precisa de revisão manual. Cite somente URLs presentes nas evidências. Conclua com um motivo concreto para abordar ou com a necessidade de revisar primeiro.`
     : data.action === "draft"
       ? `Escreva somente uma mensagem inicial de até 100 palavras no idioma escolhido. Apresente o vendedor, a oferta e uma pergunta simples para abrir conversa. Personalize pelo nome e ramo, sem dizer que falta site quando isso não estiver comprovado. Não inclua preço ou prazo se não constarem da oferta.`
-      : `Escreva somente uma resposta de até 130 palavras no idioma escolhido. Considere a resposta do cliente e o histórico real. O rascunho anterior não comprova envio e não deve ser tratado como algo que o cliente recebeu. Não assuma compromissos, descontos ou condições que o vendedor não informou.`;
+      : `Escreva somente a resposta no idioma escolhido, com uma a três frases para dúvidas simples e nunca mais de 130 palavras. Considere a resposta do cliente e o histórico real. Quando faltar informação, pergunte só uma coisa; não peça uma lista de requisitos. Se a dúvida já foi respondida, não acrescente outra pergunta. O rascunho anterior não comprova envio e não deve ser tratado como algo que o cliente recebeu. Não assuma compromissos, descontos, itens incluídos ou condições que o vendedor não informou.`;
 
   return [
     { role: "system", content: SYSTEM + (data.action === "audit" ? "" : "\n\n" + guidance.CONVERSATION + "\n" + guidance.voice(data.tone)) },

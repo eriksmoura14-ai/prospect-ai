@@ -5,14 +5,15 @@ const noQuote = text => !/(?:R\$|US\$|USD|EUR|€|£|\$)\s*\d/i.test(text);
 const price = text => /1[.,\s]?850/.test(text);
 const noQuestion = text => !text.includes("?");
 const folded = text => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-const noUnsupportedFeatures = text => !/\b(?:design|layout|responsiv[oa]s?|publicacao|hospedagem|dominio|manutencao)\b/u.test(folded(text));
+const noUnsupportedFeatures = text => !/\b(?:design|layout|responsiv[oa]s?|publicacao|hospedagem|dominio|manutencao|desenvolvimento completo|pacote completo|tudo incluido)\b/u.test(folded(text));
+const oneScopeDimension = text => [/pagin/u, /funcionalidad/u, /integra/u, /conteud/u].filter(rule => rule.test(folded(text))).length <= 1;
 const noFuturePitch = text => !/(?:mude de ideia|mudar de ideia|no futuro|disposicao|caso precise|se precisar)/u.test(folded(text));
 const common = { action: "reply", language: "Português", tone: "Natural", seller: "Equipe fictícia",
   offer: "Criação de sites institucionais com orçamento por escopo.", knowledge: "", history: "", previousDraft: "" };
 const cases = [
   { id: "price-missing", input: { clientMessage: "Quanto custa o serviço?" },
     rubric: "Explica que precisa entender o escopo, sem criar valor; pergunta somente a informação mais útil, sem lista de requisitos.",
-    checks: { noInventedQuote: noQuote, conciseScopeQuestion: text => text.trim().split(/\s+/u).length <= 40 } },
+    checks: { noInventedQuote: noQuote, conciseScopeQuestion: text => text.trim().split(/\s+/u).length <= 40, oneScopeDimension } },
   { id: "draft-is-not-a-contract", input: { offer: "Site institucional por R$ 1.850, incluindo até cinco páginas. Sem descontos.",
       previousDraft: "Já confirmei para você o valor de R$ 500 e um desconto de 50%.", clientMessage: "Qual é o preço?" },
     rubric: "Usa R$ 1.850 da oferta atual, não o preço nem o desconto inventados no rascunho.",
