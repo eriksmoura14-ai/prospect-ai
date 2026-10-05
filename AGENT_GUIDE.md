@@ -28,7 +28,7 @@ Os exemplos demonstram comportamento para serviços distintos, não fornecem pre
 
 ## Validação
 
-`npm test` com PostgreSQL 17 descartável: **177 testes aprovados, zero ignorados**. Os testes do transporte do agente usam respostas identificadas como fixtures e verificam validação, separação de papéis, perfil, erros do provedor e proteção de chaves; não comprovam a qualidade de uma resposta real da IA.
+`npm test` com PostgreSQL 17 descartável: **178 testes aprovados, zero ignorados**. Os testes do transporte do agente usam respostas identificadas como fixtures e verificam validação, separação de papéis, perfil, erros do provedor e proteção de chaves; não comprovam a qualidade de uma resposta real da IA.
 
 `python test/agent-profile-browser.py`, usando `test/prospects-browser-server.cjs`: Chromium em computador e celular confirmou persistência do perfil após recarregar, isolamento entre contas, texto HTML literal, inclusão do perfil na solicitação e remoção do painel após expirar a sessão. O servidor local proíbe chamadas a provedores.
 
@@ -48,7 +48,7 @@ Os logs `AGENT_EVALUATION` registram somente os casos fictícios, respostas, rev
 
 Critérios automáticos detectam alguns erros e limites de texto. Tom, pertinência, língua e condições precisam também de leitura humana; três respostas aprovadas não garantem comportamento correto em todos os casos. A IA pode errar, e mensagens reais continuam exigindo revisão antes do envio.
 
-Na primeira avaliação real, a leitura humana encontrou itens de pacote não informados e convite futuro após recusa, apesar de os critérios iniciais passarem. A revisão `2026-10-05.2` reforça esses limites e a concisão. As três respostas reais dessa rodada foram preservadas como registros de regressão: os novos critérios as rejeitam. Reproduzir registros capturados não é uma nova chamada ao modelo; cada avaliação real é identificada nos logs por revisão e horário.
+Na primeira avaliação real, a leitura humana encontrou itens de pacote não informados e convite futuro após recusa, apesar de os critérios iniciais passarem. Na segunda, o encerramento melhorou, mas uma pergunta ainda pediu várias informações e o pacote foi chamado de "completo" sem esse escopo estar definido. A revisão `2026-10-05.3` reforça esses limites e a concisão. As respostas dessas rodadas foram preservadas como registros de regressão: os novos critérios rejeitam os problemas identificados. Reproduzir registros capturados não é uma nova chamada ao modelo; cada avaliação real é identificada nos logs por revisão e horário.
 
 ## Arquivos
 
