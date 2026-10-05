@@ -18,11 +18,13 @@ Revisão de 2026-10-05. As alterações não exigem plano pago, novas variáveis
 | Rotas de autenticação por processo | Rajada de 30; reposição de 120 por minuto |
 | Renovação/consulta de conta por processo | Rajada de 80; reposição de 600 por minuto |
 | Tentativas de login, conclusão e confirmação de senha | Orçamento conjunto de 120 por janela de 60 segundos no PostgreSQL, persistente após reinicialização |
-| Corpo JSON | 4 KiB para autenticação, exclusão e pesquisa; 8 KiB para preferências; 16 KiB para listas; 32 KiB para IA |
+| Corpo JSON | 4 KiB para autenticação, exclusão e pesquisa; 16 KiB para preferências e listas; 32 KiB para IA |
 | Recebimento do corpo | Prazo absoluto de 8 segundos |
 | Cabeçalhos/conexão | Até 16 KiB; até 100 campos processados; até 100 requisições por conexão |
 
 Um excesso recebe `429`; a barreira anterior ao banco também informa `Retry-After`. Os limites por Gmail, envio de e-mail e fila de scrypt continuam ativos. Os orçamentos agregados também podem recusar picos legítimos; não são proteção completa contra DDoS na rede ou na hospedagem.
+
+As preferências passaram a admitir 16 KiB para acomodar o [perfil de atendimento](AGENT_GUIDE.md), com validação individual dos campos e teste de conteúdo Unicode. A criptografia e o isolamento por dono permanecem iguais.
 
 As mutações com corpo exigem um objeto `application/json` UTF-8, sem compressão. Corpo excessivo retorna `413`, formato incompatível `415`, envio lento `408` e JSON inválido `400`, com mensagens fixas que não repetem dados privados. Uploads rejeitados por tamanho/prazo são encerrados.
 

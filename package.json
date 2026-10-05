@@ -5,7 +5,8 @@
   "description": "Pesquisa de empresas locais e verificação de websites.",
   "scripts": {
     "start": "node server.cjs",
-    "test": "node --test test/*.test.cjs"
+    "test": "node --test test/*.test.cjs",
+    "eval:agent": "node agent-evaluation.cjs"
   },
   "engines": {
     "node": ">=22"

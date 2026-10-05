@@ -47,7 +47,10 @@ async function start() {
       const identity = await service.identity(request); if (identity) await service.logout(identity);
       response.writeHead(200); return response.end("fixture session revoked");
     }
-    if (request.url === "/api/search" || request.url === "/api/ai") { response.writeHead(403); return response.end("External operations prohibited by fixture server."); }
+    if (request.url === "/api/search" || request.url === "/api/ai") {
+      response.writeHead(403, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+      return response.end(JSON.stringify({ error: "External operations prohibited by fixture server." }));
+    }
     return realHandler(request, response);
   });
   backend.server.listen(port, "127.0.0.1", () => console.log("List browser fixtures ready on loopback."));

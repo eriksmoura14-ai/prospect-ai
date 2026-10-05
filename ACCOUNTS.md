@@ -42,6 +42,8 @@ As variáveis de Geoapify, LocationIQ e Groq continuam no servidor e não precis
 
 As [listas de prospecção](PROSPECT_LISTS.md) usam a mesma conta, PostgreSQL e chave de criptografia. Notas e cópias das empresas ficam cifradas, isoladas por usuário e independentes da expiração do histórico. Não exigem novas variáveis de ambiente.
 
+O [perfil de atendimento do agente](AGENT_GUIDE.md) também salva nome, oferta, idioma, tom e informações comerciais como preferências cifradas da própria conta. O histórico das conversas e rascunhos continua somente nesta aba. Usar a IA envia os campos relevantes à Groq; a configuração não compartilha informações entre usuários.
+
 A [revisão de segurança](SECURITY.md) documenta os limites de requisição, a proteção contra respostas atrasadas após o encerramento da sessão e a análise limitada de HTML externo, com testes em PostgreSQL e navegador reais. Não exige novas configurações.
 
 O esquema está em `db/schema.sql` e é aplicado de maneira idempotente, com transação e trava de migração. Na primeira inicialização, a conexão precisa poder criar as tabelas no banco exclusivo. Não utilize credenciais de um banco com dados de outros projetos. O arquivo não contém comandos para remover tabelas existentes.
