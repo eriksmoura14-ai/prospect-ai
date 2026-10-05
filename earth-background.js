@@ -16,6 +16,7 @@ function startEarth(host) {
   let currentTarget = null;
   let pendingFrame = 0;
   let previousFrame = 0;
+  let needsPaint = true;
   let frameCount = 0;
   let journey = null;
   let renderer;
@@ -25,14 +26,19 @@ function startEarth(host) {
   let globePlacement;
   let marker;
   let planetMaterial;
+  let clouds;
   let glow;
   const resources = new Set();
   const textureLoader = new THREE.TextureLoader();
   const earthRadius = 1.72;
+  const textureProfile = window.innerWidth <= 640 ? "mobile" : "desktop";
+  const textureStatus = Object.fromEntries(["day", "night", "clouds", "specular"]
+    .map(name => [name, { loaded: false, width: 0, height: 0, path: "" }]));
+  const starStatus = { layers: 0, count: 0, galacticCount: 0 };
   const defaultRotation = new THREE.Quaternion()
     .fromArray(geographicQuaternion(-12, -45));
   const targetScales = { country: 1, state: 1.08, city: 1.16 };
-  const lightDirection = new THREE.Vector3(3.8, 3.2, 4.8).normalize();
+  const lightDirection = new THREE.Vector3(0.6, 2.8, 5.8).normalize();
   const motionButton = document.getElementById("earth-motion");
   const locationLabel = document.createElement("div");
   locationLabel.className = "earth-location";
@@ -58,6 +64,21 @@ function startEarth(host) {
       get zoom() { return earth?.scale.x ?? 1; },
       get isAnimating() {
         return ready && !failed && !paused && !reducedMotion && !document.hidden;
+      },
+      get graphics() {
+        return {
+          profile: textureProfile,
+          fpsLimit: 30,
+          textures: Object.fromEntries(Object.entries(textureStatus)
+            .map(([name, status]) => [name, { ...status }])),
+          texturesLoaded: Object.fromEntries(Object.entries(textureStatus)
+            .map(([name, status]) => [name, status.loaded])),
+          cloudRotation: clouds?.rotation.y ?? 0,
+          stars: { ...starStatus },
+          drawCalls: renderer?.info.render.calls ?? 0,
+          triangles: renderer?.info.render.triangles ?? 0,
+          gpuTextures: renderer?.info.memory.textures ?? 0
+        };
       },
       get renderMode() {
         return failed ? "fallback" : reducedMotion ? "reduced-motion"
@@ -90,32 +111,32 @@ function startEarth(host) {
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
+    renderer.toneMappingExposure = 1.18;
     renderer.domElement.className = "earth-canvas";
     renderer.domElement.setAttribute("aria-hidden", "true");
     renderer.domElement.tabIndex = -1;
     host.prepend(renderer.domElement);
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-    camera.position.set(0, 0, 7.4);
+    camera.position.set(0, 0, 8.6);
     earth = new THREE.Group();
     earth.quaternion.copy(defaultRotation);
     globePlacement = new THREE.Group();
     globePlacement.add(earth);
     scene.add(globePlacement);
-    const segments = window.innerWidth <= 640 ? 48 : 64;
+    const segments = window.innerWidth <= 640 ? 64 : 96;
     const sphere = keep(new THREE.SphereGeometry(earthRadius, segments, segments));
     planetMaterial = keep(new THREE.MeshPhongMaterial({
       color: 0xffffff,
-      specular: 0x172f46,
-      shininess: 14
+      specular: 0x395168,
+      shininess: 100
     }));
     earth.add(new THREE.Mesh(sphere, planetMaterial));
-    scene.add(new THREE.AmbientLight(0xb7cffc, 0.38));
-    const sunlight = new THREE.DirectionalLight(0xfff4df, 2.15);
+    scene.add(new THREE.AmbientLight(0xb7cffc, 0.23));
+    const sunlight = new THREE.DirectionalLight(0xfff8ef, 2.5);
     sunlight.position.copy(lightDirection).multiplyScalar(8);
     scene.add(sunlight);
-    const reflectedLight = new THREE.DirectionalLight(0x3271af, 0.27);
+    const reflectedLight = new THREE.DirectionalLight(0x3271af, 0.09);
     reflectedLight.position.set(4, -2, -4);
     scene.add(reflectedLight);
     addAtmosphere(segments);
@@ -132,25 +153,34 @@ function startEarth(host) {
 
   function addAtmosphere(segments) {
     const material = keep(new THREE.ShaderMaterial({
-      uniforms: { glowColor: { value: new THREE.Color(0x398fff) } },
+      uniforms: {
+        sunlight: { value: lightDirection },
+        dayColor: { value: new THREE.Color(0x86bdff) },
+        nightColor: { value: new THREE.Color(0x234b8c) }
+      },
       vertexShader: `
-        varying vec3 vNormal;
+        varying vec3 vWorldNormal;
         varying vec3 vView;
         void main() {
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          vNormal = normalize(normalMatrix * normal);
-          vView = normalize(-mvPosition.xyz);
-          gl_Position = projectionMatrix * mvPosition;
+          vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+          vWorldNormal = normalize(mat3(modelMatrix) * normal);
+          vView = cameraPosition - worldPosition.xyz;
+          gl_Position = projectionMatrix * viewMatrix * worldPosition;
         }
       `,
       fragmentShader: `
-        uniform vec3 glowColor;
-        varying vec3 vNormal;
+        uniform vec3 sunlight;
+        uniform vec3 dayColor;
+        uniform vec3 nightColor;
+        varying vec3 vWorldNormal;
         varying vec3 vView;
         void main() {
-          float rim = pow(clamp(0.72 + dot(normalize(vNormal),
-            normalize(vView)), 0.0, 1.0), 3.2);
-          gl_FragColor = vec4(glowColor, rim * 0.85);
+          vec3 normal = normalize(vWorldNormal);
+          float grazing = 1.0 - abs(dot(normal, normalize(vView)));
+          float opticalDepth = pow(clamp(grazing, 0.0, 1.0), 3.6);
+          float day = smoothstep(-0.25, 0.6, dot(normal, sunlight));
+          vec3 scatteredLight = mix(nightColor, dayColor, day);
+          gl_FragColor = vec4(scatteredLight, opticalDepth * (0.18 + day * 0.35));
           #include <colorspace_fragment>
         }
       `,
@@ -159,7 +189,7 @@ function startEarth(host) {
       blending: THREE.AdditiveBlending,
       depthWrite: false
     }));
-    const shell = keep(new THREE.SphereGeometry(earthRadius * 1.032,
+    const shell = keep(new THREE.SphereGeometry(earthRadius * 1.018,
       segments, segments));
     earth.add(new THREE.Mesh(shell, material));
   }
@@ -180,37 +210,72 @@ function startEarth(host) {
   }
 
   function addStars() {
-    const count = window.innerWidth <= 640 ? 300 : 620;
-    const vertices = new Float32Array(count * 3);
-    const colors = new Float32Array(count * 3);
+    const mobile = textureProfile === "mobile";
     let seed = 1746;
     const random = () => {
       seed = (seed * 1664525 + 1013904223) >>> 0;
       return seed / 4294967296;
     };
-    for (let index = 0; index < count; index++) {
-      vertices[index * 3] = (random() - 0.5) * 35;
-      vertices[index * 3 + 1] = (random() - 0.5) * 24;
-      vertices[index * 3 + 2] = -5 - random() * 22;
-      const brightness = 0.4 + random() * 0.6;
-      colors[index * 3] = brightness * 0.78;
-      colors[index * 3 + 1] = brightness * 0.88;
-      colors[index * 3 + 2] = brightness;
+    const gaussian = () => Math.sqrt(-2 * Math.log(Math.max(1e-9, random()))) *
+      Math.cos(Math.PI * 2 * random());
+    const pointTexture = softDotTexture("255, 255, 255");
+    const temperatures = [new THREE.Color(0xcad9ff), new THREE.Color(0xeaf1ff),
+      new THREE.Color(0xffefd7), new THREE.Color(0xffd4aa)];
+
+    function starLayer(count, size, opacity, galactic = false) {
+      const vertices = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+      for (let index = 0; index < count; index++) {
+        const x = (random() - 0.5) * (galactic ? 58 : 45);
+        vertices[index * 3] = x;
+        vertices[index * 3 + 1] = galactic
+          ? x * 0.29 + gaussian() * (random() < 0.7 ? 1.1 : 2.6)
+          : (random() - 0.5) * 30;
+        vertices[index * 3 + 2] = galactic ? -25 - random() * 8 : -14 - random() * 25;
+        const color = temperatures[Math.floor(random() * temperatures.length)];
+        const brightness = galactic ? 0.26 + random() * 0.32 : 0.52 + random() * 0.48;
+        colors[index * 3] = color.r * brightness;
+        colors[index * 3 + 1] = color.g * brightness;
+        colors[index * 3 + 2] = color.b * brightness;
+      }
+      const geometry = keep(new THREE.BufferGeometry());
+      geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      const material = keep(new THREE.PointsMaterial({
+        size, map: pointTexture, transparent: true, vertexColors: true,
+        opacity, depthWrite: false, blending: THREE.AdditiveBlending,
+        sizeAttenuation: true
+      }));
+      scene.add(new THREE.Points(geometry, material));
+      if (galactic) starStatus.galacticCount = count;
+      else starStatus.count += count;
     }
-    const geometry = keep(new THREE.BufferGeometry());
-    geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
-    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    const material = keep(new THREE.PointsMaterial({
-      size: 0.046,
-      map: softDotTexture("215, 231, 255"),
+
+    // Different apparent magnitudes and color temperatures create irregular,
+    // pinpoint stars rather than an evenly spaced decorative dot grid.
+    starLayer(mobile ? 650 : 1500, 0.039, 0.68);
+    starLayer(mobile ? 90 : 220, 0.075, 0.82);
+    starLayer(mobile ? 12 : 32, 0.125, 0.94);
+    starStatus.layers = 3;
+    // A restrained stellar band suggests the Milky Way. It is generated once,
+    // with no full-screen noise shader, downloaded skybox, or animated nebula.
+    starLayer(mobile ? 950 : 2400, 0.041, 0.42, true);
+  }
+
+  function addClouds(texture) {
+    const mobile = textureProfile === "mobile";
+    const geometry = keep(new THREE.SphereGeometry(earthRadius * 1.006,
+      mobile ? 48 : 72, mobile ? 48 : 72));
+    const material = keep(new THREE.MeshPhongMaterial({
+      map: texture,
       transparent: true,
-      vertexColors: true,
-      opacity: 0.78,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      sizeAttenuation: true
+      opacity: 0.84,
+      shininess: 4,
+      specular: 0x111111,
+      depthWrite: false
     }));
-    scene.add(new THREE.Points(geometry, material));
+    clouds = new THREE.Mesh(geometry, material);
+    earth.add(clouds);
   }
 
   function createMarker() {
@@ -274,7 +339,7 @@ function startEarth(host) {
       depthWrite: false
     }));
     const geometry = keep(new THREE.SphereGeometry(earthRadius * 1.001,
-      window.innerWidth <= 640 ? 48 : 64, 48));
+      window.innerWidth <= 640 ? 64 : 96, 64));
     earth.add(new THREE.Mesh(geometry, material));
   }
 
@@ -288,12 +353,14 @@ function startEarth(host) {
       mobile ? 1.25 : 1.5));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    camera.position.z = mobile ? 8.5 : 7.4;
+    camera.position.z = mobile ? 8.5 : 8.6;
     camera.updateProjectionMatrix();
     const visibleWidth = 2 * camera.position.z *
       Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
     const visibleHeight = visibleWidth / camera.aspect;
-    globePlacement.position.set(visibleWidth * (mobile ? 0.23 : 0.30),
+    const maximumRadiusFraction = earthRadius * targetScales.city * 1.08 / visibleWidth;
+    const desktopCenter = Math.min(0.76, 0.98 - maximumRadiusFraction);
+    globePlacement.position.set(visibleWidth * (mobile ? 0.23 : desktopCenter - 0.5),
       visibleHeight * (mobile ? 0.28 : 0.10), 0);
     // The globe is deliberately off center. Align its front with the camera's
     // actual sightline, otherwise perspective pushes the chosen pin to its rim.
@@ -302,7 +369,8 @@ function startEarth(host) {
     requestFrame();
   }
 
-  function requestFrame() {
+  function requestFrame(forcePaint = true) {
+    if (forcePaint) needsPaint = true;
     if (disposed || failed || document.hidden || pendingFrame) return;
     pendingFrame = requestAnimationFrame(renderFrame);
   }
@@ -316,6 +384,12 @@ function startEarth(host) {
   function renderFrame(now) {
     pendingFrame = 0;
     if (disposed || failed || document.hidden) return;
+    if (!reducedMotion && !paused && !needsPaint && previousFrame &&
+        now - previousFrame < 1000 / 30 - 0.5) {
+      requestFrame(false);
+      return;
+    }
+    needsPaint = false;
     const delta = previousFrame ? Math.min((now - previousFrame) / 1000, 0.05) : 0;
     previousFrame = now;
     if (journey) {
@@ -332,6 +406,7 @@ function startEarth(host) {
     if (glow && !reducedMotion && !paused) {
       glow.material.opacity = 0.57 + Math.sin(now * 0.0018) * 0.08;
     }
+    if (clouds && !reducedMotion && !paused) clouds.rotation.y += delta * 0.0035;
     try {
       renderer.render(scene, camera);
       frameCount++;
@@ -347,7 +422,7 @@ function startEarth(host) {
       fallback();
       return;
     }
-    if (!reducedMotion && !paused && ready) requestFrame();
+    if (!reducedMotion && !paused && ready) requestFrame(false);
   }
 
   function showLocation() {
@@ -515,23 +590,57 @@ function startEarth(host) {
   motionButton?.addEventListener("click", onPause);
   if (window.prospectLocationTarget) moveTo(window.prospectLocationTarget);
 
-  textureLoader.load(host.dataset.earthDay || "/assets/earth-day.jpg", texture => {
-    if (disposed || failed) { texture.dispose(); return; }
-    keep(texture);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-    planetMaterial.map = texture;
-    planetMaterial.needsUpdate = true;
-    requestFrame();
-  }, undefined, () => { if (!disposed) fallback(); });
-
-  if (host.dataset.earthNight) {
-    textureLoader.load(host.dataset.earthNight, texture => {
+  function loadTexture(name, path, colorTexture, apply, onFailure) {
+    textureStatus[name].path = path;
+    textureLoader.load(path, texture => {
       if (disposed || failed) { texture.dispose(); return; }
       keep(texture);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      addNightLights(texture);
+      texture.colorSpace = colorTexture ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+      texture.anisotropy = Math.min(textureProfile === "mobile" ? 4 : 8,
+        renderer.capabilities.getMaxAnisotropy());
+      texture.wrapS = THREE.RepeatWrapping;
+      textureStatus[name] = {
+        loaded: true, path,
+        width: texture.image.naturalWidth || texture.image.width,
+        height: texture.image.naturalHeight || texture.image.height
+      };
+      apply(texture);
       requestFrame();
-    }, undefined, () => { /* Daylight rendering remains usable. */ });
+    }, undefined, () => {
+      if (!disposed && !failed) onFailure?.();
+    });
+  }
+
+  const standardDay = host.dataset.earthDay || "/assets/earth-day.jpg";
+  const highResolutionAllowed = textureProfile === "desktop" &&
+    renderer.capabilities.maxTextureSize >= 4096 && !navigator.connection?.saveData;
+  const dayPath = highResolutionAllowed && host.dataset.earthDayDesktop
+    ? host.dataset.earthDayDesktop : standardDay;
+  const applyDay = texture => {
+    planetMaterial.map = texture;
+    planetMaterial.needsUpdate = true;
+  };
+  loadTexture("day", dayPath, true, applyDay, () => {
+    if (dayPath !== standardDay) {
+      loadTexture("day", standardDay, true, applyDay, fallback);
+    } else fallback();
+  });
+  if (host.dataset.earthNight) {
+    loadTexture("night", host.dataset.earthNight, true, addNightLights);
+  }
+  if (host.dataset.earthClouds) {
+    const cloudPath = highResolutionAllowed && host.dataset.earthCloudsDesktop
+      ? host.dataset.earthCloudsDesktop : host.dataset.earthClouds;
+    loadTexture("clouds", cloudPath, true, addClouds, () => {
+      if (cloudPath !== host.dataset.earthClouds) {
+        loadTexture("clouds", host.dataset.earthClouds, true, addClouds);
+      }
+    });
+  }
+  if (host.dataset.earthSpecular) {
+    loadTexture("specular", host.dataset.earthSpecular, false, texture => {
+      planetMaterial.specularMap = texture;
+      planetMaterial.needsUpdate = true;
+    });
   }
 }

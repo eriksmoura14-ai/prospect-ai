@@ -1612,6 +1612,10 @@ const server = http.createServer(async (request, response) => {
       "/vendor/three.module.js": ["node_modules/three/build/three.module.min.js", "text/javascript; charset=utf-8"],
       "/vendor/three.core.min.js": ["node_modules/three/build/three.core.min.js", "text/javascript; charset=utf-8"],
       "/assets/earth-day.jpg": ["assets/earth-day.jpg", "image/jpeg"],
+      "/assets/earth-day-desktop.jpg": ["assets/earth-day-desktop.jpg", "image/jpeg"],
+      "/assets/earth-clouds.webp": ["assets/earth-clouds.webp", "image/webp"],
+      "/assets/earth-clouds-desktop.webp": ["assets/earth-clouds-desktop.webp", "image/webp"],
+      "/assets/earth-specular.jpg": ["assets/earth-specular.jpg", "image/jpeg"],
       "/assets/earth-night.jpg": ["assets/earth-night.jpg", "image/jpeg"],
       "/assets/icon.svg": ["assets/icon.svg", "image/svg+xml"],
       "/vendor/three.LICENSE.txt": ["node_modules/three/LICENSE", "text/plain; charset=utf-8"]
@@ -1648,7 +1652,7 @@ const server = http.createServer(async (request, response) => {
       if (useGzip) content = gzipSync(content);
       response.writeHead(200, {
         "Content-Type": type,
-        "Cache-Control": "no-store",
+        "Cache-Control": type.startsWith("image/") ? "private, max-age=3600" : "no-store",
         "X-Content-Type-Options": "nosniff",
         "Referrer-Policy": "no-referrer",
         ...(useGzip ? { "Content-Encoding": "gzip" } : {}),

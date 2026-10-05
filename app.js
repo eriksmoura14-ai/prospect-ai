@@ -467,7 +467,7 @@ $("json").addEventListener("click", () => {
 
 async function initialize() {
   document.title = "Prospect AI";
-  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.4";
+  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.5";
   document.querySelector(".notice").textContent =
     "Dados públicos do OpenStreetMap. A ausência de website " +
     "cadastrado não significa ausência de site. Durante a busca, " +
