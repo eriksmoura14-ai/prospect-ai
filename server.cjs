@@ -1796,7 +1796,8 @@ server.listen(
     if (HOSTED && accountService && /^[a-zA-Z0-9-]{8,80}$/.test(evaluationRun)) {
       (async () => {
         await accountService.ready();
-        if (!await accountService.store.allow([{ key: `agent-evaluation:${evaluationRun}`, limit: 1, seconds: 86400 }])) return;
+        const revision = require("./agent-guidance.cjs").REVISION;
+        if (!await accountService.store.allow([{ key: `agent-evaluation:${evaluationRun}:${revision}`, limit: 1, seconds: 86400 }])) return;
         const report = await require("./agent-evaluation.cjs").run({ limit: 3,
           onCase: item => console.log("AGENT_EVALUATION", JSON.stringify({ run: evaluationRun, ...item })) });
         console.log("AGENT_EVALUATION", JSON.stringify({ run: evaluationRun, revision: report.revision,
