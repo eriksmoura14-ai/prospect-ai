@@ -26,6 +26,14 @@ test("banco externo mantém validação TLS mesmo com parâmetro que tenta desli
   assert.ok(!options.connectionString.includes("ssl"));
   assert.throws(() => databaseOptions("postgres://fixture:fixture@127.0.0.1/app", false));
   assert.equal(databaseOptions("postgres://fixture:fixture@127.0.0.1/app", true).ssl, false);
+  const secret = "private-test-password";
+  try {
+    databaseOptions(`postgres://fixture:${secret}@[broken/app`, false);
+    assert.fail("Conexão malformada deveria ser recusada.");
+  } catch (error) {
+    assert.match(error.message, /DATABASE_URL inválida/);
+    assert.ok(!JSON.stringify(Object.getOwnPropertyNames(error).map(name=>error[name])).includes(secret));
+  }
 });
 test("criptografia autentica o conteúdo e o dono, usa IV aleatório e rejeita adulteração", () => {
   const box = vault(key()), text = { email: "account@example.test", note: "Dados privados" };

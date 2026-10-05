@@ -40,7 +40,9 @@ function vault(encodedKey) {
 }
 
 function databaseOptions(connectionString, local = false) {
-  const url = new URL(connectionString);
+  let url;
+  try { url = new URL(connectionString); }
+  catch { throw new Error("DATABASE_URL inválida. Configure a conexão PostgreSQL autenticada no ambiente."); }
   if (!["postgres:", "postgresql:"].includes(url.protocol) || !url.hostname || !url.username || !url.password) {
     throw new Error("DATABASE_URL deve ser uma conexão PostgreSQL autenticada.");
   }
