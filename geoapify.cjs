@@ -3,13 +3,24 @@ const https = require("node:https");
 const ENDPOINT = "https://api.geoapify.com/v2/places";
 // Índices comerciais; não misturar índices de geometria (rios, bairros, edifícios).
 const CATEGORIES = ["commercial", "service", "office"];
+const FOOD_CATEGORIES = ["catering", "commercial.food_and_drink"];
 // Grupos documentados que incluem os tags OSM cadastrados nesses nichos.
 // A classificação continua exclusiva de businessMatch no servidor.
 const CATEGORY_HINTS = {
   "Barber": ["service.beauty.hairdresser"],
   "Hair Salon": ["service.beauty.hairdresser"],
   "Auto Detailing": ["service.vehicle"],
-  "Electrician": ["service.electrician"]
+  "Electrician": ["service.electrician"],
+  Restaurantes: ["catering.restaurant"],
+  Hamburguerias: ["catering.restaurant.burger", "catering.fast_food.burger"],
+  Sorveterias: ["catering.ice_cream", "catering.cafe.ice_cream", "commercial.food_and_drink.ice_cream"],
+  Pizzarias: ["catering.restaurant.pizza", "catering.fast_food.pizza"],
+  Padarias: ["commercial.food_and_drink.bakery"],
+  Confeitarias: ["commercial.food_and_drink.confectionery", "commercial.food_and_drink.bakery", "catering.cafe.cake"],
+  Cafeterias: ["catering.cafe"],
+  Lanchonetes: ["catering.fast_food", "catering.food_court"],
+  "Açaiterias": ["catering.ice_cream", "catering.cafe", "catering.fast_food"],
+  Churrascarias: ["catering.restaurant.barbecue", "catering.restaurant.steak_house"]
 };
 function failure(code, message) { return Object.assign(new Error(message), {code}); }
 function spatialFilter(place) {
@@ -139,4 +150,4 @@ async function discover(place, {apiKey, onTrace, onProgress = () => {}, transpor
   }
   throw failure("geoapify_budget", "A cidade exige mais páginas que o orçamento gratuito por busca. Nenhum resultado parcial foi apresentado; a área e os filtros foram preservados.");
 }
-module.exports = {discover, spatialFilter, element, request, contains, CATEGORIES, CATEGORY_HINTS, ENDPOINT};
+module.exports = {discover, spatialFilter, element, request, contains, CATEGORIES, FOOD_CATEGORIES, CATEGORY_HINTS, ENDPOINT};

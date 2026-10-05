@@ -302,3 +302,63 @@ test("falha de cota Geoapify não é convertida em alternativa ou lista vazia",a
  const city="Fixture, Brasil",p=place("Fixture",7,[-19,-18,-49,-48]);const h=harness({locations:{[city]:[p]},provider:"geoapify",geoFailure:Object.assign(new Error("quota"),{code:"geoapify_http_429"})});
  await assert.rejects(h.discover(city,"Barber"),{code:"geoapify_http_429"});assert.equal(h.geoQueries.length,1);assert.equal(h.queries.length,0);
 });
+
+test("nichos de comida usam tags e culinária múltipla sem classificar comércio de outro ramo", () => {
+  const h = harness({ locations: {} });
+  for (const [niche, tags] of [
+    ["Hamburguerias", { name: "Empresa fictícia", amenity: "fast_food", cuisine: "american; Burger " }],
+    ["Pizzarias", { name: "Empresa fictícia", amenity: "restaurant", cuisine: "italian; pizza" }],
+    ["Sorveterias", { name: "Empresa fictícia", amenity: "ice_cream" }],
+    ["Padarias", { name: "Empresa fictícia", shop: "bakery" }],
+    ["Confeitarias", { name: "Empresa fictícia", shop: "pastry" }],
+    ["Cafeterias", { name: "Empresa fictícia", amenity: "cafe" }],
+    ["Lanchonetes", { name: "Empresa fictícia", amenity: "fast_food" }],
+    ["Açaiterias", { name: "Empresa fictícia", amenity: "cafe", cuisine: "AÇAÍ" }],
+    ["Churrascarias", { name: "Empresa fictícia", amenity: "restaurant", cuisine: "regional;barbecue" }],
+    ["Restaurantes", { name: "Empresa fictícia", amenity: "restaurant" }]
+  ]) assert.equal(h.businessMatch(tags, niche), true, niche);
+  assert.equal(h.businessMatch({ name: "Pizza seguros", office: "insurance", cuisine: "pizza" }, "Pizzarias"), false);
+  assert.equal(h.businessMatch({ name: "Burger elétrica", craft: "electrician", cuisine: "burger" }, "Hamburguerias"), false);
+  assert.equal(h.businessMatch({ name: "Fechado", amenity: "restaurant", cuisine: "pizza", disused: "yes" }, "Pizzarias"), false);
+  assert.equal(h.businessMatch({ name: "Empresa fictícia", amenity: "restaurant", cuisine: "burger_sauce" }, "Hamburguerias"), false);
+});
+
+test("Overpass pesquisa culinária com tags conjuntas no mesmo limite administrativo", async () => {
+  const city = "Food fixture", p = place("Food fixture", 314875, [-19.4, -18.6, -48.8, -47.9]);
+  const e = { type: "node", id: 17, lat: -18.9, lon: -48.3, tags: { name: "Empresa fictícia", amenity: "fast_food", cuisine: "american;burger" } };
+  const h = harness({ locations: { [city]: [p] }, answers: [[e]] });
+  const result = await h.discover(city, "Hamburguerias");
+  assert.equal(h.queries.length, 1);
+  assert.ok(h.queries[0].includes('area(3600314875)->.searchArea;'));
+  assert.ok(h.queries[0].includes('nwr(area.searchArea)["amenity"~'));
+  assert.ok(h.queries[0].includes('["cuisine"~"(^|;)[[:space:]]*(burger|hamburger)[[:space:]]*(;|$)",i]'));
+  assert.equal(result.rows.length, 1); assert.equal(result.rows[0].matchMethod, "tag");
+});
+
+test("Geoapify inclui índices de alimentação na alternativa sem inventar tags", async () => {
+  const city = "Food fixture", p = place("Food fixture", 17, [-19, -18, -49, -48]);
+  const e = { type: "node", id: 19, lat: -18.5, lon: -48.5, tags: { name: "Pizzaria fictícia", amenity: "restaurant" } };
+  const h = harness({ locations: { [city]: [p] }, provider: "geoapify", geoAnswers: [[], [e]] });
+  const result = await h.discover(city, "Pizzarias");
+  assert.deepEqual(h.geoQueries[0].categories, ["catering.restaurant.pizza", "catering.fast_food.pizza"]);
+  assert.deepEqual(h.geoQueries[1].categories, ["catering", "commercial.food_and_drink"]);
+  assert.equal(result.rows.length, 1); assert.equal(result.rows[0].matchMethod, "keyword");
+});
+
+test("Geoapify classifica hamburgueria por culinária original, não pela categoria externa", async () => {
+  const city = "Food fixture", p = place("Food fixture", 18, [-19, -18, -49, -48]);
+  const e = { type: "node", id: 20, lat: -18.5, lon: -48.5, tags: { name: "Empresa fictícia", amenity: "restaurant", cuisine: "pizza;burger" } };
+  const h = harness({ locations: { [city]: [p] }, provider: "geoapify", geoAnswers: [[e]] });
+  const result = await h.discover(city, "Hamburguerias");
+  assert.equal(h.geoQueries.length, 1); assert.equal(result.rows[0].matchMethod, "tag");
+  assert.equal(result.rows[0].category, "Hamburguerias");
+});
+
+test("menu de nichos inclui dez opções de alimentação e conserva as anteriores", async () => {
+  const h = harness({ locations: {} });
+  const response = await callAPI(h, "/api/niches");
+  const values = JSON.parse(response.body);
+  assert.equal(values.length, 24);
+  for (const name of ["Barber", "Auto Detailing", "Electrician", "Restaurantes", "Hamburguerias", "Sorveterias", "Pizzarias", "Padarias", "Confeitarias", "Cafeterias", "Lanchonetes", "Açaiterias", "Churrascarias"]) assert.ok(values.includes(name));
+  assert.equal(h.geocodes.length, 0); assert.equal(h.queries.length, 0);
+});

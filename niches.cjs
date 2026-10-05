@@ -1,6 +1,7 @@
 "use strict";
 
 const define = (tags, terms) => ({ tags, terms });
+const food = (tags, terms, cuisines = []) => ({ tags, terms, cuisines, food: true });
 
 module.exports = {
   "Auto Detailing": define(
@@ -161,5 +162,45 @@ module.exports = {
       "electrical contractor",
       "electrical services"
     ]
+  ),
+
+  Restaurantes: food(
+    [["amenity", "restaurant"]],
+    ["restaurante", "restaurant", "ristorante", "restauracion"]
+  ),
+  Hamburguerias: food(
+    [], ["hamburgueria", "hamburguer", "hamburger", "burger", "burguer", "burger bar"],
+    ["burger", "hamburger"]
+  ),
+  Sorveterias: food(
+    [["amenity", "ice_cream"], ["shop", "ice_cream"]],
+    ["sorveteria", "gelateria", "gelato", "ice cream", "heladeria", "heladería"],
+    ["ice_cream", "gelato"]
+  ),
+  Pizzarias: food(
+    [], ["pizzaria", "pizzeria", "pizza"], ["pizza"]
+  ),
+  Padarias: food(
+    [["shop", "bakery"], ["craft", "bakery"]],
+    ["padaria", "bakery", "boulangerie", "panaderia", "panadería", "bäckerei", "backerei"]
+  ),
+  Confeitarias: food(
+    [["shop", "confectionery"], ["shop", "pastry"], ["craft", "confectionery"]],
+    ["confeitaria", "doceria", "confectionery", "patisserie", "pâtisserie", "pasteleria", "pastelería", "cake shop"]
+  ),
+  Cafeterias: food(
+    [["amenity", "cafe"]],
+    ["cafeteria", "café", "cafe", "coffee shop", "coffee house"]
+  ),
+  Lanchonetes: food(
+    [["amenity", "fast_food"], ["amenity", "food_court"]],
+    ["lanchonete", "lanches", "snack bar", "fast food", "sandwich shop"]
+  ),
+  "Açaiterias": food(
+    [], ["açaiteria", "acaiteria", "açaí", "acai"], ["acai", "açaí"]
+  ),
+  Churrascarias: food(
+    [], ["churrascaria", "churrasco", "barbecue", "steakhouse", "steak house", "asador"],
+    ["barbecue", "bbq", "steak_house"]
   )
 };

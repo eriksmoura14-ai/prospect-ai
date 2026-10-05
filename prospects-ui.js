@@ -32,8 +32,11 @@ const prospectLists = (() => {
     const item = node(url ? "a" : "button", url ? "Entrar em contato · WhatsApp" : "WhatsApp indisponível", "whatsapp-contact");
     if (url) {
       item.href = url; item.target = "_blank"; item.rel = "noopener noreferrer";
-      item.title = "Abrir WhatsApp para +" + url.split("/").pop();
-      item.setAttribute("aria-label", `Entrar em contato com ${company.name} pelo WhatsApp`);
+      const number = "+" + url.split("/").pop();
+      const adjusted = company.whatsappAdjustment === "br_ninth_digit";
+      item.append(node("small", number + (adjusted ? " · nono dígito incluído" : ""), "whatsapp-number"));
+      item.title = "Abrir WhatsApp para " + number;
+      item.setAttribute("aria-label", `Entrar em contato com ${company.name} pelo WhatsApp, número ${number}`);
     } else {
       item.type = "button"; item.disabled = true;
       item.title = "É necessário um telefone completo com código de país para abrir o WhatsApp.";

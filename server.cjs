@@ -12,6 +12,7 @@ const {
 } = require("node:crypto");
 
 const niches = require("./niches.cjs");
+const nicheMatching = require("./niche-matching.cjs");
 const agent = require("./agent.cjs");
 const overpass = require("./overpass.cjs");
 const geoapify = require("./geoapify.cjs");
@@ -416,12 +417,14 @@ function businessMatch(tags, niche) {
   const config = niches[niche];
 
   if (
-    config.tags.some(([key, value]) => tags[key] === value)
+    nicheMatching.matchesTags(tags, config)
   ) {
     return true;
   }
 
   const name = ` ${normalize(tags.name)} `;
+
+  if (config.food && !nicheMatching.isFoodPlace(tags)) return false;
 
   return config.terms.some(term =>
     name.includes(` ${normalize(term)} `)
@@ -581,9 +584,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
   const keywords =
     config.terms.map(escapeRegex).join("|");
 
-  const tagSelectors = config.tags.map(([key, value]) =>
-    `nwr${scope}[${JSON.stringify(key)}=${JSON.stringify(value)}]["name"];`
-  );
+  const tagSelectors = nicheMatching.selectors(config, scope);
   const nameSelectors = keywords
     ? ["shop", "craft", "office", "amenity", "service"].map(key =>
         `nwr${scope}[${JSON.stringify(key)}]["name"~${JSON.stringify(keywords)},i];`
@@ -615,12 +616,13 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
   if (BUSINESS_PROVIDER === "geoapify") {
     discoveryMethod = "Índices comerciais do Geoapify · tags OSM originais";
     const hints = geoapify.CATEGORY_HINTS[niche];
+    const fallbackCategories = config.food ? geoapify.FOOD_CATEGORIES : geoapify.CATEGORIES;
     const options = {apiKey: GEOAPIFY_KEY, onProgress, budget:{remaining:4},
       onTrace: trace => onDiagnostics({queryAttempt: {method:"categories", ...trace}})};
-    data = await geoapify.discover(place, {...options, categories: hints || geoapify.CATEGORIES});
+    data = await geoapify.discover(place, {...options, categories: hints || fallbackCategories});
     if (hints && !data.elements.some(element => businessMatch(element.tags || {}, niche))) {
       onProgress("Sem correspondências na categoria. Consultando os índices comerciais para a classificação original…");
-      data = await geoapify.discover(place, {...options, categories: geoapify.CATEGORIES,
+      data = await geoapify.discover(place, {...options, categories: fallbackCategories,
         onTrace: trace => onDiagnostics({queryAttempt: {method:"commercial_fallback", ...trace}})});
     }
   } else {
@@ -690,9 +692,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
       chainSignal: Boolean(
         tags["brand:wikidata"] || tags["operator:wikidata"]
       ),
-      matchMethod: config.tags.some(
-        ([key, value]) => tags[key] === value
-      ) ? "tag" : "keyword",
+      matchMethod: nicheMatching.matchesTags(tags, config) ? "tag" : "keyword",
       status: website ? "WEBSITE_LISTED" : "UNCERTAIN",
       confidence: website ? 1 : 0,
       reason: website
