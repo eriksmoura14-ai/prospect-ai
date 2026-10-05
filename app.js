@@ -30,7 +30,7 @@ const states = {
 
 function storedJob() {
   try {
-    return localStorage.getItem("prospect-ai-active-job");
+    return localStorage.getItem(accountUI.jobKey());
   } catch {
     return null;
   }
@@ -38,8 +38,8 @@ function storedJob() {
 
 function rememberJob(id) {
   try {
-    if (id) localStorage.setItem("prospect-ai-active-job", id);
-    else localStorage.removeItem("prospect-ai-active-job");
+    if (id) localStorage.setItem(accountUI.jobKey(), id);
+    else localStorage.removeItem(accountUI.jobKey());
   } catch {
     // O armazenamento é opcional.
   }
@@ -258,6 +258,7 @@ async function api(url, options = {}) {
   try {
     response = await fetch(url, {
       ...options,
+      headers: { ...options.headers, ...(accountUI.csrf ? { "X-CSRF-Token": accountUI.csrf } : {}) },
       credentials: "same-origin",
       signal: options.signal || AbortSignal.timeout(20000)
     });
@@ -265,8 +266,9 @@ async function api(url, options = {}) {
     throw new Error("Não foi possível conectar ao servidor. Tente novamente.");
   }
   if (response.status === 401) {
+    accountUI.expire();
     const error = new Error(
-      "Acesso não autorizado. Recarregue a página e informe seu usuário e senha."
+      accountUI.mode === "password" ? "Sua sessão terminou. Entre novamente." : "Acesso não autorizado. Recarregue a página e informe seu usuário e senha."
     );
     error.status = 401;
     throw error;
@@ -354,6 +356,8 @@ async function watch(jobId) {
     render();
     if (job.state === "done" || job.state === "error") {
       rememberJob(null);
+      if (job.persistenceWarning) { progressText += " · " + job.persistenceWarning; render(); }
+      void accountUI.refreshHistory();
       return;
     }
     await sleep(1800);
@@ -467,7 +471,7 @@ $("json").addEventListener("click", () => {
 
 async function initialize() {
   document.title = "Prospect AI";
-  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.5";
+  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.6";
   document.querySelector(".notice").textContent =
     "Dados públicos do OpenStreetMap. A ausência de website " +
     "cadastrado não significa ausência de site. Durante a busca, " +
@@ -492,6 +496,7 @@ async function initialize() {
   render();
 
   try {
+    if (!await accountUI.initialize()) return;
     void locationPicker.initialize();
     const names = await api("/api/niches");
     $("niche").replaceChildren();
@@ -529,7 +534,7 @@ let aiPanel = null;
 
 function readOfferSettings() {
   try {
-    const saved = JSON.parse(localStorage.getItem("prospect-ai-offer") || "{}");
+    const saved = accountUI.mode === "password" ? accountUI.preferences() : JSON.parse(localStorage.getItem("prospect-ai-offer") || "{}");
     return { seller: typeof saved.seller === "string" ? saved.seller : "",
       offer: typeof saved.offer === "string" ? saved.offer : "",
       language: ["Português", "English", "Español"].includes(saved.language)
@@ -538,9 +543,25 @@ function readOfferSettings() {
 }
 
 function saveOfferSettings(settings) {
+  if (accountUI.mode === "password") { accountUI.savePreferences(settings); return; }
   try { localStorage.setItem("prospect-ai-offer", JSON.stringify(settings)); }
   catch { /* O navegador pode bloquear o armazenamento. */ }
 }
+
+window.addEventListener("prospect:session-expired", () => {
+  rows = []; lastJob = null; ready = false; searched = false; searchError = "";
+  aiCompanyStates.clear();
+  if (aiPanel) { aiPanel.dialog.close(); aiPanel.dialog.remove(); aiPanel = null; }
+  render();
+});
+
+window.addEventListener("prospect:history", async event => {
+  if (busy || !ready || typeof event.detail !== "string") return;
+  searched = true; searchError = ""; setBusy(true);
+  try { await watch(event.detail); }
+  catch (error) { searchError = error.message; progressText = error.message; }
+  finally { setBusy(false); render(); }
+});
 
 function createAIPanel() {
   const style = node("style");
@@ -623,7 +644,8 @@ function createAIPanel() {
   replyButton.type = "button";
   dialog.append(replyButton, node("p", "ai-note",
     "Os campos informados serão enviados à Groq quando você usar a IA. Remova dados pessoais sensíveis. " +
-    "A oferta fica salva neste navegador; o histórico fica apenas nesta aba. Copie-o antes de recarregar."));
+    (accountUI.mode === "password" ? "Sua oferta fica salva na sua conta; " : "A oferta fica salva neste navegador; ") +
+    "o histórico da conversa fica apenas nesta aba. Copie-o antes de recarregar."));
   document.body.append(dialog);
   const panel = { dialog, title, seller, offer, language, status, audit, sourceBody,
     draft, history, clientMessage, auditButton, draftButton, replyButton,

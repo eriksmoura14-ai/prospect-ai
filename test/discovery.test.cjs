@@ -77,6 +77,7 @@ async function callAPI(h, url, { body, authorized = true } = {}) {
   request.headers = { host: "127.0.0.1:3000", origin: "http://127.0.0.1:3000",
     authorization: authorized ? "Basic " + Buffer.from("admin:local-only-test-password").toString("base64") : "" };
   const response = { status: null, headersSent: false, body: "",
+    setHeader() {},
     writeHead(status) { this.status = status; this.headersSent = true; },
     end(body) { this.body = body || ""; } };
   await h.handler(request, response);
@@ -266,6 +267,7 @@ test("diagnóstico exige autenticação e não faz contato externo por padrão",
   const h = harness({ locations: {} });
   async function call(authorization) {
     const response = { status: null, headersSent: false, body: "",
+      setHeader() {},
       writeHead(status) { this.status = status; this.headersSent = true; },
       end(body) { this.body = body || ""; } };
     await h.handler({ method: "GET", url: "/api/diagnostics/overpass",
