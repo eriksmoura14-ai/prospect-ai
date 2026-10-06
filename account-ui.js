@@ -10,14 +10,25 @@ const accountUI = (() => {
   const jobKey = () => state.mode === "password" ? `prospect-ai-active-job:${state.user?.id || "anonymous"}` : "prospect-ai-active-job";
   async function request(url, options = {}) {
     const generation = epoch;
-    const response = await fetch(url, { ...options, credentials: "same-origin", cache: "no-store",
-      headers: { "Content-Type": "application/json", ...(state.csrfToken ? { "X-CSRF-Token": state.csrfToken } : {}), ...options.headers },
-      signal: AbortSignal.timeout(15000) });
-    const value = await response.json();
+    let response;
+    try {
+      response = await fetch(url, { ...options, credentials: "same-origin", cache: "no-store",
+        headers: { "Content-Type": "application/json", ...(state.csrfToken ? { "X-CSRF-Token": state.csrfToken } : {}), ...options.headers },
+        signal: AbortSignal.timeout(15000) });
+    } catch {
+      throw Object.assign(new Error("Não foi possível conectar ao servidor. Aguarde e tente novamente."), { retryableRead: true });
+    }
+    let value;
+    try { value = await response.json(); }
+    catch {
+      throw Object.assign(new Error("O servidor não enviou uma resposta válida. Aguarde e tente novamente."), {
+        status: response.status, retryableRead: [502, 503, 504].includes(response.status) });
+    }
     if (generation !== epoch) throw Object.assign(new Error("Sua sessão terminou. Entre novamente."), { status: 401 });
     if (!response.ok) {
       if (response.status === 401 && state.authenticated && !url.startsWith("/api/auth/")) expire();
-      throw Object.assign(new Error(value.error || "Não foi possível concluir a solicitação."), { status: response.status });
+      throw Object.assign(new Error(value.error || "Não foi possível concluir a solicitação."), {
+        status: response.status, retryableRead: [502, 503, 504].includes(response.status) });
     }
     return value;
   }
@@ -34,8 +45,17 @@ const accountUI = (() => {
     document.getElementById("account-email-submit").textContent = next === "register" ? "Enviar confirmação" : "Enviar recuperação";
     loginMessage("");
   }
-  async function initialize() {
-    state = await request("/api/account");
+  async function initialize({ onProgress = () => {} } = {}) {
+    // Only the initial GET is repeated. Login, email, searches and mutations
+    // are never resubmitted automatically after an ambiguous network failure.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try { state = await request("/api/account"); break; }
+      catch (error) {
+        if (!error.retryableRead || attempt === 3) throw error;
+        onProgress("A conexão está demorando. Preparando seu acesso…");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
     const login = document.getElementById("login-panel");
     const content = document.getElementById("workspace");
     const controls = document.getElementById("account-controls");

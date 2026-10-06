@@ -570,10 +570,18 @@ async function initialize() {
   );
   setBusy(true);
   progressText = "Conectando ao servidor…";
+  $("connection-panel").hidden = false;
+  $("connection-status").textContent = "Conectando à sua conta…";
+  $("connection-retry").hidden = true;
+  let connected = false;
   render();
 
   try {
-    if (!await accountUI.initialize()) return;
+    const authenticated = await accountUI.initialize({ onProgress: message => {
+      $("connection-status").textContent = message;
+    } });
+    connected = true;
+    if (!authenticated) return;
     $("workspace").hidden = false;
     prospectLists.initialize();
     void locationPicker.initialize();
@@ -599,12 +607,16 @@ async function initialize() {
   } catch (error) {
     searchError = error.message;
     progressText = searchError + " Recarregue a página para tentar novamente.";
+    $("connection-status").textContent = error.message;
+    $("connection-retry").hidden = false;
   } finally {
+    $("connection-panel").hidden = connected;
     setBusy(false);
     render();
   }
 }
 
+$("connection-retry").addEventListener("click", () => location.reload());
 initialize();
 
 // O painel fica fora dos cartões para não perder campos durante o progresso.

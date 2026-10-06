@@ -4,10 +4,12 @@ Companies/accounts are controlled fixtures. No email or external search runs.
 """
 import asyncio
 import json
+import os
 from pathlib import Path
 from playwright.async_api import async_playwright, expect
 
 BASE = "http://localhost:3162"
+NETLIFY = os.environ.get("NETLIFY_BROWSER_TEST") == "true"
 
 
 async def check(browser, fixture, device):
@@ -18,13 +20,40 @@ async def check(browser, fixture, device):
     requests = []
     page.on("pageerror", lambda error: errors.append(str(error)))
     page.on("request", lambda request: requests.append(request.url))
+    connection_attempts = 0
+    if NETLIFY:
+        async def cold_start(route):
+            nonlocal connection_attempts
+            connection_attempts += 1
+            if connection_attempts == 1:
+                await route.fulfill(status=502, content_type="text/html", body="upstream still starting")
+            else:
+                await route.continue_()
+        await page.route("**/api/account", cold_start)
     await page.goto(BASE)
+    if NETLIFY:
+        await expect(page.locator("#connection-panel")).to_be_visible()
     await expect(page.locator("#login-panel")).to_be_visible()
+    await expect(page.locator("#connection-panel")).to_be_hidden()
+    if NETLIFY:
+        assert connection_attempts == 2
+        await page.unroute("**/api/account")
     assert (await context.request.get(BASE + "/api/history")).status == 401
     for path in ["/server.cjs", "/auth.cjs", "/db/schema.sql", "/.env"]:
         assert (await context.request.get(BASE + path)).status == 404
     await page.locator("#login-email").fill(fixture["alice"]["email"])
     await page.locator("#login-password").fill(fixture["password"])
+    if NETLIFY:
+        login_attempts = 0
+        async def unavailable_login(route):
+            nonlocal login_attempts
+            login_attempts += 1
+            await route.fulfill(status=503, content_type="application/json", body='{"error":"Teste de indisponibilidade"}')
+        await page.route("**/api/auth/login", unavailable_login)
+        await page.locator("#account-login-form button[type=submit]").click()
+        await expect(page.locator("#account-status")).to_have_text("Teste de indisponibilidade")
+        assert login_attempts == 1
+        await page.unroute("**/api/auth/login")
     await page.locator("#account-login-form button[type=submit]").click()
     await expect(page.locator("#workspace")).to_be_visible()
     await expect(page.locator("#history-list button")).to_have_count(1)
@@ -38,7 +67,7 @@ async def check(browser, fixture, device):
     assert "no-store" in response.headers["cache-control"]
     assert len((await response.json())["rows"]) == 2
     account = await (await context.request.get(BASE + "/api/account")).json()
-    headers = {"Origin": "https://untrusted.vercel.app", "X-CSRF-Token": account["csrfToken"], "Sec-Fetch-Site": "same-origin"}
+    headers = {"Origin": "https://untrusted.netlify.app", "X-CSRF-Token": account["csrfToken"], "Sec-Fetch-Site": "same-origin"}
     assert (await context.request.patch(BASE + "/api/account/preferences", headers=headers, data={"seller": "Test", "offer": "Test", "language": "Português"})).status == 403
     headers["Origin"] = BASE
     assert (await context.request.patch(BASE + "/api/account/preferences", headers=headers, data={"seller": "Test", "offer": "Test", "language": "Português"})).status == 200
@@ -62,7 +91,8 @@ async def check(browser, fixture, device):
     assert not errors, errors
     assert not any(url.startswith("http://127.0.0.1:3161") for url in requests), "Browser bypassed same-origin proxy"
     await context.close()
-    return {"device": device, "login_reload_logout": True, "owner_isolation": True, "csrf": True, "private_files": True, "same_origin_api": True}
+    return {"device": device, "login_reload_logout": True, "owner_isolation": True, "csrf": True, "private_files": True,
+            "same_origin_api": True, "cold_start_fixture_recovery": NETLIFY}
 
 
 async def main():
@@ -71,9 +101,26 @@ async def main():
         client = await browser.new_context()
         fixtures = await (await client.request.get(BASE + "/__test/info")).json()
         await client.close()
-        report = {"scope": "Local real Chromium/PostgreSQL, built static frontend and local proxy; no Vercel production verification", "devices": []}
+        report = {"scope": "Local real Chromium/PostgreSQL, built frontend and actual Netlify proxy function" if NETLIFY else "Local real Chromium/PostgreSQL with external rewrite equivalent",
+                  "production_verification": False, "cold_start_is_controlled_fixture": NETLIFY, "devices": []}
         for device in ["desktop", "mobile"]:
             report["devices"].append(await check(browser, fixtures[device], device))
+        if NETLIFY:
+            context = await browser.new_context(reduced_motion="reduce")
+            page = await context.new_page()
+            attempts = 0
+            async def unavailable(route):
+                nonlocal attempts
+                attempts += 1
+                await route.fulfill(status=503, content_type="application/json", body='{"error":"Servidor indisponível no teste"}')
+            await page.route("**/api/account", unavailable)
+            await page.goto(BASE)
+            await expect(page.locator("#connection-retry")).to_be_visible()
+            assert attempts == 4
+            await expect(page.locator("#login-panel")).to_be_hidden()
+            report["bounded_startup_attempts"] = attempts
+            report["login_post_not_automatically_repeated"] = True
+            await context.close()
         Path(".artifacts").mkdir(exist_ok=True)
         Path(".artifacts/frontend-browser-report.json").write_text(json.dumps(report, indent=2))
         print(json.dumps(report))

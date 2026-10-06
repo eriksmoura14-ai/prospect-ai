@@ -14,7 +14,7 @@ test("build publica apenas recursos da interface e preserva atribuições e impo
     .filter(entry => entry.isFile()).map(entry => path.relative(output, path.join(entry.parentPath, entry.name))).sort();
   const expected = Object.keys(publicFiles).filter(route => route !== "/").map(route => route.slice(1)).sort();
   assert.deepEqual(actual, expected);
-  for (const privateFile of ["server.cjs", "agent.cjs", "accounts.cjs", "auth.cjs", "db/schema.sql", "package.json", ".env", "vercel.json"]) {
+  for (const privateFile of ["server.cjs", "agent.cjs", "accounts.cjs", "auth.cjs", "db/schema.sql", "package.json", ".env", "vercel.json", "netlify.toml", "netlify/functions/render-api.mjs"]) {
     await assert.rejects(fs.access(path.join(output, privateFile)));
   }
   const html = await fs.readFile(path.join(output, "index.html"), "utf8");
