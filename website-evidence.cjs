@@ -105,18 +105,34 @@ function analyze(page, business) {
 
 // Add a phone only from a structured record for this exact name, city and
 // street/house number. A developer's footer or another branch cannot supply it.
+function publishedWhatsApp(page, business) {
+  const known = new Set(contacts.numbers(business.phone, business.countryCode));
+  for (const entity of matchingEntities(page, business)) {
+    const values = Array.isArray(entity.telephone) ? entity.telephone : [entity.telephone];
+    for (const value of values.slice(0, 8)) for (const number of contacts.numbers(value, business.countryCode)) known.add(number);
+  }
+  const numbers = new Set();
+  const tags = (page.html || "").match(/<a\b[^>]{0,4096}>/gi) || [];
+  for (const tag of tags.slice(0, 256)) {
+    const number = contacts.whatsappLinkNumber(attribute(tag, "href"));
+    if (number && known.has(number)) numbers.add(number);
+  }
+  // A site-wide developer/support link cannot replace the company's phone.
+  return numbers.size === 1 ? { whatsappPhone: [...numbers][0], whatsappSource: page.finalUrl } : {};
+}
 function enrichPhone(page, business) {
   if (!analyze(page,business).compatible) return {};
+  const whatsapp = publishedWhatsApp(page, business);
   const values = matchingEntities(page,business).flatMap(entity =>
     (Array.isArray(entity.telephone) ? entity.telephone : [entity.telephone]).slice(0,8))
     .flatMap(value => contacts.numbers(value,business.countryCode));
   const phones = [...new Set(values)];
-  if (phones.length !== 1) return {};
+  if (phones.length !== 1) return whatsapp;
   const existing = contacts.numbers(business.phone,business.countryCode), phone = phones[0];
   if (business.phone) return existing.includes(phone)
-    ? {phoneVerification:"website_match",sitePhone:phone}
-    : {phoneVerification:"conflict",sitePhone:phone};
-  return {phone, phoneSource: page.finalUrl, phoneVerification:"website_published",sitePhone:phone};
+    ? {phoneVerification:"website_match",sitePhone:phone,...whatsapp}
+    : {phoneVerification:"conflict",sitePhone:phone,...whatsapp};
+  return {phone, phoneSource: page.finalUrl, phoneVerification:"website_published",sitePhone:phone,...whatsapp};
 }
 
 const COUNTRY_DOMAINS = {BR:[".com.br",".br"],GB:[".co.uk",".uk"],AU:[".com.au",".au"],JP:[".co.jp",".jp"],NZ:[".co.nz",".nz"],ZA:[".co.za",".za"],AR:[".com.ar",".ar"],MX:[".com.mx",".mx"],TR:[".com.tr",".tr"],IN:[".co.in",".in"]};

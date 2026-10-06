@@ -29,10 +29,12 @@ test("telefones incompletos e texto arbitrário não viram destinatários", () =
   assert.equal(contacts.whatsappURL("(11) 91234-5678", "ZZ"), "");
 });
 
-test("números múltiplos usam o primeiro válido e ramal não vira parte do destinatário", () => {
+test("números múltiplos usam o primeiro válido e ramal impede destinatário automático", () => {
   assert.equal(contacts.whatsappURL("123; +44 20 7946 0958; +1 212 555 0100", "BR"), "https://wa.me/442079460958");
   assert.equal(contacts.whatsappURL("+1 212 555 0100, +44 20 7946 0958"), "https://wa.me/12125550100");
-  assert.equal(contacts.whatsappURL("(11) 91234-5678 ext. 123", "BR"), "https://wa.me/5511912345678");
+  assert.equal(contacts.whatsappURL("(11) 91234-5678 ext. 123", "BR"), "");
+  assert.equal(contacts.details({phone:"tel:+5511912345678;ext=123",countryCode:"BR"}).whatsappReason,"extension");
+  assert.equal(contacts.whatsappURL("+5511912345678;ext=123", "BR"), "");
 });
 
 test("metadados do histórico definem o país e URLs fornecidas são recalculadas", () => {
@@ -47,31 +49,35 @@ test("metadados do histórico definem o país e URLs fornecidas são recalculada
 });
 
 test("listas preservam o país necessário e não aceitam uma URL de contato forjada", () => {
-  const company = snapshot({ osmId: "node/1", name: "Empresa", phone: "020 7946 0958", countryCode: "gb", whatsappUrl: "javascript:alert(1)" });
+  const company = snapshot({ osmId: "node/1", name: "Empresa", phone: "020 7946 0958", whatsappPhone: "020 7946 0958", countryCode: "gb", whatsappUrl: "javascript:alert(1)" });
   assert.equal(company.countryCode, "GB"); assert.equal(company.whatsappUrl, "https://wa.me/442079460958");
   assert.equal(contacts.details({ phone: "+1 212 555 0100" }).whatsappUrl, "https://wa.me/12125550100");
   assert.equal(contacts.details({ phone: "020 7946 0958" }).whatsappUrl, "");
 });
 
-test("celular brasileiro antigo sem nono dígito gera link atual e explicita o ajuste", () => {
+test("celular brasileiro antigo exige revisão e nunca troca automaticamente os dígitos publicados", () => {
   for (const phone of ["+55 34 9123-4567", "(34) 9123-4567", "034 9123-4567"]) {
     const result = contacts.details({ phone, countryCode: "BR" });
     assert.equal(result.phone, phone);
-    assert.equal(result.whatsappUrl, "https://wa.me/5534991234567");
-    assert.equal(result.whatsappNumber, "+5534991234567");
+    assert.equal(result.whatsappUrl, "");
+    assert.equal(result.whatsappNumber, "");
+    assert.equal(result.whatsappSuggestedUrl, "https://wa.me/5534991234567");
+    assert.equal(result.whatsappSuggestedNumber, "+5534991234567");
+    assert.equal(result.whatsappStatus, "needs_review");
     assert.equal(result.whatsappAdjustment, "br_ninth_digit");
   }
-  assert.equal(contacts.whatsappURL("+55 34 8765-4321"), "https://wa.me/5534987654321");
-  assert.equal(contacts.whatsappURL("+55 34 6543-2109"), "https://wa.me/5534965432109");
+  assert.equal(contacts.details({phone:"+55 34 8765-4321"}).whatsappSuggestedUrl, "https://wa.me/5534987654321");
+  assert.equal(contacts.details({phone:"+55 34 6543-2109"}).whatsappSuggestedUrl, "https://wa.me/5534965432109");
+  assert.equal(contacts.whatsappURL("+55 34 8765-4321"), "");
 });
 
 test("nono dígito não duplica em celular completo nem altera fixos, faixa 7 ou outros países", () => {
   for (const [phone, country, url] of [
     ["+55 34 99123-4567", "BR", "https://wa.me/5534991234567"],
-    ["(34) 3456-7890", "BR", "https://wa.me/553434567890"],
+    ["(34) 3456-7890", "BR", ""],
     ["+55 34 7654-3210", "BR", "https://wa.me/553476543210"],
     ["+1 212 555 0100", "BR", "https://wa.me/12125550100"],
-    ["020 7946 0958", "GB", "https://wa.me/442079460958"]
+    ["020 7946 0958", "GB", ""]
   ]) {
     const result = contacts.details({ phone, countryCode: country });
     assert.equal(result.whatsappUrl, url); assert.equal(result.whatsappAdjustment, "");
@@ -119,7 +125,42 @@ test("telefones divergentes conservam os dados e bloqueiam destinatário automá
 
 test("comparação de telefone usa código internacional e não apenas os dez últimos dígitos", () => {
   assert.deepEqual(contacts.numbers("+1 212 555 0100; (212) 555-0100","US"),["+12125550100"]);
-  assert.deepEqual(contacts.numbers("+55 34 9123-4567","BR"),["+5534991234567"]);
+  assert.deepEqual(contacts.numbers("+55 34 9123-4567","BR"),[]);
+});
+
+test("caso relatado Amo Pizza: formato de fixo válido não comprova conta WhatsApp", () => {
+  const row={phone:"+553432249090",countryCode:"BR"};
+  const result=contacts.details(row);
+  assert.equal(result.phone,row.phone);assert.equal(result.whatsappUrl,"");
+  assert.equal(result.whatsappReason,"fixed_line");assert.equal(result.whatsappAdjustment,"");
+  // A landline CAN be registered in WhatsApp Business; an explicit published
+  // WhatsApp field changes the evidence, not the number or account existence.
+  const listed=contacts.details({...row,whatsappPhone:row.phone});
+  assert.equal(listed.whatsappUrl,"https://wa.me/553432249090");assert.equal(listed.whatsappStatus,"listed");
+});
+
+test("mobile válido continua não verificado e serviço especial/ramal não recebe link automático", () => {
+  const row=contacts.details({phone:"+5511991234567",countryCode:"BR",whatsappStatus:"verified",whatsappUrl:"https://evil.example/"});
+  assert.equal(row.whatsappUrl,"https://wa.me/5511991234567");assert.equal(row.whatsappStatus,"unverified");
+  for(const phone of ["0800 123 4567","+55 11 91234-5678 ext. 123"]) {
+    assert.equal(contacts.details({phone,whatsappPhone:phone,countryCode:"BR"}).whatsappUrl,"");
+  }
+});
+
+test("URLs oficiais normalizam país uma só vez sem enviar texto pré-preenchido", () => {
+  for(const value of ["https://wa.me/5534991234567?text=Oi%2C%20empresa","https://api.whatsapp.com/send?phone=5534991234567&text=Oi","https://web.whatsapp.com/send?phone=5534991234567"]) {
+    const source=contacts.sourceData({phone:"+553432249090","contact:whatsapp":value});
+    const row=contacts.details({...source,countryCode:"US"});
+    assert.equal(row.whatsappUrl,"https://wa.me/5534991234567");assert.equal(row.whatsappStatus,"listed");
+  }
+  for(const value of ["https://wa.me.evil.example/5534991234567","https://api.whatsapp.com.evil.example/send?phone=5534991234567","https://evil@wa.me/5534991234567","http://wa.me/5534991234567","https://wa.me/message/OTHER","https://api.whatsapp.com/send?phone=5534991234567&phone=12125550100"]) assert.equal(contacts.whatsappLinkNumber(value),"");
+});
+
+test("listas recalculam evidência e sugestão sem confiar em destinatários antigos", () => {
+  const row=snapshot({osmId:"node/1",phone:"+553432249090",countryCode:"BR",whatsappUrl:"https://wa.me/553432249090",whatsappStatus:"verified",whatsappSuggestedUrl:"https://wa.me/5511991234567"});
+  assert.equal(row.whatsappUrl,"");assert.equal(row.whatsappSuggestedUrl,"");
+  const listed=snapshot({...row,whatsappPhone:"+553432249090",whatsappSource:"https://fixture.example/contact"});
+  assert.equal(listed.whatsappStatus,"listed");assert.equal(listed.whatsappSource,"https://fixture.example/contact");
 });
 
 test("número que coincide com o site tem prioridade sobre outro telefone da fonte",()=>{

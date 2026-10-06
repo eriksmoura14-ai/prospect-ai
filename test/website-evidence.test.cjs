@@ -40,6 +40,21 @@ test("ramal e números múltiplos são comparados individualmente em texto e lin
   assert.equal(evidence.analyze(sample,row).phoneMatch,true);
   assert.equal(evidence.analyze(sample,row).compatible,true);
 });
+test("WhatsApp do site só é aproveitado quando coincide com telefone da mesma identidade",()=>{
+  const linked={...page(entity()),html:page(entity()).html+'<a href="https://api.whatsapp.com/send?phone=551134567890&amp;text=Oi">WhatsApp</a>'};
+  const result=evidence.enrichPhone(linked,business);
+  assert.equal(result.whatsappPhone,"+551134567890");assert.equal(result.whatsappSource,linked.finalUrl);
+  const contact=require("../contacts.cjs").details({...business,...result});
+  assert.equal(contact.whatsappStatus,"listed");assert.equal(contact.whatsappUrl,"https://wa.me/551134567890");
+  const developer={...page(entity()),html:page(entity()).html+'<footer><a href="https://wa.me/5511991234567">Desenvolvedor</a></footer>'};
+  assert.equal(evidence.enrichPhone(developer,business).whatsappPhone,undefined);
+  assert.equal(evidence.enrichPhone({...linked,status:404},business).whatsappPhone,undefined);
+});
+test("comparação com site não trata um nono dígito inventado como telefone confirmado",()=>{
+  const row={...business,phone:"+55 34 9123-4567"};
+  const sample={status:200,html:'<title>Empresa Central</title><p>São Paulo +55 34 99123-4567</p>'};
+  assert.equal(evidence.analyze(sample,row).phoneMatch,false);assert.equal(evidence.analyze(sample,row).compatible,false);
+});
 test("alfabetos não latinos, JSON-LD em grafos e entidades HTML são aceitos sem executar scripts",()=>{
   const row = {name:"中央理髪店",city:"東京",street:"渋谷区神宮前",houseNumber:"1",countryCode:"JP",phone:""};
   const sample = {status:200,finalUrl:"https://fixture.example/",html:'<script type="application/ld+json">'+JSON.stringify({"@graph":[{name:row.name,address:{addressLocality:row.city,streetAddress:row.street+" 1",addressCountry:"JP"},telephone:"+81 90 1234 5678"}]})+'</script>'};

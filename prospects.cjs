@@ -24,7 +24,7 @@ function snapshot(row) {
   if (!row || typeof row.osmId !== "string" || !row.osmId || row.osmId.length > 200) fail(400, "Empresa inválida.");
   const result = {};
   const strings = { osmId: 200, name: 400, category: 400, city: 1000, address: 2000, phone: 200,
-    mobilePhone: 200, whatsappPhone: 200, sitePhone: 200, phoneSource: 1000, phoneVerification: 100,
+    mobilePhone: 200, whatsappPhone: 200, whatsappSource: 2000, sitePhone: 200, phoneSource: 1000, phoneVerification: 100,
     website: 2000, websiteSource: 1000, websiteVerification: 100, websiteCheckedAt: 100,
     status: 100, source: 2000, reason: 4000 };
   for (const [key, max] of Object.entries(strings)) result[key] = typeof row[key] === "string" ? row[key].slice(0, max) : "";
