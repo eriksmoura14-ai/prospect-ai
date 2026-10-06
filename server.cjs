@@ -29,6 +29,9 @@ const hosting = require("./hosting.cjs").configuration(process.env);
 const HOSTED = hosting.hosted;
 const PORT = hosting.port;
 const ORIGIN = hosting.origin;
+// Explicit production origins only; forwarded headers never grant access.
+const ALLOWED_ORIGINS = new Set([ORIGIN, hosting.frontendOrigin].filter(Boolean));
+const ALLOWED_HOSTS = new Set([...ALLOWED_ORIGINS].map(origin => new URL(origin).host));
 const accountAuth = require("./auth.cjs");
 const authConfig = accountAuth.configuration(process.env, hosting);
 const accountService = accountAuth.createService(authConfig);
@@ -1230,7 +1233,7 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       return json(response, 200, { ok: true });
     }
 
-    if (request.headers.host !== new URL(ORIGIN).host) {
+    if (!ALLOWED_HOSTS.has(request.headers.host)) {
       return json(response, 403, {
         error: "Use o endereço configurado da aplicação."
       });
@@ -1434,7 +1437,7 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
     }
 
     if (request.method === "POST" && url.pathname === "/api/ai") {
-      if (request.headers.origin !== ORIGIN) {
+      if (!ALLOWED_ORIGINS.has(request.headers.origin)) {
         return json(response, 403, { error: "Origem não permitida." });
       }
       const input = await readBody(request, 32768);
@@ -1496,7 +1499,7 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       request.method === "POST" &&
       url.pathname === "/api/search"
     ) {
-      if (request.headers.origin !== ORIGIN) {
+      if (!ALLOWED_ORIGINS.has(request.headers.origin)) {
         return json(response, 403, {
           error: "Origem não permitida."
         });

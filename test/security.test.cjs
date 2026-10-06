@@ -8,7 +8,7 @@ const { createRequire } = require("node:module"), { Readable } = require("node:s
 const { EventEmitter, once } = require("node:events");
 const root = path.resolve(__dirname, ".."), localRequire = createRequire(path.join(root, "server.cjs"));
 
-function harness({ service, records = {}, pages = {} } = {}) {
+function harness({ service, records = {}, pages = {}, frontendOrigin } = {}) {
   const outbound = [];
   const get = (url, options, callback) => {
     outbound.push({ url, options });
@@ -29,7 +29,7 @@ function harness({ service, records = {}, pages = {} } = {}) {
       : name === "node:https" ? { ...https, get }
       : name === "node:dns" ? { promises: { Resolver } }
       : name === "node:fs" ? fixtureFS
-      : name === "./hosting.cjs" ? { configuration: () => ({ hosted: true, origin: "https://app.example", port: 0, bind: "127.0.0.1" }) }
+      : name === "./hosting.cjs" ? { configuration: () => ({ hosted: true, origin: "https://app.example", frontendOrigin, port: 0, bind: "127.0.0.1" }) }
       : name === "./auth.cjs" ? { configuration: () => ({ mode: "password" }), createService: () => service || { ready: async () => {}, identity: async () => null, account: () => ({ cookies: [], data: { authenticated: false } }) } }
       : localRequire(name),
     module: { exports: {} }, __dirname: root, process: { env: {} },
@@ -69,6 +69,24 @@ test("cookies e X-Forwarded-For diferentes não contornam o limite antes da sess
   assert.equal(excess.headers["retry-after"], "1"); assert.equal(excess.headers["cache-control"], "no-store");
   assert.match(excess.headers["content-security-policy"], /script-src-attr 'none'/);
   assert.equal((await h.call("/api/account")).status, 200);
+});
+
+test("busca e IA aceitam somente Render e interface configurada, nunca forwarded host ou previews", async t => {
+  const frontendOrigin = "https://prospect.vercel.app";
+  const h = await listening(t, { frontendOrigin, service: { identity: async () => ({ user: { id: "fixture-owner" } }), checkMutation: () => true } });
+  for (const path of ["/api/search", "/api/ai"]) {
+    for (const origin of ["https://app.example", frontendOrigin]) {
+      const result = await h.call(path, { method: "POST", headers: { origin, "content-type": "application/json" }, body: "{}" });
+      assert.equal(result.status, 400); // Reaches input validation; never sends an external query.
+    }
+    for (const origin of [undefined, "null", "https://preview.vercel.app", "https://evil.example"]) {
+      const headers = { "content-type": "application/json", "x-forwarded-host": "prospect.vercel.app" };
+      if (origin) headers.origin = origin;
+      assert.equal((await h.call(path, { method: "POST", headers, body: "{}" })).status, 403);
+    }
+  }
+  assert.equal((await h.call("/api/niches", { headers: { host: "prospect.vercel.app" } })).status, 200);
+  assert.equal((await h.call("/api/niches", { headers: { host: "evil.example", "x-forwarded-host": "prospect.vercel.app" } })).status, 403);
 });
 
 test("32 solicitações pendentes limitam a fila antes do banco e liberam vagas ao terminar", async t => {

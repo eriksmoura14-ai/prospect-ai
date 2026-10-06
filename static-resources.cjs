@@ -58,18 +58,20 @@ function unchanged(header, etag) {
     .some(tag => tag.trim() === "*" || tag.trim().replace(/^W\//, "") === etag.replace(/^W\//, ""));
 }
 
+function prepareContent(file, content, locationIQ = false) {
+  if (file !== "index.html" || !locationIQ) return content;
+  return Buffer.from(content.toString("utf8").replace(/<body\b[^>]*>/i, body => body +
+    '<div style="padding:10px 24px;text-align:center">' +
+    '<a href="https://locationiq.com" target="_blank" ' +
+    'rel="noopener noreferrer">Search by LocationIQ.com</a></div>'));
+}
+
 function createResponder({ root, locationIQ = false }) {
   const cache = new Map();
   function load(file, type) {
     if (!cache.has(file)) {
       const pending = (async () => {
-        let content = await fs.readFile(path.join(root, file));
-        if (file === "index.html" && locationIQ) {
-          content = Buffer.from(content.toString("utf8").replace(/<body\b[^>]*>/i, body => body +
-            '<div style="padding:10px 24px;text-align:center">' +
-            '<a href="https://locationiq.com" target="_blank" ' +
-            'rel="noopener noreferrer">Search by LocationIQ.com</a></div>'));
-        }
+        const content = prepareContent(file, await fs.readFile(path.join(root, file)), locationIQ);
         const compressible = type.startsWith("text/") || type === "image/svg+xml";
         const [br, gz] = compressible ? await Promise.all([
           brotli(content, { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 6 } }),
@@ -115,4 +117,4 @@ function createResponder({ root, locationIQ = false }) {
   };
 }
 
-module.exports = { createResponder };
+module.exports = { createResponder, publicFiles: files, prepareContent };
