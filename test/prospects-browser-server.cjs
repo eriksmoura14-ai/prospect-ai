@@ -23,6 +23,7 @@ vm.runInNewContext(source.slice(0, source.lastIndexOf("server.listen(")) + "\nmo
 const backend = context.module.exports, fixtures = {}, owners = [];
 const phrase = "Senha exclusiva de fixture local 2026!";
 let frontend;
+let netlifyProxy;
 async function start() {
   await store.ready(); const passwordHash = await passwords.hashPassword(phrase);
   for (const device of ["desktop", "mobile"]) {
@@ -60,12 +61,28 @@ async function start() {
   });
   backend.server.listen(port, "127.0.0.1", () => console.log("List browser fixtures ready on loopback."));
   if (frontendOrigin) {
+    if (process.env.NETLIFY_BROWSER_TEST === "true") {
+      const { createProxy } = await import("../netlify/functions/render-api.mjs");
+      netlifyProxy = createProxy({ backend: origin });
+    }
     // Local HTTP equivalent of the external rewrite. Preserve Origin, cookies,
     // CSRF, methods and all Set-Cookie headers; serve the actual build directory.
     const http = require("node:http"), { publicFiles } = require("../static-resources.cjs");
-    frontend = http.createServer((request, response) => {
+    frontend = http.createServer(async (request, response) => {
       const pathname = new URL(request.url, frontendOrigin).pathname;
       if (pathname.startsWith("/api/") || ["/auth/logout", "/health", "/__test/info"].includes(pathname)) {
+        if (netlifyProxy && pathname !== "/__test/info") {
+          const chunks = [];
+          for await (const chunk of request) chunks.push(chunk);
+          const incoming = new Request(frontendOrigin + request.url, { method: request.method,
+            headers: request.headers, ...(["GET", "HEAD"].includes(request.method) ? {} : { body: Buffer.concat(chunks) }) });
+          const result = await netlifyProxy(incoming, { site: { url: frontendOrigin } });
+          const headers = Object.fromEntries([...result.headers].filter(([name]) => name !== "set-cookie"));
+          if (result.headers.getSetCookie().length) headers["set-cookie"] = result.headers.getSetCookie();
+          response.writeHead(result.status, headers);
+          if (result.body) for await (const chunk of result.body) response.write(Buffer.from(chunk));
+          response.end(); return;
+        }
         const upstream = http.request(origin + request.url, { method: request.method,
           headers: { ...request.headers, host: new URL(origin).host, "x-forwarded-host": new URL(frontendOrigin).host } }, incoming => {
           response.writeHead(incoming.statusCode, incoming.headers); incoming.pipe(response);
