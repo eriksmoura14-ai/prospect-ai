@@ -17,6 +17,7 @@ const agent = require("./agent.cjs");
 const overpass = require("./overpass.cjs");
 const geoapify = require("./geoapify.cjs");
 const locations = require("./locations.cjs");
+const geocoding = require("./geocoding.cjs");
 const contacts = require("./contacts.cjs");
 const websiteEvidence = require("./website-evidence.cjs");
 const GEOAPIFY_KEY = (process.env.GEOAPIFY_API_KEY || "").trim();
@@ -227,9 +228,7 @@ async function fetchJSON(url, options = {}, geocode = false, timeoutMs = 35000, 
           continue;
         }
 
-        throw new Error(
-          `Serviço respondeu HTTP ${response.status}.`
-        );
+        throw Object.assign(new Error(`Serviço respondeu HTTP ${response.status}.`), { httpStatus: response.status });
       }
 
       const reader = response.body.getReader();
@@ -269,6 +268,7 @@ async function fetchJSON(url, options = {}, geocode = false, timeoutMs = 35000, 
 }
 
 function locationSummary(place) {
+  if (!place || typeof place !== "object") place = {};
   const coordinate = value => typeof value === "number" || typeof value === "string" && value.trim() !== ""
     ? Number(value) : NaN;
   const latitude = coordinate(place.lat);
@@ -281,119 +281,101 @@ function locationSummary(place) {
     category: place.category || place.class, type: place.type,
     boundingbox: place.boundingbox,
     address: place.address,
+    ...(place.prospectGeocoder ? {geocoder:place.prospectGeocoder} : {}),
     ...visualPoint
   };
 }
 
-function locationMatches(place, selection) {
-  if (!selection) return true;
-  const address = place.address || {};
-  if (String(address.country_code || "").toUpperCase() !== selection.countryCode) return false;
-  if (!selection.stateName) return true;
-  const isoCodes = Object.entries(address).filter(([key]) => key.startsWith("ISO3166-2-")).map(([, value]) => value);
-  if (selection.stateIso && isoCodes.includes(selection.stateIso)) return true;
-  // Uma subdivisão conhecida do mesmo tipo prevalece sobre um nome contraditório.
-  // Códigos de condados e versões antigas de ISO não são tratados como estados.
-  if (selection.stateIsoPeers?.includes(address["ISO3166-2-lvl4"])) return false;
-  const aliases = [selection.stateName, selection.stateNative].filter(Boolean).map(normalizeLocation);
-  return Object.entries(address).some(([key, value]) => {
-    if (!/^(state|province|region|county|district|state_district|municipality)$/.test(key)) return false;
-    const name = normalizeLocation(value);
-    return aliases.some(alias => alias === name);
-  });
-}
-
 async function locate(city, onLocation = () => {}, selection = null) {
   const constraint = selection ? `${selection.countryCode}:${selection.stateCode}:${normalizeLocation(selection.stateName)}` : "legacy";
-  const key = `city:v6:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}`;
+  const key = `city:v7:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}`;
   const hit = cached(key);
   if (hit) {
-    onLocation({ cacheHit: true, selected: locationSummary(hit) });
+    onLocation({ cacheHit: true, provider:hit.prospectGeocoder, selected: locationSummary(hit) });
     return hit;
   }
 
-  const url = new URL(LOCATIONIQ_KEY
-    ? "https://us1.locationiq.com/v1/search"
-    : NOMINATIM
-  );
-
-  if (LOCATIONIQ_KEY) {
-    url.searchParams.set("key", LOCATIONIQ_KEY);
-    url.searchParams.set("source", "nom");
+  const attempts = [];
+  const deadline = Date.now() + 30000;
+  for (const plan of geocoding.plans(city, selection, Boolean(LOCATIONIQ_KEY))) {
+    const useIQ = plan.provider === "LocationIQ";
+    const url = new URL(useIQ ? "https://us1.locationiq.com/v1/search" : NOMINATIM);
+    if (useIQ) {
+      url.searchParams.set("key", LOCATIONIQ_KEY);
+      url.searchParams.set("source", "nom");
+      url.searchParams.set("statecode", "1");
+    }
+    url.searchParams.set("q", plan.query);
+    if (selection) {
+      url.searchParams.set("countrycodes", selection.countryCode.toLowerCase());
+      url.searchParams.set("accept-language", "en");
+    }
+    url.searchParams.set("format", useIQ ? "json" : "jsonv2");
+    url.searchParams.set("addressdetails", "1");
+    url.searchParams.set("namedetails", "1");
+    url.searchParams.set("extratags", "1");
+    if (BUSINESS_PROVIDER === "geoapify") url.searchParams.set("polygon_geojson", "1");
+    url.searchParams.set("limit", "10");
+    // Localities include towns/villages/boroughs in the worldwide catalogue.
+    // Keep the provider's default feature coverage and validate results locally.
+    const attempt = { ...plan, startedAt: new Date().toISOString() };
+    attempts.push(attempt);
+    const started = Date.now();
+    let data;
+    try {
+      if (deadline - Date.now() < 1500) throw Object.assign(new Error("O serviço de localização não respondeu no prazo."), {code:"geocode_timeout"});
+      // Alternative wording is tried only after an empty or incompatible result.
+      // No automatic retry/switch on quota, authentication or connection failure.
+      data = await fetchJSON(url, {}, true, Math.min(10000, deadline - Date.now() - 1100), 1);
+    } catch (error) {
+      attempt.elapsedMs = Date.now() - started;
+      if (useIQ && error.httpStatus === 404) {
+        data = [];
+        attempt.httpStatus = 404;
+      } else {
+        attempt.outcome = "service_error";
+        if (error.httpStatus) attempt.httpStatus = error.httpStatus;
+        onLocation({cacheHit:false, attempts:structuredClone(attempts), selected:null});
+        const timeout = ["TimeoutError","AbortError"].includes(error.name) || error.code === "geocode_timeout";
+        const code = error.httpStatus === 429 ? "geocode_rate_limit" : timeout ? "geocode_timeout" : "geocode_service_error";
+        console.error("Falha ao localizar cidade:", JSON.stringify({provider:plan.provider,code,httpStatus:error.httpStatus}));
+        throw Object.assign(new Error(error.httpStatus === 429
+          ? "O serviço de localização atingiu seu limite de consultas. Aguarde e tente novamente; sua seleção continua válida."
+          : timeout ? "O serviço de localização demorou a responder. Tente novamente; sua seleção continua válida."
+          : "Não foi possível consultar o serviço de localização. Tente novamente; sua seleção continua válida."),{code});
+      }
+    }
+    attempt.elapsedMs = Date.now() - started;
+    if (!Array.isArray(data)) {
+      attempt.outcome = "invalid_response";
+      onLocation({cacheHit:false,attempts:structuredClone(attempts),selected:null});
+      throw Object.assign(new Error("O serviço de localização retornou uma resposta inválida."),{code:"geocode_invalid_response"});
+    }
+    const inspected = data.slice(0,10).map(place => ({place,rejection:geocoding.rejection(place,city,selection)}));
+    const places = inspected.filter(item => !item.rejection).map(item => item.place);
+    attempt.received = data.length;
+    attempt.candidates = inspected.map(item => ({...locationSummary(item.place),rejection:item.rejection}));
+    attempt.outcome = places.length ? "matched" : data.length ? "incompatible_results" : "empty_response";
+    if (!places.length) {
+      onLocation({cacheHit:false, attempts:structuredClone(attempts), selected:null});
+      continue;
+    }
+    const exact = places.filter(place => geocoding.cityMatch(place,city,selection));
+    if (!selection && exact.length > 1 && !city.includes(",")) {
+      throw new Error("Há cidades com esse nome. Informe cidade, estado/província e país.");
+    }
+    const selected = geocoding.choose(places,city,selection);
+    selected.prospectGeocoder = plan.provider;
+    onLocation({cacheHit:false,provider:plan.provider,attempts:structuredClone(attempts),
+      candidates:places.map(locationSummary),selected:locationSummary(selected)});
+    saveCache(key,selected,useIQ ? 48 * HOUR : 7 * 24 * HOUR);
+    return selected;
   }
-  url.searchParams.set("q", city);
-  if (selection) {
-    url.searchParams.set("countrycodes", selection.countryCode.toLowerCase());
-    url.searchParams.set("accept-language", "en");
-  }
-  url.searchParams.set("format", LOCATIONIQ_KEY ? "json" : "jsonv2");
-  url.searchParams.set("addressdetails", "1");
-  if (BUSINESS_PROVIDER === "geoapify") url.searchParams.set("polygon_geojson", "1");
-  url.searchParams.set("limit", "5");
-  if (!LOCATIONIQ_KEY) url.searchParams.set("featuretype", "city");
-
-  let data;
-
-  try {
-    data = await fetchJSON(url, {}, true);
-  } catch (error) {
-    const rawDetail = [
-      error.name,
-      error.message,
-      error.cause?.code
-    ].filter(Boolean).join(" — ");
-    const detail = LOCATIONIQ_KEY
-      ? rawDetail.split(LOCATIONIQ_KEY).join("[chave ocultada]")
-      : rawDetail;
-
-    console.error("Falha ao localizar cidade:", detail);
-
-    throw new Error(
-      "Falha na consulta da cidade: " + detail
-    );
-  }
-
-  if (!Array.isArray(data)) {
-    throw new Error("O serviço de localização retornou uma resposta inválida.");
-  }
-
-  const places = data.filter(place =>
-    place.boundingbox &&
-    locationMatches(place, selection) &&
-    (
-      place.class === "place" ||
-      place.category === "place" ||
-      place.type === "administrative"
-    )
-  );
-
-  if (!places.length) {
-    throw new Error(selection
-      ? "Cidade não encontrada no país e estado/província selecionados. Confira os filtros ou informe o nome local da cidade."
-      : "Cidade não encontrada.");
-  }
-
-  const requested = normalizeLocation(city.split(",")[0]);
-
-  const exact = places.filter(place =>
-    normalizeLocation(
-      place.name || place.display_name.split(",")[0]
-    ) === requested
-  );
-
-  if (exact.length > 1 && !city.includes(",")) {
-    throw new Error(
-      "Há cidades com esse nome. Informe cidade, estado/província e país."
-    );
-  }
-
-  const selected = exact[0] || places[0];
-
-  onLocation({ cacheHit: false, candidates: places.map(locationSummary),
-    selected: locationSummary(selected) });
-
-  saveCache(key, selected, LOCATIONIQ_KEY ? 48 * HOUR : 7 * 24 * HOUR);
-  return selected;
+  const incompatible = attempts.some(attempt => attempt.outcome === "incompatible_results");
+  throw Object.assign(new Error(selection
+    ? incompatible ? "A cidade retornada não pôde ser confirmada no país e estado/província selecionados. Confira a subdivisão escolhida ou informe o nome local."
+      : "Os serviços de localização não encontraram essa cidade. Confira o nome ou use a opção de informar a cidade manualmente."
+    : "Cidade não encontrada."),{code:incompatible ? "geocode_selection_unconfirmed" : "geocode_not_found"});
 }
 
 function businessMatch(tags, niche) {
@@ -514,12 +496,12 @@ function deduplicate(rows) {
 
 async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}, selection = null) {
   const constraint = selection ? `${selection.countryCode}:${selection.stateCode}:${normalizeLocation(selection.stateName)}` : "legacy";
-  const key = `discovery:v11:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
+  const key = `discovery:v12:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
   if (hit) {
     onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });
     // Reaproveita o ponto já geocodificado para a animação, sem nova consulta de rede.
-    const cachedPlace = cached(`city:v6:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}`);
+    const cachedPlace = cached(`city:v7:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}`);
     if (cachedPlace) onDiagnostics({ geocode: { cacheHit: true, selected: locationSummary(cachedPlace) } });
     return structuredClone(hit);
   }
@@ -1438,6 +1420,9 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
         ipFamily: overpassClient.family || "auto",
         authenticationConfigured: Boolean(OVERPASS_API_KEY),
         geocoder: LOCATIONIQ_KEY ? "LocationIQ" : "Nominatim",
+        geocoding: { maximumAttempts:3, requestMs:10000, totalMs:30000,
+          recovery:"Nomes alternativos após resposta vazia ou incompatível; país e subdivisão continuam obrigatórios. Nominatim é alternativa ao LocationIQ somente nesses casos.",
+          automaticNetworkOrQuotaRetries:0 },
         limits: overpass.LIMITS,
         automaticQueryRetries: 0,
         maximumBusinessAttemptsPerStage: overpassClient.endpoints.length,

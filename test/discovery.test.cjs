@@ -19,7 +19,7 @@ function place(name, osmId, bounds, osmType = "relation") {
     osm_type: osmType, osm_id: osmId, boundingbox: bounds.map(String) };
 }
 
-function harness({ locations, answers = [], failure, provider = "overpass", geoAnswers = [], geoFailure } = {}) {
+function harness({ locations, answers = [], failure, provider = "overpass", geoAnswers = [], geoFailure, locationIQ = false, geocodeStatus = 200 } = {}) {
   const geoQueries = [];
   const geoQuery = async (place, options) => {
     geoQueries.push({place, categories: options.categories});
@@ -47,7 +47,7 @@ function harness({ locations, answers = [], failure, provider = "overpass", geoA
       : name === "./overpass.cjs" ? { ...localRequire(name), query }
       : name === "./geoapify.cjs" ? {...localRequire(name), discover:geoQuery} : localRequire(name),
     module: { exports: {} }, __dirname: root,
-    process: { env: { APP_PASSWORD: "local-only-test-password", APP_ORIGIN: "http://127.0.0.1:3000", BUSINESS_PROVIDER:provider, GEOAPIFY_API_KEY:provider === "geoapify" ? "fixture-secret" : "" } },
+    process: { env: { APP_PASSWORD: "local-only-test-password", APP_ORIGIN: "http://127.0.0.1:3000", BUSINESS_PROVIDER:provider, GEOAPIFY_API_KEY:provider === "geoapify" ? "fixture-secret" : "", LOCATIONIQ_KEY:locationIQ ? "fixture-geocoder-key" : "" } },
     console: { log() {}, warn() {}, error() {} },
     Buffer, URL, URLSearchParams, AbortSignal, structuredClone, setTimeout, clearTimeout,
     fetch: async (input, options) => {
@@ -59,7 +59,8 @@ function harness({ locations, answers = [], failure, provider = "overpass", geoA
       const city = url.searchParams.get("q");
       geocodes.push(city);
       geocodeRequests.push(url);
-      return new Response(JSON.stringify(locations[city] || []));
+      const record = locations[url.hostname + ":" + city] ?? locations[city] ?? [];
+      return new Response(JSON.stringify(record), {status:geocodeStatus});
     }
   };
   const code = source;
@@ -136,7 +137,7 @@ test("geocoder incompatível com os filtros não inicia descoberta nem reaprovei
   await h.locate(selection.query); // Cache da interface antiga sem restrições.
   h.resetGeocode();
   await assert.rejects(h.discover(selection.query, "Barber", () => {}, () => {}, selection), /país e estado/);
-  assert.equal(h.geocodes.length, 2);
+  assert.equal(h.geocodes.length, 3); // Legacy cache + two constrained query wordings.
   assert.equal(h.queries.length, 0);
 });
 
@@ -154,6 +155,83 @@ test("nome estadual não contorna código conhecido de outro estado", async () =
   const h = harness({ locations: { [selection.query]: [p] } });
   await assert.rejects(h.locate(selection.query, () => {}, selection), /país e estado/);
   assert.equal(h.queries.length, 0);
+});
+
+test("LocationIQ requests state codes, alternative names and full polygons", async () => {
+  const selection=await localRequire("./locations.cjs").resolveSelection({countryCode:"BR",stateCode:"MG",cityId:10324});
+  const p={...place("Araguari",314597,[-19,-18,-49,-48]),address:{country_code:"br",state:"Nome traduzido diferente",state_code:"MG"}};
+  const h=harness({locations:{[selection.query]:[p]},provider:"geoapify",locationIQ:true});
+  assert.equal((await h.locate(selection.query,()=>{},selection)).osm_id,314597);
+  const params=h.geocodeRequests[0].searchParams;
+  for(const key of ["statecode","namedetails","extratags","polygon_geojson"]) assert.equal(params.get(key),"1");
+  assert.equal(params.get("source"),"nom");
+  assert.equal(params.get("countrycodes"),"br");
+  assert.equal(params.has("featuretype"),false);
+  assert.equal(params.has("bounded"),false);
+});
+
+test("empty full wording retries city/country with the same subdivision constraint", async () => {
+  const selection=await localRequire("./locations.cjs").resolveSelection({countryCode:"PE",stateCode:"LMA",cityId:"__manual__",manualCity:"Lima"});
+  const p={...place("Lima",200,[-12.3,-11.8,-77.3,-76.8]),address:{country_code:"pe",region:"Province of Lima","ISO3166-2-lvl6":"PE-LMA"}};
+  const h=harness({locations:{"Lima, Peru":[p]}}),updates=[];
+  assert.equal((await h.locate(selection.query,v=>updates.push(v),selection)).osm_id,200);
+  assert.deepEqual(h.geocodes,[selection.query,"Lima, Peru"]);
+  assert.ok(h.geocodeRequests.every(url=>url.searchParams.get("countrycodes")==="pe"));
+  assert.equal(updates.at(-1).attempts[0].outcome,"empty_response");
+  assert.equal(updates.at(-1).attempts[1].outcome,"matched");
+});
+
+test("incompatible LocationIQ results use Nominatim without changing country or boundary", async () => {
+  const selection=await localRequire("./locations.cjs").resolveSelection({countryCode:"BR",stateCode:"MG",cityId:10324});
+  const wrong={...place("Araguari",999,[-19,-18,-49,-48]),address:{country_code:"br",state:"São Paulo",state_code:"SP"}};
+  const right={...place("Araguari",314597,[-19,-18,-49,-48]),address:{country_code:"br",state:"Minas Gerais","ISO3166-2-lvl4":"BR-MG"}};
+  const h=harness({locationIQ:true,locations:{[selection.query]:[wrong],"us1.locationiq.com:Araguari, Brazil":[wrong],"nominatim.openstreetmap.org:Araguari, Brazil":[right]}});
+  const updates=[];const p=await h.locate(selection.query,v=>updates.push(v),selection);
+  assert.equal(p.osm_id,314597);assert.equal(p.osm_type,"relation");assert.deepEqual(Array.from(p.boundingbox),right.boundingbox);
+  assert.equal(h.geocodes.length,3);assert.equal(h.geocodeRequests.at(-1).searchParams.has("key"),false);
+  assert.equal(updates.at(-1).provider,"Nominatim");
+  assert.equal(JSON.stringify(updates).includes("fixture-geocoder-key"),false);
+});
+
+test("wrong municipality in the chosen state is rejected in every wording", async () => {
+  const selection=await localRequire("./locations.cjs").resolveSelection({countryCode:"BR",stateCode:"MG",cityId:10324});
+  const wrong={...place("Uberlândia",314875,[-19,-18,-49,-48]),address:{country_code:"br",state:"Minas Gerais","ISO3166-2-lvl4":"BR-MG"}};
+  const h=harness({locations:{[selection.query]:[wrong],"Araguari, Brazil":[wrong]}}),updates=[];
+  await assert.rejects(h.locate(selection.query,v=>updates.push(v),selection),{code:"geocode_selection_unconfirmed"});
+  assert.ok(updates.at(-1).attempts.every(attempt=>attempt.candidates[0].rejection==="city_mismatch"));
+  assert.equal(h.queries.length,0);
+});
+
+test("quota failure does not become city-not-found or trigger provider switching", async () => {
+  const selection=await localRequire("./locations.cjs").resolveSelection({countryCode:"BR",stateCode:"MG",cityId:10324});
+  const h=harness({locationIQ:true,locations:{},geocodeStatus:429});
+  await assert.rejects(h.locate(selection.query,()=>{},selection),{code:"geocode_rate_limit"});
+  assert.equal(h.geocodes.length,1);assert.equal(h.queries.length,0);
+});
+
+test("invalid individual records are diagnosed without hiding a valid municipality", async () => {
+  const selection=await localRequire("./locations.cjs").resolveSelection({countryCode:"BR",stateCode:"MG",cityId:10324});
+  const p={...place("Araguari",314597,[-19,-18,-49,-48]),address:{country_code:"br",state_code:"MG"}};
+  const h=harness({locationIQ:true,locations:{[selection.query]:[null,{},p]}}),updates=[];
+  assert.equal((await h.locate(selection.query,v=>updates.push(v),selection)).osm_id,314597);
+  assert.deepEqual(Array.from(updates.at(-1).attempts[0].candidates,item=>item.rejection),["invalid_bounds","invalid_bounds",null]);
+});
+
+test("provider HTTP503 stops immediately with a service error", async () => {
+  const selection=await localRequire("./locations.cjs").resolveSelection({countryCode:"BR",stateCode:"MG",cityId:10324});
+  const h=harness({locationIQ:true,locations:{},geocodeStatus:503});
+  await assert.rejects(h.locate(selection.query,()=>{},selection),{code:"geocode_service_error"});
+  assert.equal(h.geocodes.length,1);
+});
+
+test("LocationIQ HTTP404 is an empty lookup; Nominatim HTTP404 is a service error", async () => {
+  const selection=await localRequire("./locations.cjs").resolveSelection({countryCode:"BR",stateCode:"MG",cityId:10324});
+  const h=harness({locationIQ:true,locations:{},geocodeStatus:404}),updates=[];
+  await assert.rejects(h.locate(selection.query,v=>updates.push(v),selection),{code:"geocode_service_error"});
+  assert.deepEqual(updates.at(-1).attempts.map(x=>x.outcome),["empty_response","empty_response","service_error"]);
+  const nom=harness({locations:{},geocodeStatus:404});
+  await assert.rejects(nom.locate(selection.query,()=>{},selection),{code:"geocode_service_error"});
+  assert.equal(nom.geocodes.length,1);
 });
 
 test("busca em cache fornece ponto geográfico ao globo sem novas consultas externas", async () => {
