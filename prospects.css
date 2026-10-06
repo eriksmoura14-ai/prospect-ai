@@ -17,6 +17,10 @@
 .prospect-contact-status.interested{background:#203d2b;color:#b6eabf}
 .prospect-contact{font-size:13px;color:#c4d0e1;margin:6px 0;overflow-wrap:anywhere}
 .prospect-links{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;margin:14px 0;color:var(--muted)}
+.whatsapp-review{width:100%;min-width:0;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.whatsapp-review>summary{cursor:pointer;min-height:44px;padding:10px;border:1px solid #587348;border-radius:9px;box-sizing:border-box;color:#c0f39f}
+.whatsapp-review>summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.whatsapp-review>p{margin:10px 0;line-height:1.5}
 .prospect-edit-form{display:block;padding:0;border:0;box-shadow:none;background:transparent}
 .prospect-edit-form label{display:block;margin:12px 0 6px;font-size:13px}
 .prospect-edit-form textarea{box-sizing:border-box;display:block;width:100%;margin-top:6px;min-height:84px;resize:vertical;background:#0b1422;color:#edf2fa;border:1px solid #3b4860;border-radius:8px;padding:10px;font:inherit}

@@ -955,7 +955,7 @@ function analyze(page, business) {
 }
 
 async function verify(business) {
-  const key = "verify:v4:" + createHash("sha256").update(JSON.stringify([
+  const key = "verify:v5:" + createHash("sha256").update(JSON.stringify([
     business.osmId, business.name, business.city, business.countryCode,
     business.phone, business.address, business.website, business.mobilePhone, business.whatsappPhone
   ])).digest("hex");

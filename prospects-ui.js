@@ -27,21 +27,42 @@ const prospectLists = (() => {
   }
   function whatsappButton(company) {
     if (typeof company.phone !== "string" || !company.phone.trim()) return null;
-    const url = typeof company.whatsappUrl === "string" && /^https:\/\/wa\.me\/[1-9]\d{6,14}$/.test(company.whatsappUrl)
+    const safeContact = value => typeof value === "string" && /^https:\/\/wa\.me\/[1-9]\d{6,14}$/.test(value) ? value : "";
+    // Also protect a new frontend briefly receiving an old backend response.
+    const suggested = company.whatsappAdjustment === "br_ninth_digit"
+      ? safeContact(company.whatsappSuggestedUrl || company.whatsappUrl) : "";
+    if (suggested && company.phoneVerification !== "conflict") {
+      const review = node("details", undefined, "whatsapp-review");
+      review.append(node("summary", "Revisar nono dígito"),
+        node("p", "A fonte publicou " + company.phone + ". O número abaixo é uma sugestão com o 9 acrescentado; o destinatário e a conta WhatsApp não foram confirmados."));
+      const test = node("a", "Testar número sugerido", "whatsapp-contact");
+      test.href = suggested; test.target = "_blank"; test.rel = "noopener noreferrer";
+      test.append(node("small", "+" + suggested.split("/").pop() + " · sugestão não confirmada", "whatsapp-number"));
+      test.setAttribute("aria-label", `Testar sugestão de telefone para ${company.name}; número não confirmado`);
+      review.append(test); return review;
+    }
+    const url = company.phoneVerification !== "conflict" && typeof company.whatsappUrl === "string" && /^https:\/\/wa\.me\/[1-9]\d{6,14}$/.test(company.whatsappUrl)
       ? company.whatsappUrl : "";
-    const item = node(url ? "a" : "button", url ? "Entrar em contato · WhatsApp" : "WhatsApp indisponível", "whatsapp-contact");
+    const listed = company.whatsappStatus === "listed";
+    const item = node(url ? "a" : "button", url ? listed ? "Abrir WhatsApp informado" : "Tentar no WhatsApp" : "WhatsApp não informado", "whatsapp-contact");
     if (url) {
       item.href = url; item.target = "_blank"; item.rel = "noopener noreferrer";
       const number = "+" + url.split("/").pop();
-      const adjusted = company.whatsappAdjustment === "br_ninth_digit";
-      item.append(node("small", number + (adjusted ? " · nono dígito incluído" : ""), "whatsapp-number"));
+      item.append(node("small", number, "whatsapp-number"),
+        node("small", listed ? "WhatsApp publicado na fonte; conta não verificada" : "Telefone publicado; conta WhatsApp não verificada", "whatsapp-number"));
       item.title = "Abrir WhatsApp para " + number + ". A existência da conta e a titularidade não foram confirmadas.";
-      item.setAttribute("aria-label", `Entrar em contato com ${company.name} pelo WhatsApp, número ${number}`);
+      item.setAttribute("aria-label", `Tentar contato com ${company.name} pelo WhatsApp, número ${number}; conta não verificada`);
     } else {
       item.type = "button"; item.disabled = true;
-      item.title = company.phoneVerification === "conflict"
-        ? "Há divergência entre os números das fontes. Revise o contato antes de abrir o WhatsApp."
-        : "É necessário um telefone completo com código de país para abrir o WhatsApp.";
+      const reasons = {
+        conflict:"Telefones divergentes; revise as fontes antes de entrar em contato.",
+        fixed_line:"Telefone fixo. Sem indicação explícita de WhatsApp nas fontes consultadas.",
+        special_number:"Número de serviço especial; não usamos este telefone como destinatário automático de WhatsApp.",
+        extension:"Telefone com ramal; o ramal não pode ser descartado para criar um destinatário de WhatsApp.",
+        invalid_number:"Número incompleto ou inválido. Confira o código do país e o DDD na fonte."
+      };
+      const explanation = reasons[company.whatsappReason] || reasons[company.phoneVerification === "conflict" ? "conflict" : "invalid_number"];
+      item.title = explanation; item.append(node("small", explanation, "whatsapp-number"));
     }
     return item;
   }
@@ -59,6 +80,11 @@ const prospectLists = (() => {
     if (company.phoneSource) {
       const source = node("p","Fonte do telefone: ","reason");
       source.append(validURL(company.phoneSource) ? link("Página consultada",company.phoneSource) : document.createTextNode(company.phoneSource));
+      box.append(source);
+    }
+    if (company.whatsappSource) {
+      const source = node("p", "Fonte do WhatsApp informado: ", "reason");
+      source.append(validURL(company.whatsappSource) ? link("Página consultada", company.whatsappSource) : document.createTextNode(company.whatsappSource));
       box.append(source);
     }
     const siteNotes = {

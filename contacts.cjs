@@ -2,6 +2,7 @@
 
 // Local numbering metadata only. No WhatsApp lookup or message is performed.
 const { parsePhoneNumberFromString, isSupportedCountry } = require("libphonenumber-js/max");
+const dialableTypes = new Set(["MOBILE", "FIXED_LINE", "FIXED_LINE_OR_MOBILE"]);
 
 function countryCode(value) {
   if (typeof value !== "string") return "";
@@ -14,32 +15,51 @@ function jobCountry(job) {
     countryCode(job?.discoveryDiagnostics?.location?.countryCode);
 }
 
-function whatsappContact(value, country) {
-  if (typeof value !== "string" || value.length > 200) return {};
-  const defaultCountry = countryCode(country) || undefined;
-  // OSM can contain several numbers; use the first complete, valid number.
-  for (const item of value.split(/[;,]/u)) {
-    const phone = parsePhoneNumberFromString(item.trim(), { defaultCountry, extract: false });
-    if (phone?.isValid()) return { url: "https://wa.me/" + phone.number.slice(1), number: phone.number, adjustment: "" };
-    // Brazilian legacy mobile numbers received a ninth digit by 2017.
-    // Only repair an invalid eight-digit mobile in the old 6/8/9 ranges.
-    // Valid numbers, landlines and the ambiguous 7 range remain unchanged.
-    if (phone?.country === "BR" && /^\d{2}[689]\d{7}$/.test(phone.nationalNumber)) {
-      const candidate = "+55" + phone.nationalNumber.slice(0, 2) + "9" + phone.nationalNumber.slice(2);
-      const updated = parsePhoneNumberFromString(candidate, { extract: false });
-      if (updated?.isValid() && updated.getType() === "MOBILE") {
-        return { url: "https://wa.me/" + updated.number.slice(1), number: updated.number, adjustment: "br_ninth_digit" };
-      }
+// These official links publish an international number, even without '+'.
+// Never copy the optional message text or accept lookalike hosts/group links.
+function whatsappLinkNumber(value) {
+  if (typeof value !== "string" || value.length > 2000) return "";
+  try {
+    const url = new URL(value.trim());
+    if (url.protocol !== "https:" || url.username || url.password || url.port || url.hash) return "";
+    let digits;
+    if (url.hostname === "wa.me" && /^\/[1-9]\d{6,14}\/?$/.test(url.pathname)) digits = url.pathname.replaceAll("/", "");
+    else if (["api.whatsapp.com", "web.whatsapp.com"].includes(url.hostname) && /^\/send\/?$/.test(url.pathname) && url.searchParams.getAll("phone").length === 1) digits = url.searchParams.get("phone");
+    if (!/^[1-9]\d{6,14}$/.test(digits || "")) return "";
+    const phone = parsePhoneNumberFromString("+" + digits, { extract: false });
+    return phone?.isValid() && !phone.ext && dialableTypes.has(phone.getType()) ? phone.number : "";
+  } catch { return ""; }
+}
+
+function phoneEntries(value, country) {
+  if (typeof value !== "string" || value.length > 200) return [];
+  const linkNumber = whatsappLinkNumber(value);
+  const items = /^https?:/i.test(value.trim()) || /^tel:/i.test(value.trim()) ? [value]
+    : value.replace(/;\s*ext=(\d+)/gi, " ext. $1").split(/[;,]/u);
+  return items.flatMap(item => {
+    let raw = item.trim(), linked = whatsappLinkNumber(raw);
+    // Do not lose a tel URI's extension by splitting it into separate numbers.
+    if (/^tel:/i.test(raw)) {
+      const match = /^tel:([+\d(). -]+)(?:;ext=(\d+))?$/i.exec(raw);
+      if (!match) return [];
+      raw = match[1] + (match[2] ? " ext. " + match[2] : "");
     }
-  }
-  return {};
+    const phone = parsePhoneNumberFromString(linked || linkNumber || raw, { defaultCountry: countryCode(country) || undefined, extract: false });
+    return phone ? [{ phone, linked: Boolean(linked || linkNumber) }] : [];
+  });
+}
+const contactURL = phone => "https://wa.me/" + phone.number.slice(1);
+function whatsappContact(value, country) {
+  const entry = phoneEntries(value, country).find(({ phone }) => phone.isValid() && !phone.ext && dialableTypes.has(phone.getType()));
+  return entry ? { url: contactURL(entry.phone), number: entry.phone.number } : {};
 }
 
 function whatsappURL(value, country) { return whatsappContact(value, country).url || ""; }
 
 function numbers(value, country) {
   if (typeof value !== "string" || value.length > 200) return [];
-  return [...new Set(value.split(/[;,]/u).map(item => whatsappContact(item.trim(), country).number).filter(Boolean))];
+  // Comparison must use published digits, never a guessed ninth digit.
+  return [...new Set(phoneEntries(value, country).filter(({ phone }) => phone.isValid()).map(({ phone }) => phone.number))];
 }
 
 function websiteURL(value) {
@@ -54,12 +74,8 @@ function websiteURL(value) {
 
 function listedWhatsApp(value) {
   if (typeof value !== "string" || value.length > 200) return "";
-  if (!/^https?:/i.test(value)) return /^[+\d(][\d(). \t+-]{5,199}$/.test(value.trim()) ? value.trim() : "";
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" && url.hostname === "wa.me" && !url.username && !url.password && !url.port && /^\/[1-9]\d{6,14}$/.test(url.pathname)
-      ? "+" + url.pathname.slice(1) : "";
-  } catch { return ""; }
+  if (/^https?:/i.test(value.trim())) return whatsappLinkNumber(value);
+  return /^[+\d(][\d(). \t+;,\-]{5,199}$/.test(value.trim()) ? value.trim() : "";
 }
 
 // Keep the original category tags intact. These are contact fields, not
@@ -72,7 +88,7 @@ function sourceData(tags = {}, provider = {}) {
     if (!values.includes(tags[key].trim())) values.push(tags[key].trim());
     sources.push(`OpenStreetMap · ${key}`);
   }
-  const whatsappPhone = listedWhatsApp(tags["contact:whatsapp"] || tags.whatsapp);
+  const whatsappPhone = listedWhatsApp(tags["contact:whatsapp"]) || listedWhatsApp(tags.whatsapp);
   if (whatsappPhone && !values.includes(whatsappPhone)) { values.push(whatsappPhone); sources.push("OpenStreetMap · WhatsApp informado"); }
   if (typeof provider.phone === "string" && provider.phone.trim() && provider.phone.length <= 200) {
     if (!values.includes(provider.phone.trim())) values.push(provider.phone.trim());
@@ -98,10 +114,26 @@ function sourceData(tags = {}, provider = {}) {
 function details(company, fallbackCountry) {
   const code = countryCode(company?.countryCode) || countryCode(fallbackCountry);
   const sitePhone = ["website_match","website_published"].includes(company?.phoneVerification) ? company?.sitePhone : "";
-  const contact = company?.phoneVerification === "conflict" ? {} :
-    [company?.whatsappPhone, sitePhone, company?.mobilePhone, company?.phone].map(value => whatsappContact(value, code)).find(item => item.url) || {};
-  return { ...company, countryCode: code, whatsappUrl: contact.url || "",
-    whatsappNumber: contact.number || "", whatsappAdjustment: contact.adjustment || "" };
+  const entries = [company?.whatsappPhone, sitePhone, company?.mobilePhone, company?.phone].flatMap((value, index) =>
+    phoneEntries(value, code).map(entry => ({ ...entry, listed: index === 0 || entry.linked })));
+  const valid = entries.filter(({ phone }) => phone.isValid() && !phone.ext);
+  const contact = valid.find(entry => entry.listed && dialableTypes.has(entry.phone.getType())) || valid.find(({ phone }) => ["MOBILE", "FIXED_LINE_OR_MOBILE"].includes(phone.getType()));
+  let suggestion;
+  if (!contact) for (const { phone } of entries) {
+    if (phone.ext || phone.isValid() || phone.country !== "BR" || !/^\d{2}[689]\d{7}$/.test(phone.nationalNumber)) continue;
+    const candidate = parsePhoneNumberFromString("+55" + phone.nationalNumber.slice(0, 2) + "9" + phone.nationalNumber.slice(2), { extract: false });
+    if (candidate?.isValid() && candidate.getType() === "MOBILE") { suggestion = candidate; break; }
+  }
+  const conflict = company?.phoneVerification === "conflict";
+  const reason = conflict ? "conflict" : contact ? "" : suggestion ? "br_ninth_digit" : entries.some(({ phone }) => phone.ext) ? "extension"
+    : valid.some(({ phone }) => phone.getType() === "FIXED_LINE") ? "fixed_line" : valid.length ? "special_number" : "invalid_number";
+  return { ...company, countryCode: code,
+    whatsappUrl: !conflict && contact ? contactURL(contact.phone) : "",
+    whatsappNumber: !conflict && contact ? contact.phone.number : "",
+    whatsappStatus: conflict ? "needs_review" : contact ? contact.listed ? "listed" : "unverified" : suggestion ? "needs_review" : "not_listed",
+    whatsappReason: reason, whatsappAdjustment: !conflict && suggestion ? "br_ninth_digit" : "",
+    whatsappSuggestedUrl: !conflict && suggestion ? contactURL(suggestion) : "",
+    whatsappSuggestedNumber: !conflict && suggestion ? suggestion.number : "" };
 }
 
-module.exports = { countryCode, jobCountry, whatsappURL, details, numbers, sourceData, websiteURL };
+module.exports = { countryCode, jobCountry, whatsappURL, whatsappLinkNumber, details, numbers, sourceData, websiteURL };

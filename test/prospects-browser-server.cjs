@@ -41,7 +41,13 @@ async function start() {
         { osmId: "node/10002", name: "Oficina de exemplo", category: "Auto Detailing", city: "Cidade de fixture", address: "Avenida de teste, 2", phone: "", status: "WEBSITE_LISTED", website: "https://fixture.example", confidence: 0.9, prospectScore: 0, source: "OpenStreetMap" }] };
     await store.saveSearch(users.alice.id, job, { city: job.city, niche: job.niche, state: job.state, total: 2 });
     backend.jobs.set(job.id, job); fixtures[device] = { ...users, password: phrase, jobId: job.id,
-      legacyMobile: contacts.details({ name: "Celular antigo fictício", phone: "(34) 9123-4567", countryCode: "BR" }) };
+      legacyMobile: contacts.details({ name: "Celular antigo fictício", phone: "(34) 9123-4567", countryCode: "BR" }),
+      contactCases: [
+        {name:"Fixo do exemplo relatado",phone:"+553432249090",countryCode:"BR"},
+        {name:"Serviço especial fictício",phone:"0800 123 4567",countryCode:"BR"},
+        {name:"Ramal fictício",phone:"+5511912345678 ext. 123",countryCode:"BR"},
+        {name:"WhatsApp fixo explicitamente informado fictício",phone:"+553432249090",whatsappPhone:"+553432249090",countryCode:"BR"}
+      ].map(company => contacts.details(company)) };
   }
   const realHandler = backend.server.listeners("request")[0]; backend.server.removeAllListeners("request");
   backend.server.on("request", async (request, response) => {

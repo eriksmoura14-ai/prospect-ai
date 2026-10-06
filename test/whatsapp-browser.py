@@ -44,7 +44,9 @@ async def check_device(browser, device, fixture):
     contact = page.locator("#cards a.whatsapp-contact")
     await expect(contact).to_have_count(1)
     await expect(contact).to_have_attribute("href", URL)
-    await expect(contact.locator(".whatsapp-number")).to_have_text("+5511912345678")
+    await expect(contact.locator(".whatsapp-number").first).to_have_text("+5511912345678")
+    await expect(contact).to_contain_text("Tentar no WhatsApp")
+    await expect(contact).to_contain_text("conta WhatsApp não verificada")
     await expect(page.locator("#cards .contact").filter(has_text="(11) 91234-5678")).to_have_count(1)
     await expect(page.locator("#cards article").filter(has_text="Oficina de exemplo").locator(".whatsapp-contact")).to_have_count(0)
     await expect(page.locator("#country")).to_be_enabled()
@@ -66,16 +68,42 @@ async def check_device(browser, device, fixture):
     # Verify its displayed destination and actual browser navigation, without
     # contacting WhatsApp or modifying the source phone in a customer record.
     await page.evaluate("company => document.querySelector('#cards').append(prospectLists.whatsappButton(company))", fixture["legacyMobile"])
-    legacy = page.locator("#cards > a.whatsapp-contact")
+    review = page.locator("#cards > details.whatsapp-review")
+    legacy = review.locator("a.whatsapp-contact")
+    await expect(legacy).to_be_hidden()
+    await review.locator("summary").click()
+    await expect(review).to_contain_text("(34) 9123-4567")
+    await expect(review).to_contain_text("uma sugestão")
     await expect(legacy).to_have_attribute("href", "https://wa.me/5534991234567")
-    await expect(legacy.locator(".whatsapp-number")).to_have_text("+5534991234567 · nono dígito incluído")
+    await expect(legacy.locator(".whatsapp-number")).to_have_text("+5534991234567 · sugestão não confirmada")
     async with page.expect_popup() as popup_event:
         await legacy.click()
     legacy_popup = await popup_event.value
     await legacy_popup.wait_for_load_state("domcontentloaded")
     assert legacy_popup.url == "https://wa.me/5534991234567"
     await legacy_popup.close()
-    await legacy.evaluate("element => element.remove()")
+    await review.evaluate("element => element.remove()")
+
+    # Real helper output, with explicitly controlled evidence. The last case
+    # is hypothetical; it does not assert that the reported business has WA.
+    await page.evaluate("""cases => {
+      const box=document.createElement('div');box.id='whatsapp-case-fixtures';
+      for(const [index,company] of cases.entries()) {
+        const item=document.createElement('div');item.dataset.contactCase=String(index);
+        item.append(prospectLists.whatsappButton(company));box.append(item);
+      }
+      document.querySelector('#cards').append(box);
+    }""", fixture["contactCases"])
+    for index,reason in [(0,"Telefone fixo"),(1,"serviço especial"),(2,"ramal")]:
+        item=page.locator(f'[data-contact-case="{index}"]')
+        await expect(item.locator("a")).to_have_count(0)
+        await expect(item.locator("button.whatsapp-contact")).to_be_disabled()
+        await expect(item).to_contain_text(reason)
+    informed=page.locator('[data-contact-case="3"] a.whatsapp-contact')
+    await expect(informed).to_have_attribute("href","https://wa.me/553432249090")
+    await expect(informed).to_contain_text("Abrir WhatsApp informado")
+    await expect(informed).to_contain_text("conta não verificada")
+    await page.locator('#whatsapp-case-fixtures').evaluate("element => element.remove()")
 
     await page.locator(".save-to-list").first.click()
     await expect(page.locator("#list-save-submit")).to_be_enabled()
@@ -102,7 +130,7 @@ async def check_device(browser, device, fixture):
     ARTIFACTS.mkdir(exist_ok=True)
     await page.screenshot(path=str(ARTIFACTS / f"whatsapp-{device}.png"))
     REPORT["devices"].append({"device": device, "passed": True, "href": URL, "navigationIntercepted": True,
-        "checks": ["ten-new-food-niches", "national-phone-country", "visible-destination", "legacy-ninth-digit-popup", "no-phone-no-link", "country-selection-does-not-change-recipient", "results-popup", "no-opener-no-auth-no-referrer", "saved-list-reload-popup", "touch-target", "no-overflow", "literal-source-text"]})
+        "checks": ["ten-new-food-niches", "national-phone-country", "visible-destination-and-unverified-account", "legacy-ninth-digit-review-before-popup", "no-unlisted-landline-special-or-extension-link", "explicit-landline-wa-keeps-number", "no-phone-no-link", "country-selection-does-not-change-recipient", "results-popup", "no-opener-no-auth-no-referrer", "saved-list-reload-popup", "touch-target", "no-overflow", "literal-source-text"]})
     print("PASS WhatsApp browser " + device, flush=True)
     await context.close()
 
