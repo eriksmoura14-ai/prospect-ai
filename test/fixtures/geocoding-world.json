@@ -1,0 +1,3385 @@
+{
+  "capturedAt": "2026-10-06",
+  "scope": "Real Nominatim HTTPS responses captured through the workspace proxy; metadata only. Replaying these records is regression evidence, not production availability or LocationIQ verification.",
+  "queries": [
+    {
+      "name": "Uberlândia",
+      "selection": {
+        "query": "Uberlândia, Minas Gerais, Brazil",
+        "countryCode": "BR",
+        "cityName": "Uberlândia",
+        "stateName": "Minas Gerais",
+        "stateCode": "MG",
+        "stateNative": "Minas Gerais",
+        "stateIso": "BR-MG",
+        "stateIsoPeers": [
+          "BR-AC",
+          "BR-AL",
+          "BR-AP",
+          "BR-AM",
+          "BR-BA",
+          "BR-CE",
+          "BR-ES",
+          "BR-GO",
+          "BR-MA",
+          "BR-MT",
+          "BR-MS",
+          "BR-MG",
+          "BR-PA",
+          "BR-PB",
+          "BR-PR",
+          "BR-PE",
+          "BR-PI",
+          "BR-RJ",
+          "BR-RN",
+          "BR-RS",
+          "BR-RO",
+          "BR-RR",
+          "BR-SC",
+          "BR-SP",
+          "BR-SE",
+          "BR-TO"
+        ],
+        "countryName": "Brazil"
+      },
+      "input": {
+        "countryCode": "BR",
+        "stateCode": "MG",
+        "cityId": 15434
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Uberl%C3%A2ndia%2C+Minas+Gerais%2C+Brazil&countrycodes=br&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Uberlândia",
+          "display_name": "Uberlândia, Minas Gerais, Southeast Region, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 314875,
+          "boundingbox": [
+            "-19.4168080",
+            "-18.5922258",
+            "-48.8234391",
+            "-47.9034816"
+          ],
+          "address": {
+            "city": "Uberlândia",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-18.9188041",
+          "lon": "-48.2767837",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 1.056
+    },
+    {
+      "name": "Salvador",
+      "selection": {
+        "query": "Salvador, Bahia, Brazil",
+        "countryCode": "BR",
+        "cityName": "Salvador",
+        "stateName": "Bahia",
+        "stateCode": "BA",
+        "stateNative": "Bahia",
+        "stateIso": "BR-BA",
+        "stateIsoPeers": [
+          "BR-AC",
+          "BR-AL",
+          "BR-AP",
+          "BR-AM",
+          "BR-BA",
+          "BR-CE",
+          "BR-ES",
+          "BR-GO",
+          "BR-MA",
+          "BR-MT",
+          "BR-MS",
+          "BR-MG",
+          "BR-PA",
+          "BR-PB",
+          "BR-PR",
+          "BR-PE",
+          "BR-PI",
+          "BR-RJ",
+          "BR-RN",
+          "BR-RS",
+          "BR-RO",
+          "BR-RR",
+          "BR-SC",
+          "BR-SP",
+          "BR-SE",
+          "BR-TO"
+        ],
+        "countryName": "Brazil"
+      },
+      "input": {
+        "countryCode": "BR",
+        "stateCode": "BA",
+        "cityId": 14404
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Salvador%2C+Bahia%2C+Brazil&countrycodes=br&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Salvador",
+          "display_name": "Salvador, Bahia, Northeast Region, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 362362,
+          "boundingbox": [
+            "-13.0173949",
+            "-12.7335624",
+            "-38.6994346",
+            "-38.3034141"
+          ],
+          "address": {
+            "city": "Salvador",
+            "state": "Bahia",
+            "ISO3166-2-lvl4": "BR-BA",
+            "region": "Northeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-12.9822499",
+          "lon": "-38.4812772",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 0.509
+    },
+    {
+      "name": "Rio de Janeiro",
+      "selection": {
+        "query": "Rio de Janeiro, Brazil",
+        "countryCode": "BR",
+        "cityName": "Rio de Janeiro",
+        "stateName": "Rio de Janeiro",
+        "stateCode": "RJ",
+        "stateNative": "Rio de Janeiro",
+        "stateIso": "BR-RJ",
+        "stateIsoPeers": [
+          "BR-AC",
+          "BR-AL",
+          "BR-AP",
+          "BR-AM",
+          "BR-BA",
+          "BR-CE",
+          "BR-ES",
+          "BR-GO",
+          "BR-MA",
+          "BR-MT",
+          "BR-MS",
+          "BR-MG",
+          "BR-PA",
+          "BR-PB",
+          "BR-PR",
+          "BR-PE",
+          "BR-PI",
+          "BR-RJ",
+          "BR-RN",
+          "BR-RS",
+          "BR-RO",
+          "BR-RR",
+          "BR-SC",
+          "BR-SP",
+          "BR-SE",
+          "BR-TO"
+        ],
+        "countryName": "Brazil"
+      },
+      "input": {
+        "countryCode": "BR",
+        "stateCode": "RJ",
+        "cityId": 14309
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Rio+de+Janeiro%2C+Brazil&countrycodes=br&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Rio de Janeiro",
+          "display_name": "Rio de Janeiro, Southeast Region, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 2697338,
+          "boundingbox": [
+            "-23.0827051",
+            "-22.7460878",
+            "-43.7962520",
+            "-43.0990811"
+          ],
+          "address": {
+            "city": "Rio de Janeiro",
+            "state": "Rio de Janeiro",
+            "ISO3166-2-lvl4": "BR-RJ",
+            "region": "Southeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-22.9110137",
+          "lon": "-43.2093727",
+          "place_rank": 16
+        },
+        {
+          "name": "Rio de Janeiro",
+          "display_name": "Rio de Janeiro, Southeast Region, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 57963,
+          "boundingbox": [
+            "-23.6926879",
+            "-20.7632055",
+            "-44.8893206",
+            "-40.6296322"
+          ],
+          "address": {
+            "state": "Rio de Janeiro",
+            "ISO3166-2-lvl4": "BR-RJ",
+            "region": "Southeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-22.2752762",
+          "lon": "-42.4194150",
+          "place_rank": 8
+        }
+      ],
+      "elapsedSeconds": 1.16
+    },
+    {
+      "name": "São Paulo",
+      "selection": {
+        "query": "São Paulo, Brazil",
+        "countryCode": "BR",
+        "cityName": "São Paulo",
+        "stateName": "São Paulo",
+        "stateCode": "SP",
+        "stateNative": "São Paulo",
+        "stateIso": "BR-SP",
+        "stateIsoPeers": [
+          "BR-AC",
+          "BR-AL",
+          "BR-AP",
+          "BR-AM",
+          "BR-BA",
+          "BR-CE",
+          "BR-ES",
+          "BR-GO",
+          "BR-MA",
+          "BR-MT",
+          "BR-MS",
+          "BR-MG",
+          "BR-PA",
+          "BR-PB",
+          "BR-PR",
+          "BR-PE",
+          "BR-PI",
+          "BR-RJ",
+          "BR-RN",
+          "BR-RS",
+          "BR-RO",
+          "BR-RR",
+          "BR-SC",
+          "BR-SP",
+          "BR-SE",
+          "BR-TO"
+        ],
+        "countryName": "Brazil"
+      },
+      "input": {
+        "countryCode": "BR",
+        "stateCode": "SP",
+        "cityId": 15101
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=S%C3%A3o+Paulo%2C+Brazil&countrycodes=br&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "São Paulo",
+          "display_name": "São Paulo, Southeast Region, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 298285,
+          "boundingbox": [
+            "-24.0079003",
+            "-23.3577551",
+            "-46.8262692",
+            "-46.3650898"
+          ],
+          "address": {
+            "city": "São Paulo",
+            "state": "São Paulo",
+            "ISO3166-2-lvl4": "BR-SP",
+            "region": "Southeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-23.5506507",
+          "lon": "-46.6333824",
+          "place_rank": 16
+        },
+        {
+          "name": "São Paulo",
+          "display_name": "São Paulo, Capanema, Pará, North Region, 68700-540, Brazil",
+          "category": "place",
+          "type": "suburb",
+          "osm_type": "node",
+          "osm_id": 5390979124,
+          "boundingbox": [
+            "-1.2243218",
+            "-1.1843218",
+            "-47.1783944",
+            "-47.1383944"
+          ],
+          "address": {
+            "suburb": "São Paulo",
+            "city_district": "Capanema",
+            "town": "Capanema",
+            "state": "Pará",
+            "ISO3166-2-lvl4": "BR-PA",
+            "region": "North Region",
+            "postcode": "68700-540",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-1.2043218",
+          "lon": "-47.1583944",
+          "place_rank": 19
+        },
+        {
+          "name": "São Paulo",
+          "display_name": "São Paulo, Southeast Region, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 298204,
+          "boundingbox": [
+            "-25.4895759",
+            "-19.7823272",
+            "-53.1090000",
+            "-44.1613652"
+          ],
+          "address": {
+            "state": "São Paulo",
+            "ISO3166-2-lvl4": "BR-SP",
+            "region": "Southeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-22.0702705",
+          "lon": "-48.4333875",
+          "place_rank": 8
+        }
+      ],
+      "elapsedSeconds": 0.874
+    },
+    {
+      "name": "Lisbon",
+      "selection": {
+        "query": "Lisbon, Portugal",
+        "countryCode": "PT",
+        "cityName": "Lisbon",
+        "stateName": "Lisbon",
+        "stateCode": "11",
+        "stateNative": "Lisbon",
+        "stateIso": "PT-11",
+        "stateIsoPeers": [
+          "PT-01",
+          "PT-02",
+          "PT-03",
+          "PT-04",
+          "PT-05",
+          "PT-06",
+          "PT-07",
+          "PT-08",
+          "PT-09",
+          "PT-10",
+          "PT-11",
+          "PT-12",
+          "PT-13",
+          "PT-14",
+          "PT-15",
+          "PT-16",
+          "PT-17",
+          "PT-18"
+        ],
+        "countryName": "Portugal"
+      },
+      "input": {
+        "countryCode": "PT",
+        "stateCode": "11",
+        "cityId": 89245
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Lisbon%2C+Portugal&countrycodes=pt&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Lisbon",
+          "display_name": "Lisbon, Portugal",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 5400890,
+          "boundingbox": [
+            "38.6913994",
+            "38.7967584",
+            "-9.2298356",
+            "-9.0863328"
+          ],
+          "address": {
+            "city": "Lisbon",
+            "county": "Lisbon",
+            "ISO3166-2-lvl6": "PT-11",
+            "country": "Portugal",
+            "country_code": "pt"
+          },
+          "lat": "38.7077507",
+          "lon": "-9.1365919",
+          "place_rank": 14
+        },
+        {
+          "name": "Lisbon",
+          "display_name": "Lisbon, Portugal",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 2897141,
+          "boundingbox": [
+            "38.6731469",
+            "39.3177287",
+            "-9.5005266",
+            "-8.7818610"
+          ],
+          "address": {
+            "county": "Lisbon",
+            "ISO3166-2-lvl6": "PT-11",
+            "country": "Portugal",
+            "country_code": "pt"
+          },
+          "lat": "38.9952469",
+          "lon": "-9.1435928",
+          "place_rank": 12
+        }
+      ],
+      "elapsedSeconds": 0.902
+    },
+    {
+      "name": "New York City",
+      "selection": {
+        "query": "New York City, New York, United States",
+        "countryCode": "US",
+        "cityName": "New York City",
+        "stateName": "New York",
+        "stateCode": "NY",
+        "stateNative": "New York",
+        "stateIso": "US-NY",
+        "stateIsoPeers": [
+          "US-AL",
+          "US-AK",
+          "US-AZ",
+          "US-AR",
+          "US-CA",
+          "US-CO",
+          "US-CT",
+          "US-DE",
+          "US-FL",
+          "US-GA",
+          "US-HI",
+          "US-ID",
+          "US-IL",
+          "US-IN",
+          "US-IA",
+          "US-KS",
+          "US-KY",
+          "US-LA",
+          "US-ME",
+          "US-MD",
+          "US-MA",
+          "US-MI",
+          "US-MN",
+          "US-MS",
+          "US-MO",
+          "US-MT",
+          "US-NE",
+          "US-NV",
+          "US-NH",
+          "US-NJ",
+          "US-NM",
+          "US-NY",
+          "US-NC",
+          "US-ND",
+          "US-OH",
+          "US-OK",
+          "US-OR",
+          "US-PA",
+          "US-RI",
+          "US-SC",
+          "US-SD",
+          "US-TN",
+          "US-TX",
+          "US-UT",
+          "US-VT",
+          "US-VA",
+          "US-WA",
+          "US-WV",
+          "US-WI",
+          "US-WY"
+        ],
+        "countryName": "United States"
+      },
+      "input": {
+        "countryCode": "US",
+        "stateCode": "NY",
+        "cityId": 122795
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=New+York+City%2C+New+York%2C+United+States&countrycodes=us&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "New York",
+          "display_name": "New York, United States",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 175905,
+          "boundingbox": [
+            "40.4765780",
+            "40.9176300",
+            "-74.2588430",
+            "-73.7002330"
+          ],
+          "address": {
+            "city": "New York",
+            "state": "New York",
+            "ISO3166-2-lvl4": "US-NY",
+            "country": "United States",
+            "country_code": "us"
+          },
+          "lat": "40.7127281",
+          "lon": "-74.0060152",
+          "place_rank": 10
+        }
+      ],
+      "elapsedSeconds": 0.435
+    },
+    {
+      "name": "Montréal",
+      "selection": {
+        "query": "Montréal, Quebec, Canada",
+        "countryCode": "CA",
+        "cityName": "Montréal",
+        "stateName": "Quebec",
+        "stateCode": "QC",
+        "stateNative": "Quebec",
+        "stateIso": "CA-QC",
+        "stateIsoPeers": [
+          "CA-AB",
+          "CA-BC",
+          "CA-MB",
+          "CA-NB",
+          "CA-NL",
+          "CA-NS",
+          "CA-ON",
+          "CA-PE",
+          "CA-QC",
+          "CA-SK"
+        ],
+        "countryName": "Canada"
+      },
+      "input": {
+        "countryCode": "CA",
+        "stateCode": "QC",
+        "cityId": 16709
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Montr%C3%A9al%2C+Quebec%2C+Canada&countrycodes=ca&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Montreal",
+          "display_name": "Montreal, Urban agglomeration of Montreal, Montreal (administrative region), Quebec, Canada",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 1634158,
+          "boundingbox": [
+            "45.4100756",
+            "45.7047897",
+            "-73.9741567",
+            "-73.4742952"
+          ],
+          "address": {
+            "city": "Montreal",
+            "county": "Urban agglomeration of Montreal",
+            "state_district": "Montreal (administrative region)",
+            "state": "Quebec",
+            "ISO3166-2-lvl4": "CA-QC",
+            "country": "Canada",
+            "country_code": "ca"
+          },
+          "lat": "45.5031824",
+          "lon": "-73.5698065",
+          "place_rank": 16
+        },
+        {
+          "name": "Montreal (administrative region)",
+          "display_name": "Montreal (administrative region), Quebec, Canada",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 1571328,
+          "boundingbox": [
+            "45.3984821",
+            "45.7047897",
+            "-73.9958013",
+            "-73.4742952"
+          ],
+          "address": {
+            "state_district": "Montreal (administrative region)",
+            "state": "Quebec",
+            "ISO3166-2-lvl4": "CA-QC",
+            "country": "Canada",
+            "country_code": "ca"
+          },
+          "lat": "45.5505849",
+          "lon": "-73.6022317",
+          "place_rank": 10
+        },
+        {
+          "name": "Urban agglomeration of Montreal",
+          "display_name": "Urban agglomeration of Montreal, Montreal (administrative region), Quebec, Canada",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 8508277,
+          "boundingbox": [
+            "45.3984821",
+            "45.7047897",
+            "-73.9958013",
+            "-73.4742952"
+          ],
+          "address": {
+            "county": "Urban agglomeration of Montreal",
+            "state_district": "Montreal (administrative region)",
+            "state": "Quebec",
+            "ISO3166-2-lvl4": "CA-QC",
+            "country": "Canada",
+            "country_code": "ca"
+          },
+          "lat": "45.5505849",
+          "lon": "-73.6022317",
+          "place_rank": 12
+        }
+      ],
+      "elapsedSeconds": 0.635
+    },
+    {
+      "name": "London",
+      "selection": {
+        "query": "London, United Kingdom",
+        "countryCode": "GB",
+        "cityName": "London",
+        "stateName": "London",
+        "stateCode": "LND",
+        "stateNative": "London",
+        "stateIso": "GB-LND",
+        "stateIsoPeers": [
+          "GB-LND"
+        ],
+        "countryName": "United Kingdom"
+      },
+      "input": {
+        "countryCode": "GB",
+        "stateCode": "LND",
+        "cityId": "__manual__",
+        "manualCity": "London"
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=London%2C+United+Kingdom&countrycodes=gb&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Greater London",
+          "display_name": "Greater London, England, United Kingdom",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 175342,
+          "boundingbox": [
+            "51.2867601",
+            "51.6918741",
+            "-0.5103751",
+            "0.3340155"
+          ],
+          "address": {
+            "city": "Greater London",
+            "state": "England",
+            "ISO3166-2-lvl4": "GB-ENG",
+            "country": "United Kingdom",
+            "country_code": "gb"
+          },
+          "lat": "51.5074456",
+          "lon": "-0.1277653",
+          "place_rank": 9
+        },
+        {
+          "name": "City of London",
+          "display_name": "City of London, Greater London, England, United Kingdom",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 51800,
+          "boundingbox": [
+            "51.5068709",
+            "51.5233122",
+            "-0.1138295",
+            "-0.0727619"
+          ],
+          "address": {
+            "city": "City of London",
+            "ISO3166-2-lvl6": "GB-LND",
+            "state": "England",
+            "ISO3166-2-lvl4": "GB-ENG",
+            "country": "United Kingdom",
+            "country_code": "gb"
+          },
+          "lat": "51.5156177",
+          "lon": "-0.0919983",
+          "place_rank": 12
+        }
+      ],
+      "elapsedSeconds": 1.275
+    },
+    {
+      "name": "Paris",
+      "selection": {
+        "query": "Paris, Île-de-France, France",
+        "countryCode": "FR",
+        "cityName": "Paris",
+        "stateName": "Île-de-France",
+        "stateCode": "IDF",
+        "stateNative": "Île-de-France",
+        "stateIso": "FR-IDF",
+        "stateIsoPeers": [
+          "FR-ARA",
+          "FR-BFC",
+          "FR-BRE",
+          "FR-CVL",
+          "FR-20R",
+          "FR-GES",
+          "FR-HDF",
+          "FR-IDF",
+          "FR-NOR",
+          "FR-NAQ",
+          "FR-OCC",
+          "FR-PDL",
+          "FR-PAC"
+        ],
+        "countryName": "France"
+      },
+      "input": {
+        "countryCode": "FR",
+        "stateCode": "IDF",
+        "cityId": "__manual__",
+        "manualCity": "Paris"
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Paris%2C+%C3%8Ele-de-France%2C+France&countrycodes=fr&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Paris",
+          "display_name": "Paris, Ile-de-France, Metropolitan France, France",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 7444,
+          "boundingbox": [
+            "48.8155755",
+            "48.9021560",
+            "2.2241220",
+            "2.4697602"
+          ],
+          "address": {
+            "suburb": "Paris",
+            "city_district": "Paris",
+            "city": "Paris",
+            "ISO3166-2-lvl6": "FR-75C",
+            "state": "Ile-de-France",
+            "ISO3166-2-lvl4": "FR-IDF",
+            "region": "Metropolitan France",
+            "country": "France",
+            "country_code": "fr"
+          },
+          "lat": "48.8588897",
+          "lon": "2.3200410",
+          "place_rank": 15
+        },
+        {
+          "name": "Paris",
+          "display_name": "Paris, Ile-de-France, Metropolitan France, France",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 71525,
+          "boundingbox": [
+            "48.8155755",
+            "48.9021560",
+            "2.2241220",
+            "2.4697602"
+          ],
+          "address": {
+            "city": "Paris",
+            "ISO3166-2-lvl6": "FR-75C",
+            "state": "Ile-de-France",
+            "ISO3166-2-lvl4": "FR-IDF",
+            "region": "Metropolitan France",
+            "country": "France",
+            "country_code": "fr"
+          },
+          "lat": "48.8534951",
+          "lon": "2.3483915",
+          "place_rank": 12
+        },
+        {
+          "name": "Paris",
+          "display_name": "Paris, Ile-de-France, Metropolitan France, France",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 1641193,
+          "boundingbox": [
+            "48.8155755",
+            "48.9021560",
+            "2.2241220",
+            "2.4697602"
+          ],
+          "address": {
+            "city_district": "Paris",
+            "city": "Paris",
+            "ISO3166-2-lvl6": "FR-75C",
+            "state": "Ile-de-France",
+            "ISO3166-2-lvl4": "FR-IDF",
+            "region": "Metropolitan France",
+            "country": "France",
+            "country_code": "fr"
+          },
+          "lat": "48.8588897",
+          "lon": "2.3200410",
+          "place_rank": 14
+        }
+      ],
+      "elapsedSeconds": 0.973
+    },
+    {
+      "name": "Berlin",
+      "selection": {
+        "query": "Berlin, Germany",
+        "countryCode": "DE",
+        "cityName": "Berlin",
+        "stateName": "Berlin",
+        "stateCode": "BE",
+        "stateNative": "Berlin",
+        "stateIso": "DE-BE",
+        "stateIsoPeers": [
+          "DE-BW",
+          "DE-BY",
+          "DE-BE",
+          "DE-BB",
+          "DE-HB",
+          "DE-HH",
+          "DE-HE",
+          "DE-NI",
+          "DE-MV",
+          "DE-NW",
+          "DE-RP",
+          "DE-SL",
+          "DE-SN",
+          "DE-ST",
+          "DE-SH",
+          "DE-TH"
+        ],
+        "countryName": "Germany"
+      },
+      "input": {
+        "countryCode": "DE",
+        "stateCode": "BE",
+        "cityId": 24053
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Berlin%2C+Germany&countrycodes=de&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Berlin",
+          "display_name": "Berlin, Germany",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 62422,
+          "boundingbox": [
+            "52.3382448",
+            "52.6755087",
+            "13.0883450",
+            "13.7611609"
+          ],
+          "address": {
+            "city": "Berlin",
+            "ISO3166-2-lvl4": "DE-BE",
+            "country": "Germany",
+            "country_code": "de"
+          },
+          "lat": "52.5173885",
+          "lon": "13.3951309",
+          "place_rank": 8
+        }
+      ],
+      "elapsedSeconds": 0.588
+    },
+    {
+      "name": "Tokyo",
+      "selection": {
+        "query": "Tokyo, Japan",
+        "countryCode": "JP",
+        "cityName": "Tokyo",
+        "stateName": "Tokyo",
+        "stateCode": "13",
+        "stateNative": "東京",
+        "stateIso": "JP-13",
+        "stateIsoPeers": [
+          "JP-23",
+          "JP-05",
+          "JP-02",
+          "JP-12",
+          "JP-38",
+          "JP-18",
+          "JP-40",
+          "JP-07",
+          "JP-21",
+          "JP-10",
+          "JP-34",
+          "JP-01",
+          "JP-28",
+          "JP-08",
+          "JP-17",
+          "JP-03",
+          "JP-37",
+          "JP-46",
+          "JP-14",
+          "JP-39",
+          "JP-43",
+          "JP-26",
+          "JP-24",
+          "JP-04",
+          "JP-45",
+          "JP-20",
+          "JP-42",
+          "JP-29",
+          "JP-15",
+          "JP-44",
+          "JP-33",
+          "JP-47",
+          "JP-27",
+          "JP-41",
+          "JP-11",
+          "JP-25",
+          "JP-32",
+          "JP-22",
+          "JP-09",
+          "JP-36",
+          "JP-13",
+          "JP-31",
+          "JP-16",
+          "JP-30",
+          "JP-06",
+          "JP-35",
+          "JP-19"
+        ],
+        "countryName": "Japan"
+      },
+      "input": {
+        "countryCode": "JP",
+        "stateCode": "13",
+        "cityId": 64500
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Tokyo%2C+Japan&countrycodes=jp&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Tokyo",
+          "display_name": "Tokyo, Japan",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 1543125,
+          "boundingbox": [
+            "20.2145811",
+            "35.8984245",
+            "135.8536855",
+            "154.2055410"
+          ],
+          "address": {
+            "city": "Tokyo",
+            "ISO3166-2-lvl4": "JP-13",
+            "country": "Japan",
+            "country_code": "jp"
+          },
+          "lat": "35.6768601",
+          "lon": "139.7638947",
+          "place_rank": 8
+        }
+      ],
+      "elapsedSeconds": 0.698
+    },
+    {
+      "name": "Sydney",
+      "selection": {
+        "query": "Sydney, New South Wales, Australia",
+        "countryCode": "AU",
+        "cityName": "Sydney",
+        "stateName": "New South Wales",
+        "stateCode": "NSW",
+        "stateNative": "New South Wales",
+        "stateIso": "AU-NSW",
+        "stateIsoPeers": [
+          "AU-NSW",
+          "AU-QLD",
+          "AU-SA",
+          "AU-TAS",
+          "AU-VIC",
+          "AU-WA"
+        ],
+        "countryName": "Australia"
+      },
+      "input": {
+        "countryCode": "AU",
+        "stateCode": "NSW",
+        "cityId": 7408
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Sydney%2C+New+South+Wales%2C+Australia&countrycodes=au&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Sydney",
+          "display_name": "Sydney, New South Wales, Australia",
+          "category": "place",
+          "type": "city",
+          "osm_type": "relation",
+          "osm_id": 5750005,
+          "boundingbox": [
+            "-34.2598367",
+            "-33.3641864",
+            "150.2608250",
+            "151.3431756"
+          ],
+          "address": {
+            "city": "Sydney",
+            "state": "New South Wales",
+            "ISO3166-2-lvl4": "AU-NSW",
+            "country": "Australia",
+            "country_code": "au"
+          },
+          "lat": "-33.8698439",
+          "lon": "151.2082848",
+          "place_rank": 16
+        },
+        {
+          "name": "City of Sydney",
+          "display_name": "City of Sydney, Inner West, Sydney, New South Wales, Australia",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 1251066,
+          "boundingbox": [
+            "-33.9243832",
+            "-33.8535997",
+            "151.1748638",
+            "151.2330104"
+          ],
+          "address": {
+            "administrative": "City of Sydney",
+            "borough": "Inner West",
+            "city": "Sydney",
+            "state": "New South Wales",
+            "ISO3166-2-lvl4": "AU-NSW",
+            "country": "Australia",
+            "country_code": "au"
+          },
+          "lat": "-33.8890382",
+          "lon": "151.2050397",
+          "place_rank": 12
+        }
+      ],
+      "elapsedSeconds": 1.071
+    },
+    {
+      "name": "Buenos Aires",
+      "selection": {
+        "query": "Buenos Aires, Autonomous City of Buenos Aires, Argentina",
+        "countryCode": "AR",
+        "cityName": "Buenos Aires",
+        "stateName": "Autonomous City of Buenos Aires",
+        "stateCode": "C",
+        "stateNative": "Ciudad autónoma de Buenos Aires",
+        "stateIso": "AR-C",
+        "stateIsoPeers": [
+          "AR-C"
+        ],
+        "countryName": "Argentina"
+      },
+      "input": {
+        "countryCode": "AR",
+        "stateCode": "C",
+        "cityId": "__manual__",
+        "manualCity": "Buenos Aires"
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Buenos+Aires%2C+Autonomous+City+of+Buenos+Aires%2C+Argentina&countrycodes=ar&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Buenos Aires",
+          "display_name": "Buenos Aires, Comuna 1, Autonomous City of Buenos Aires, Argentina",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 1224652,
+          "boundingbox": [
+            "-34.7058155",
+            "-34.5265535",
+            "-58.5314535",
+            "-58.3351423"
+          ],
+          "address": {
+            "city": "Buenos Aires",
+            "state_district": "Comuna 1",
+            "state": "Autonomous City of Buenos Aires",
+            "ISO3166-2-lvl4": "AR-C",
+            "country": "Argentina",
+            "country_code": "ar"
+          },
+          "lat": "-34.6095579",
+          "lon": "-58.3887904",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 1.11
+    },
+    {
+      "name": "Rome",
+      "selection": {
+        "query": "Rome, Lazio, Italy",
+        "countryCode": "IT",
+        "cityName": "Rome",
+        "stateName": "Lazio",
+        "stateCode": "62",
+        "stateNative": "Lazio",
+        "stateIso": "IT-62",
+        "stateIsoPeers": [
+          "IT-65",
+          "IT-75",
+          "IT-77",
+          "IT-78",
+          "IT-72",
+          "IT-45",
+          "IT-62",
+          "IT-42",
+          "IT-25",
+          "IT-57",
+          "IT-67",
+          "IT-21",
+          "IT-52",
+          "IT-55",
+          "IT-34"
+        ],
+        "countryName": "Italy"
+      },
+      "input": {
+        "countryCode": "IT",
+        "stateCode": "62",
+        "cityId": "__manual__",
+        "manualCity": "Rome"
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Rome%2C+Lazio%2C+Italy&countrycodes=it&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Rome",
+          "display_name": "Rome, Roma Capitale, Lazio, Italy",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 41485,
+          "boundingbox": [
+            "41.6556417",
+            "42.1410285",
+            "12.2344416",
+            "12.8557603"
+          ],
+          "address": {
+            "city": "Rome",
+            "county": "Roma Capitale",
+            "ISO3166-2-lvl6": "IT-RM",
+            "state": "Lazio",
+            "ISO3166-2-lvl4": "IT-62",
+            "country": "Italy",
+            "country_code": "it"
+          },
+          "lat": "41.8933203",
+          "lon": "12.4829321",
+          "place_rank": 16
+        },
+        {
+          "name": "Roma Capitale",
+          "display_name": "Roma Capitale, Lazio, Italy",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 41313,
+          "boundingbox": [
+            "41.4076117",
+            "42.2965732",
+            "11.7336245",
+            "13.2962768"
+          ],
+          "address": {
+            "county": "Roma Capitale",
+            "ISO3166-2-lvl6": "IT-RM",
+            "state": "Lazio",
+            "ISO3166-2-lvl4": "IT-62",
+            "country": "Italy",
+            "country_code": "it"
+          },
+          "lat": "41.8520413",
+          "lon": "12.6312117",
+          "place_rank": 12
+        }
+      ],
+      "elapsedSeconds": 0.644
+    },
+    {
+      "name": "Mumbai",
+      "selection": {
+        "query": "Mumbai, Maharashtra, India",
+        "countryCode": "IN",
+        "cityName": "Mumbai",
+        "stateName": "Maharashtra",
+        "stateCode": "MH",
+        "stateNative": "महाराष्ट्र",
+        "stateIso": "IN-MH",
+        "stateIsoPeers": [
+          "IN-AP",
+          "IN-AR",
+          "IN-AS",
+          "IN-BR",
+          "IN-CT",
+          "IN-GA",
+          "IN-GJ",
+          "IN-HR",
+          "IN-HP",
+          "IN-JH",
+          "IN-KA",
+          "IN-KL",
+          "IN-MP",
+          "IN-MH",
+          "IN-MN",
+          "IN-ML",
+          "IN-MZ",
+          "IN-NL",
+          "IN-OR",
+          "IN-PB",
+          "IN-RJ",
+          "IN-SK",
+          "IN-TN",
+          "IN-TG",
+          "IN-TR",
+          "IN-UP",
+          "IN-UK",
+          "IN-WB"
+        ],
+        "countryName": "India"
+      },
+      "input": {
+        "countryCode": "IN",
+        "stateCode": "MH",
+        "cityId": 133024
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Mumbai%2C+Maharashtra%2C+India&countrycodes=in&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Mumbai",
+          "display_name": "Mumbai, Mumbai Suburban District, Maharashtra, 400051, India",
+          "category": "place",
+          "type": "city",
+          "osm_type": "node",
+          "osm_id": 16173235,
+          "boundingbox": [
+            "18.8949990",
+            "19.2149990",
+            "72.7092035",
+            "73.0292035"
+          ],
+          "address": {
+            "city": "Mumbai",
+            "state_district": "Mumbai Suburban District",
+            "state": "Maharashtra",
+            "ISO3166-2-lvl4": "IN-MH",
+            "postcode": "400051",
+            "country": "India",
+            "country_code": "in"
+          },
+          "lat": "19.0549990",
+          "lon": "72.8692035",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 0.454
+    },
+    {
+      "name": "Araguari",
+      "selection": {
+        "query": "Araguari, Minas Gerais, Brazil",
+        "countryCode": "BR",
+        "cityName": "Araguari",
+        "stateName": "Minas Gerais",
+        "stateCode": "MG",
+        "stateNative": "Minas Gerais",
+        "stateIso": "BR-MG",
+        "stateIsoPeers": [
+          "BR-AC",
+          "BR-AL",
+          "BR-AP",
+          "BR-AM",
+          "BR-BA",
+          "BR-CE",
+          "BR-ES",
+          "BR-GO",
+          "BR-MA",
+          "BR-MT",
+          "BR-MS",
+          "BR-MG",
+          "BR-PA",
+          "BR-PB",
+          "BR-PR",
+          "BR-PE",
+          "BR-PI",
+          "BR-RJ",
+          "BR-RN",
+          "BR-RS",
+          "BR-RO",
+          "BR-RR",
+          "BR-SC",
+          "BR-SP",
+          "BR-SE",
+          "BR-TO"
+        ],
+        "countryName": "Brazil"
+      },
+      "input": {
+        "countryCode": "BR",
+        "stateCode": "MG",
+        "cityId": 10324
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Araguari%2C+Minas+Gerais%2C+Brazil&countrycodes=br&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Araguari",
+          "display_name": "Araguari, Minas Gerais, Southeast Region, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 314597,
+          "boundingbox": [
+            "-18.8914555",
+            "-18.3229102",
+            "-48.6664225",
+            "-47.8720000"
+          ],
+          "address": {
+            "city": "Araguari",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-18.6511256",
+          "lon": "-48.1933764",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 0.588
+    },
+    {
+      "name": "Prata",
+      "selection": {
+        "query": "Prata, Minas Gerais, Brazil",
+        "countryCode": "BR",
+        "cityName": "Prata",
+        "stateName": "Minas Gerais",
+        "stateCode": "MG",
+        "stateNative": "Minas Gerais",
+        "stateIso": "BR-MG",
+        "stateIsoPeers": [
+          "BR-AC",
+          "BR-AL",
+          "BR-AP",
+          "BR-AM",
+          "BR-BA",
+          "BR-CE",
+          "BR-ES",
+          "BR-GO",
+          "BR-MA",
+          "BR-MT",
+          "BR-MS",
+          "BR-MG",
+          "BR-PA",
+          "BR-PB",
+          "BR-PR",
+          "BR-PE",
+          "BR-PI",
+          "BR-RJ",
+          "BR-RN",
+          "BR-RS",
+          "BR-RO",
+          "BR-RR",
+          "BR-SC",
+          "BR-SP",
+          "BR-SE",
+          "BR-TO"
+        ],
+        "countryName": "Brazil"
+      },
+      "input": {
+        "countryCode": "BR",
+        "stateCode": "MG",
+        "cityId": 14069
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Prata%2C+Minas+Gerais%2C+Brazil&countrycodes=br&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Prata",
+          "display_name": "Prata, Minas Gerais, Southeast Region, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 315065,
+          "boundingbox": [
+            "-19.6197319",
+            "-18.9324287",
+            "-49.4262253",
+            "-48.3938330"
+          ],
+          "address": {
+            "municipality": "Prata",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-19.2761198",
+          "lon": "-48.9600367",
+          "place_rank": 16
+        },
+        {
+          "name": "Prata",
+          "display_name": "Prata, Minas Gerais, Southeast Region, 38140-000, Brazil",
+          "category": "place",
+          "type": "town",
+          "osm_type": "node",
+          "osm_id": 246673206,
+          "boundingbox": [
+            "-19.3472220",
+            "-19.2672220",
+            "-48.9638890",
+            "-48.8838890"
+          ],
+          "address": {
+            "town": "Prata",
+            "municipality": "Prata",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "postcode": "38140-000",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-19.3072220",
+          "lon": "-48.9238890",
+          "place_rank": 18
+        },
+        {
+          "name": "Prata",
+          "display_name": "Prata, Cláudio Manuel, Mariana, Minas Gerais, Southeast Region, Brazil",
+          "category": "place",
+          "type": "hamlet",
+          "osm_type": "node",
+          "osm_id": 4560494598,
+          "boundingbox": [
+            "-20.2625584",
+            "-20.2225584",
+            "-43.2736023",
+            "-43.2336023"
+          ],
+          "address": {
+            "hamlet": "Prata",
+            "city_district": "Cláudio Manuel",
+            "city": "Mariana",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-20.2425584",
+          "lon": "-43.2536023",
+          "place_rank": 20
+        },
+        {
+          "name": "Prata",
+          "display_name": "Prata, Argirita, Minas Gerais, Southeast Region, 36710-000, Brazil",
+          "category": "place",
+          "type": "hamlet",
+          "osm_type": "node",
+          "osm_id": 5828096800,
+          "boundingbox": [
+            "-21.6434414",
+            "-21.6034414",
+            "-42.8779236",
+            "-42.8379236"
+          ],
+          "address": {
+            "hamlet": "Prata",
+            "village": "Argirita",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "postcode": "36710-000",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-21.6234414",
+          "lon": "-42.8579236",
+          "place_rank": 20
+        },
+        {
+          "name": "Comunidade da Prata",
+          "display_name": "Comunidade da Prata, Felisburgo, Minas Gerais, Southeast Region, Brazil",
+          "category": "place",
+          "type": "hamlet",
+          "osm_type": "node",
+          "osm_id": 5474101245,
+          "boundingbox": [
+            "-16.8232318",
+            "-16.7832318",
+            "-40.6730630",
+            "-40.6330630"
+          ],
+          "address": {
+            "hamlet": "Comunidade da Prata",
+            "village": "Felisburgo",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-16.8032318",
+          "lon": "-40.6530630",
+          "place_rank": 20
+        }
+      ],
+      "elapsedSeconds": 0.621
+    },
+    {
+      "name": "Tupaciguara",
+      "selection": {
+        "query": "Tupaciguara, Minas Gerais, Brazil",
+        "countryCode": "BR",
+        "cityName": "Tupaciguara",
+        "stateName": "Minas Gerais",
+        "stateCode": "MG",
+        "stateNative": "Minas Gerais",
+        "stateIso": "BR-MG",
+        "stateIsoPeers": [
+          "BR-AC",
+          "BR-AL",
+          "BR-AP",
+          "BR-AM",
+          "BR-BA",
+          "BR-CE",
+          "BR-ES",
+          "BR-GO",
+          "BR-MA",
+          "BR-MT",
+          "BR-MS",
+          "BR-MG",
+          "BR-PA",
+          "BR-PB",
+          "BR-PR",
+          "BR-PE",
+          "BR-PI",
+          "BR-RJ",
+          "BR-RN",
+          "BR-RS",
+          "BR-RO",
+          "BR-RR",
+          "BR-SC",
+          "BR-SP",
+          "BR-SE",
+          "BR-TO"
+        ],
+        "countryName": "Brazil"
+      },
+      "input": {
+        "countryCode": "BR",
+        "stateCode": "MG",
+        "cityId": 15398
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Tupaciguara%2C+Minas+Gerais%2C+Brazil&countrycodes=br&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Tupaciguara",
+          "display_name": "Tupaciguara, Minas Gerais, Southeast Region, 38480-000, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 314933,
+          "boundingbox": [
+            "-18.8380000",
+            "-18.3060000",
+            "-49.0541807",
+            "-48.4982750"
+          ],
+          "address": {
+            "town": "Tupaciguara",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "postcode": "38480-000",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-18.5932122",
+          "lon": "-48.6999014",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 0.689
+    },
+    {
+      "name": "Monte Alegre de Minas",
+      "selection": {
+        "query": "Monte Alegre de Minas, Minas Gerais, Brazil",
+        "countryCode": "BR",
+        "cityName": "Monte Alegre de Minas",
+        "stateName": "Minas Gerais",
+        "stateCode": "MG",
+        "stateNative": "Minas Gerais",
+        "stateIso": "BR-MG",
+        "stateIsoPeers": [
+          "BR-AC",
+          "BR-AL",
+          "BR-AP",
+          "BR-AM",
+          "BR-BA",
+          "BR-CE",
+          "BR-ES",
+          "BR-GO",
+          "BR-MA",
+          "BR-MT",
+          "BR-MS",
+          "BR-MG",
+          "BR-PA",
+          "BR-PB",
+          "BR-PR",
+          "BR-PE",
+          "BR-PI",
+          "BR-RJ",
+          "BR-RN",
+          "BR-RS",
+          "BR-RO",
+          "BR-RR",
+          "BR-SC",
+          "BR-SP",
+          "BR-SE",
+          "BR-TO"
+        ],
+        "countryName": "Brazil"
+      },
+      "input": {
+        "countryCode": "BR",
+        "stateCode": "MG",
+        "cityId": 13189
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Monte+Alegre+de+Minas%2C+Minas+Gerais%2C+Brazil&countrycodes=br&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Monte Alegre de Minas",
+          "display_name": "Monte Alegre de Minas, Minas Gerais, Southeast Region, 38475-000, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 314717,
+          "boundingbox": [
+            "-19.1035247",
+            "-18.5238975",
+            "-49.2657221",
+            "-48.5205586"
+          ],
+          "address": {
+            "town": "Monte Alegre de Minas",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "postcode": "38475-000",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-18.8702780",
+          "lon": "-48.8805560",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 0.8
+    },
+    {
+      "name": "Uberaba",
+      "selection": {
+        "query": "Uberaba, Minas Gerais, Brazil",
+        "countryCode": "BR",
+        "cityName": "Uberaba",
+        "stateName": "Minas Gerais",
+        "stateCode": "MG",
+        "stateNative": "Minas Gerais",
+        "stateIso": "BR-MG",
+        "stateIsoPeers": [
+          "BR-AC",
+          "BR-AL",
+          "BR-AP",
+          "BR-AM",
+          "BR-BA",
+          "BR-CE",
+          "BR-ES",
+          "BR-GO",
+          "BR-MA",
+          "BR-MT",
+          "BR-MS",
+          "BR-MG",
+          "BR-PA",
+          "BR-PB",
+          "BR-PR",
+          "BR-PE",
+          "BR-PI",
+          "BR-RJ",
+          "BR-RN",
+          "BR-RS",
+          "BR-RO",
+          "BR-RR",
+          "BR-SC",
+          "BR-SP",
+          "BR-SE",
+          "BR-TO"
+        ],
+        "countryName": "Brazil"
+      },
+      "input": {
+        "countryCode": "BR",
+        "stateCode": "MG",
+        "cityId": 15433
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Uberaba%2C+Minas+Gerais%2C+Brazil&countrycodes=br&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Uberaba",
+          "display_name": "Uberaba, Minas Gerais, Southeast Region, 38040-450, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 314874,
+          "boundingbox": [
+            "-20.1179994",
+            "-19.0840706",
+            "-48.3572492",
+            "-47.5820000"
+          ],
+          "address": {
+            "city": "Uberaba",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "postcode": "38040-450",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-19.7508330",
+          "lon": "-47.9366660",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 0.755
+    },
+    {
+      "name": "A dos Cunhados",
+      "selection": {
+        "query": "A dos Cunhados, Lisbon, Portugal",
+        "countryCode": "PT",
+        "cityName": "A dos Cunhados",
+        "stateName": "Lisbon",
+        "stateCode": "11",
+        "stateNative": "Lisbon",
+        "stateIso": "PT-11",
+        "stateIsoPeers": [
+          "PT-01",
+          "PT-02",
+          "PT-03",
+          "PT-04",
+          "PT-05",
+          "PT-06",
+          "PT-07",
+          "PT-08",
+          "PT-09",
+          "PT-10",
+          "PT-11",
+          "PT-12",
+          "PT-13",
+          "PT-14",
+          "PT-15",
+          "PT-16",
+          "PT-17",
+          "PT-18"
+        ],
+        "countryName": "Portugal"
+      },
+      "input": {
+        "countryCode": "PT",
+        "stateCode": "11",
+        "cityId": 88904
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=A+dos+Cunhados%2C+Lisbon%2C+Portugal&countrycodes=pt&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "A dos Cunhados",
+          "display_name": "A dos Cunhados, Torres Vedras, Lisbon, Portugal",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 2897147,
+          "boundingbox": [
+            "39.1198270",
+            "39.1931423",
+            "-9.3811244",
+            "-9.2629998"
+          ],
+          "address": {
+            "town": "A dos Cunhados",
+            "city": "Torres Vedras",
+            "county": "Lisbon",
+            "ISO3166-2-lvl6": "PT-11",
+            "country": "Portugal",
+            "country_code": "pt"
+          },
+          "lat": "39.1519962",
+          "lon": "-9.2979195",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 0.431
+    },
+    {
+      "name": "Alenquer",
+      "selection": {
+        "query": "Alenquer, Lisbon, Portugal",
+        "countryCode": "PT",
+        "cityName": "Alenquer",
+        "stateName": "Lisbon",
+        "stateCode": "11",
+        "stateNative": "Lisbon",
+        "stateIso": "PT-11",
+        "stateIsoPeers": [
+          "PT-01",
+          "PT-02",
+          "PT-03",
+          "PT-04",
+          "PT-05",
+          "PT-06",
+          "PT-07",
+          "PT-08",
+          "PT-09",
+          "PT-10",
+          "PT-11",
+          "PT-12",
+          "PT-13",
+          "PT-14",
+          "PT-15",
+          "PT-16",
+          "PT-17",
+          "PT-18"
+        ],
+        "countryName": "Portugal"
+      },
+      "input": {
+        "countryCode": "PT",
+        "stateCode": "11",
+        "cityId": 88928
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Alenquer%2C+Lisbon%2C+Portugal&countrycodes=pt&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Alenquer",
+          "display_name": "Alenquer, Lisbon, Portugal",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 5400756,
+          "boundingbox": [
+            "39.0007162",
+            "39.1887146",
+            "-9.1638915",
+            "-8.9186866"
+          ],
+          "address": {
+            "town": "Alenquer",
+            "county": "Lisbon",
+            "ISO3166-2-lvl6": "PT-11",
+            "country": "Portugal",
+            "country_code": "pt"
+          },
+          "lat": "39.0566330",
+          "lon": "-9.0076057",
+          "place_rank": 14
+        },
+        {
+          "name": "Alenquer (Santo Estêvão e Triana)",
+          "display_name": "Alenquer (Santo Estêvão e Triana), Alenquer, Lisbon, Portugal",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 6519151,
+          "boundingbox": [
+            "39.0231933",
+            "39.1001481",
+            "-9.0507514",
+            "-8.9395755"
+          ],
+          "address": {
+            "city_district": "Alenquer (Santo Estêvão e Triana)",
+            "town": "Alenquer",
+            "county": "Lisbon",
+            "ISO3166-2-lvl6": "PT-11",
+            "country": "Portugal",
+            "country_code": "pt"
+          },
+          "lat": "39.0616312",
+          "lon": "-8.9966590",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 0.633
+    },
+    {
+      "name": "Glasgow",
+      "selection": {
+        "query": "Glasgow, United Kingdom",
+        "countryCode": "GB",
+        "cityName": "Glasgow",
+        "stateName": "Glasgow",
+        "stateCode": "GLG",
+        "stateNative": "Glasgow",
+        "stateIso": "GB-GLG",
+        "stateIsoPeers": [
+          "GB-ABE",
+          "GB-ABD",
+          "GB-ANS",
+          "GB-AGB",
+          "GB-CLK",
+          "GB-DGY",
+          "GB-DND",
+          "GB-EAY",
+          "GB-EDU",
+          "GB-ELN",
+          "GB-ERW",
+          "GB-EDH",
+          "GB-FAL",
+          "GB-FIF",
+          "GB-GLG",
+          "GB-HLD",
+          "GB-IVC",
+          "GB-MLN",
+          "GB-MRY",
+          "GB-NAY",
+          "GB-NLK",
+          "GB-ORK",
+          "GB-ELS",
+          "GB-PKN",
+          "GB-RFW",
+          "GB-SCB",
+          "GB-ZET",
+          "GB-SAY",
+          "GB-SLK",
+          "GB-STG",
+          "GB-WDU",
+          "GB-WLN"
+        ],
+        "countryName": "United Kingdom"
+      },
+      "input": {
+        "countryCode": "GB",
+        "stateCode": "GLG",
+        "cityId": 49650
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Glasgow%2C+United+Kingdom&countrycodes=gb&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Glasgow",
+          "display_name": "Glasgow, Glasgow City, Scotland, G2 1AL, United Kingdom",
+          "category": "place",
+          "type": "city",
+          "osm_type": "node",
+          "osm_id": 11127374,
+          "boundingbox": [
+            "55.7011550",
+            "56.0211550",
+            "-4.4101687",
+            "-4.0901687"
+          ],
+          "address": {
+            "city": "Glasgow",
+            "county": "Glasgow City",
+            "ISO3166-2-lvl6": "GB-GLG",
+            "state": "Scotland",
+            "ISO3166-2-lvl4": "GB-SCT",
+            "postcode": "G2 1AL",
+            "country": "United Kingdom",
+            "country_code": "gb"
+          },
+          "lat": "55.8611550",
+          "lon": "-4.2501687",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 0.659
+    },
+    {
+      "name": "Paris",
+      "selection": {
+        "query": "Paris, France",
+        "countryCode": "FR",
+        "cityName": "Paris",
+        "stateName": "Paris",
+        "stateCode": "75C",
+        "stateNative": "Paris",
+        "stateIso": "FR-75C",
+        "stateIsoPeers": [
+          "FR-69M",
+          "FR-75C"
+        ],
+        "countryName": "France"
+      },
+      "input": {
+        "countryCode": "FR",
+        "stateCode": "75C",
+        "cityId": 44856
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Paris%2C+France&countrycodes=fr&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Paris",
+          "display_name": "Paris, Ile-de-France, Metropolitan France, France",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 7444,
+          "boundingbox": [
+            "48.8155755",
+            "48.9021560",
+            "2.2241220",
+            "2.4697602"
+          ],
+          "address": {
+            "suburb": "Paris",
+            "city_district": "Paris",
+            "city": "Paris",
+            "ISO3166-2-lvl6": "FR-75C",
+            "state": "Ile-de-France",
+            "ISO3166-2-lvl4": "FR-IDF",
+            "region": "Metropolitan France",
+            "country": "France",
+            "country_code": "fr"
+          },
+          "lat": "48.8588897",
+          "lon": "2.3200410",
+          "place_rank": 15
+        },
+        {
+          "name": "Paris",
+          "display_name": "Paris, Ile-de-France, Metropolitan France, France",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 71525,
+          "boundingbox": [
+            "48.8155755",
+            "48.9021560",
+            "2.2241220",
+            "2.4697602"
+          ],
+          "address": {
+            "city": "Paris",
+            "ISO3166-2-lvl6": "FR-75C",
+            "state": "Ile-de-France",
+            "ISO3166-2-lvl4": "FR-IDF",
+            "region": "Metropolitan France",
+            "country": "France",
+            "country_code": "fr"
+          },
+          "lat": "48.8534951",
+          "lon": "2.3483915",
+          "place_rank": 12
+        },
+        {
+          "name": "Paris",
+          "display_name": "Paris, Ile-de-France, Metropolitan France, France",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 1641193,
+          "boundingbox": [
+            "48.8155755",
+            "48.9021560",
+            "2.2241220",
+            "2.4697602"
+          ],
+          "address": {
+            "city_district": "Paris",
+            "city": "Paris",
+            "ISO3166-2-lvl6": "FR-75C",
+            "state": "Ile-de-France",
+            "ISO3166-2-lvl4": "FR-IDF",
+            "region": "Metropolitan France",
+            "country": "France",
+            "country_code": "fr"
+          },
+          "lat": "48.8588897",
+          "lon": "2.3200410",
+          "place_rank": 14
+        }
+      ],
+      "elapsedSeconds": 0.834
+    },
+    {
+      "name": "Cairo",
+      "selection": {
+        "query": "Cairo, Egypt",
+        "countryCode": "EG",
+        "cityName": "Cairo",
+        "stateName": "Cairo",
+        "stateCode": "C",
+        "stateNative": "القاهرة",
+        "stateIso": "EG-C",
+        "stateIsoPeers": [
+          "EG-ALX",
+          "EG-ASN",
+          "EG-AST",
+          "EG-BH",
+          "EG-BNS",
+          "EG-C",
+          "EG-DK",
+          "EG-DT",
+          "EG-FYM",
+          "EG-GH",
+          "EG-GZ",
+          "EG-IS",
+          "EG-KFS",
+          "EG-LX",
+          "EG-MT",
+          "EG-MN",
+          "EG-MNF",
+          "EG-WAD",
+          "EG-SIN",
+          "EG-PTS",
+          "EG-KB",
+          "EG-KN",
+          "EG-BA",
+          "EG-SHR",
+          "EG-SHG",
+          "EG-JS",
+          "EG-SUZ"
+        ],
+        "countryName": "Egypt"
+      },
+      "input": {
+        "countryCode": "EG",
+        "stateCode": "C",
+        "cityId": 31802
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Cairo%2C+Egypt&countrycodes=eg&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Cairo",
+          "display_name": "Cairo, Egypt",
+          "category": "place",
+          "type": "city",
+          "osm_type": "relation",
+          "osm_id": 5466227,
+          "boundingbox": [
+            "29.7483062",
+            "30.3209168",
+            "31.2200331",
+            "31.9090054"
+          ],
+          "address": {
+            "city": "Cairo",
+            "state": "Cairo",
+            "ISO3166-2-lvl4": "EG-C",
+            "country": "Egypt",
+            "country_code": "eg"
+          },
+          "lat": "30.0443879",
+          "lon": "31.2357257",
+          "place_rank": 15
+        },
+        {
+          "name": "Cairo",
+          "display_name": "Cairo, Egypt",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 4103336,
+          "boundingbox": [
+            "29.7483062",
+            "30.3209168",
+            "31.2145550",
+            "31.9090054"
+          ],
+          "address": {
+            "state": "Cairo",
+            "ISO3166-2-lvl4": "EG-C",
+            "country": "Egypt",
+            "country_code": "eg"
+          },
+          "lat": "30.0332516",
+          "lon": "31.5621651",
+          "place_rank": 8
+        }
+      ],
+      "elapsedSeconds": 0.457
+    },
+    {
+      "name": "Seoul",
+      "selection": {
+        "query": "Seoul, South Korea",
+        "countryCode": "KR",
+        "cityName": "Seoul",
+        "stateName": "Seoul",
+        "stateCode": "11",
+        "stateNative": "서울",
+        "stateIso": "KR-11",
+        "stateIsoPeers": [
+          "KR-11"
+        ],
+        "countryName": "South Korea"
+      },
+      "input": {
+        "countryCode": "KR",
+        "stateCode": "11",
+        "cityId": 65498
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Seoul%2C+South+Korea&countrycodes=kr&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Seoul",
+          "display_name": "Seoul, South Korea",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 2297418,
+          "boundingbox": [
+            "37.4285424",
+            "37.7014794",
+            "126.7644328",
+            "127.1837702"
+          ],
+          "address": {
+            "city": "Seoul",
+            "ISO3166-2-lvl4": "KR-11",
+            "country": "South Korea",
+            "country_code": "kr"
+          },
+          "lat": "37.5666791",
+          "lon": "126.9782914",
+          "place_rank": 7
+        }
+      ],
+      "elapsedSeconds": 0.542
+    },
+    {
+      "name": "Gangnam-gu",
+      "selection": {
+        "query": "Gangnam-gu, Seoul, South Korea",
+        "countryCode": "KR",
+        "cityName": "Gangnam-gu",
+        "stateName": "Seoul",
+        "stateCode": "11",
+        "stateNative": "서울",
+        "stateIso": "KR-11",
+        "stateIsoPeers": [
+          "KR-11"
+        ],
+        "countryName": "South Korea"
+      },
+      "input": {
+        "countryCode": "KR",
+        "stateCode": "11",
+        "cityId": 65321
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Gangnam-gu%2C+Seoul%2C+South+Korea&countrycodes=kr&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Gangnam-gu",
+          "display_name": "Gangnam-gu, Seoul, South Korea",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 2410520,
+          "boundingbox": [
+            "37.4564808",
+            "37.5399807",
+            "127.0083762",
+            "127.1230007"
+          ],
+          "address": {
+            "borough": "Gangnam-gu",
+            "city": "Seoul",
+            "ISO3166-2-lvl4": "KR-11",
+            "country": "South Korea",
+            "country_code": "kr"
+          },
+          "lat": "37.5177000",
+          "lon": "127.0473000",
+          "place_rank": 12
+        }
+      ],
+      "elapsedSeconds": 0.271
+    },
+    {
+      "name": "Bangkok",
+      "selection": {
+        "query": "Bangkok, Thailand",
+        "countryCode": "TH",
+        "cityName": "Bangkok",
+        "stateName": "Bangkok",
+        "stateCode": "10",
+        "stateNative": "กรุงเทพฯ",
+        "stateIso": "TH-10",
+        "stateIsoPeers": [
+          "TH-10",
+          "TH-S"
+        ],
+        "countryName": "Thailand"
+      },
+      "input": {
+        "countryCode": "TH",
+        "stateCode": "10",
+        "cityId": 106448
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Bangkok%2C+Thailand&countrycodes=th&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Bangkok",
+          "display_name": "Bangkok, Thailand",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 92277,
+          "boundingbox": [
+            "13.2191019",
+            "13.9551693",
+            "100.3278772",
+            "100.9386039"
+          ],
+          "address": {
+            "city": "Bangkok",
+            "ISO3166-2-lvl4": "TH-10",
+            "country": "Thailand",
+            "country_code": "th"
+          },
+          "lat": "13.7524938",
+          "lon": "100.4935089",
+          "place_rank": 8
+        }
+      ],
+      "elapsedSeconds": 0.443
+    },
+    {
+      "name": "Madrid",
+      "selection": {
+        "query": "Madrid, Community of Madrid, Spain",
+        "countryCode": "ES",
+        "cityName": "Madrid",
+        "stateName": "Community of Madrid",
+        "stateCode": "MD",
+        "stateNative": "Comunidad de Madrid",
+        "stateIso": "ES-MD",
+        "stateIsoPeers": [
+          "ES-AN",
+          "ES-AR",
+          "ES-AS",
+          "ES-IB",
+          "ES-PV",
+          "ES-CN",
+          "ES-CB",
+          "ES-CL",
+          "ES-CM",
+          "ES-CT",
+          "ES-MD",
+          "ES-EX",
+          "ES-GA",
+          "ES-RI",
+          "ES-NC",
+          "ES-MC",
+          "ES-VC"
+        ],
+        "countryName": "Spain"
+      },
+      "input": {
+        "countryCode": "ES",
+        "stateCode": "MD",
+        "cityId": "__manual__",
+        "manualCity": "Madrid"
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Madrid%2C+Community+of+Madrid%2C+Spain&countrycodes=es&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Madrid",
+          "display_name": "Madrid, Community of Madrid, Spain",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 5326784,
+          "boundingbox": [
+            "40.3119774",
+            "40.6437293",
+            "-3.8889539",
+            "-3.5183264"
+          ],
+          "address": {
+            "city": "Madrid",
+            "state": "Community of Madrid",
+            "ISO3166-2-lvl4": "ES-MD",
+            "country": "Spain",
+            "country_code": "es"
+          },
+          "lat": "40.4167820",
+          "lon": "-3.7035070",
+          "place_rank": 16
+        }
+      ],
+      "elapsedSeconds": 0.578
+    },
+    {
+      "name": "Lima",
+      "selection": {
+        "query": "Lima, Municipalidad Metropolitana de Lima, Peru",
+        "countryCode": "PE",
+        "cityName": "Lima",
+        "stateName": "Municipalidad Metropolitana de Lima",
+        "stateCode": "LMA",
+        "stateNative": "Municipalidad Metropolitana de Lima",
+        "stateIso": "PE-LMA",
+        "stateIsoPeers": [
+          "PE-LMA"
+        ],
+        "countryName": "Peru"
+      },
+      "input": {
+        "countryCode": "PE",
+        "stateCode": "LMA",
+        "cityId": "__manual__",
+        "manualCity": "Lima"
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Lima%2C+Municipalidad+Metropolitana+de+Lima%2C+Peru&countrycodes=pe&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [],
+      "elapsedSeconds": 0.219
+    },
+    {
+      "name": "Valparaíso",
+      "selection": {
+        "query": "Valparaíso, Chile",
+        "countryCode": "CL",
+        "cityName": "Valparaíso",
+        "stateName": "Valparaíso",
+        "stateCode": "VS",
+        "stateNative": "Valparaíso",
+        "stateIso": "CL-VS",
+        "stateIsoPeers": [
+          "CL-AI",
+          "CL-AN",
+          "CL-AP",
+          "CL-AT",
+          "CL-BI",
+          "CL-CO",
+          "CL-AR",
+          "CL-LI",
+          "CL-LL",
+          "CL-LR",
+          "CL-MA",
+          "CL-ML",
+          "CL-NB",
+          "CL-RM",
+          "CL-TA",
+          "CL-VS"
+        ],
+        "countryName": "Chile"
+      },
+      "input": {
+        "countryCode": "CL",
+        "stateCode": "VS",
+        "cityId": 19123
+      },
+      "url": "https://nominatim.openstreetmap.org/search?q=Valpara%C3%ADso%2C+Chile&countrycodes=cl&accept-language=en&format=jsonv2&addressdetails=1&polygon_geojson=1&limit=5&featuretype=city",
+      "status": 200,
+      "data": [
+        {
+          "name": "Valparaíso",
+          "display_name": "Valparaíso, Provincia de Valparaíso, Valparaiso Region, Chile",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 110808,
+          "boundingbox": [
+            "-33.2129142",
+            "-26.2733307",
+            "-80.1215134",
+            "-71.3830930"
+          ],
+          "address": {
+            "city": "Valparaíso",
+            "county": "Provincia de Valparaíso",
+            "state": "Valparaiso Region",
+            "ISO3166-2-lvl4": "CL-VS",
+            "country": "Chile",
+            "country_code": "cl"
+          },
+          "lat": "-33.0458456",
+          "lon": "-71.6196749",
+          "place_rank": 16
+        },
+        {
+          "name": "Valparaiso Region",
+          "display_name": "Valparaiso Region, Chile",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 198847,
+          "boundingbox": [
+            "-33.9561939",
+            "-26.2733307",
+            "-109.4548678",
+            "-69.9891619"
+          ],
+          "address": {
+            "state": "Valparaiso Region",
+            "ISO3166-2-lvl4": "CL-VS",
+            "country": "Chile",
+            "country_code": "cl"
+          },
+          "lat": "-32.5976089",
+          "lon": "-70.8529753",
+          "place_rank": 8
+        }
+      ],
+      "elapsedSeconds": 1.067
+    }
+  ],
+  "fallbacks": [
+    {
+      "query": "Lima, Peru",
+      "url": "https://nominatim.openstreetmap.org/search?q=Lima%2C+Peru&countrycodes=pe&accept-language=en&format=jsonv2&addressdetails=1&namedetails=1&extratags=1&polygon_geojson=1&limit=10",
+      "status": 200,
+      "data": [
+        {
+          "name": "Lima",
+          "display_name": "Lima, Province of Lima, Lima Metropolitan Area, Lima, 15001, Peru",
+          "category": "place",
+          "type": "city",
+          "osm_type": "node",
+          "osm_id": 4289361265,
+          "boundingbox": [
+            "-12.2059808",
+            "-11.8859808",
+            "-77.1905912",
+            "-76.8705912"
+          ],
+          "address": {
+            "city": "Lima",
+            "region": "Province of Lima",
+            "ISO3166-2-lvl6": "PE-LMA",
+            "state_district": "Lima Metropolitan Area",
+            "state": "Lima",
+            "ISO3166-2-lvl4": "PE-LIM",
+            "postcode": "15001",
+            "country": "Peru",
+            "country_code": "pe"
+          },
+          "lat": "-12.0459808",
+          "lon": "-77.0305912",
+          "place_rank": 15,
+          "namedetails": {
+            "name": "Lima",
+            "name:ab": "Лима",
+            "name:am": "ሊማ",
+            "name:ar": "ليما",
+            "name:be": "Ліма",
+            "name:bg": "Лима",
+            "name:bh": "लीमा",
+            "name:bn": "লিমা",
+            "name:bo": "ལི་མ།",
+            "name:ca": "Lima",
+            "name:ce": "Лима",
+            "name:cv": "Лима",
+            "name:de": "Lima",
+            "name:el": "Λίμα",
+            "name:en": "Lima",
+            "name:eo": "Limo",
+            "name:es": "Lima",
+            "name:et": "Lima",
+            "name:fa": "لیما",
+            "name:fj": "Lima",
+            "name:fr": "Lima",
+            "name:ga": "Líoma",
+            "name:gn": "Líma",
+            "name:he": "לימה",
+            "name:hi": "लीमा",
+            "name:hu": "Lima",
+            "name:hy": "Լիմա",
+            "name:id": "Lima",
+            "name:is": "Líma",
+            "name:it": "Lima",
+            "name:ja": "リマ",
+            "name:ka": "ლიმა",
+            "name:kk": "Лима",
+            "name:kn": "ಲಿಮಾ",
+            "name:ko": "리마",
+            "name:ku": "Lîma",
+            "name:ky": "Лима",
+            "name:mi": "Rima",
+            "name:mk": "Лима",
+            "name:ml": "ലിമ",
+            "name:mn": "Лима",
+            "name:mr": "लिमा",
+            "name:my": "လီမာမြို့",
+            "name:nl": "Lima",
+            "name:oc": "Lima",
+            "name:or": "ଲିମା",
+            "name:os": "Лимæ",
+            "name:pa": "ਲੀਮਾ",
+            "name:pl": "Lima",
+            "name:qu": "Limaq",
+            "name:ru": "Лима",
+            "name:sd": "ليما",
+            "name:si": "ලීමා",
+            "name:sr": "Лима",
+            "name:sv": "Lima",
+            "name:ta": "லிமா",
+            "name:tg": "Лима",
+            "name:th": "ลิมา",
+            "name:tl": "Lungsod ng Lima",
+            "name:tt": "Лима",
+            "name:ug": "لىما",
+            "name:uk": "Ліма",
+            "name:ur": "لیما",
+            "name:yi": "לימא",
+            "name:zh": "利馬/利马",
+            "name:arz": "ليما",
+            "name:krc": "Лима",
+            "name:mhr": "Лима",
+            "name:pnb": "لیما",
+            "name:wal": "Limma",
+            "name:xmf": "ლიმა",
+            "name:zh-Hans": "利马",
+            "name:zh-Hant": "利馬",
+            "name:be-tarask": "Ліма"
+          },
+          "extratags": {
+            "ele": "161",
+            "capital": "yes",
+            "wikidata": "Q2868",
+            "wikipedia": "es:Lima",
+            "population": "9989369"
+          }
+        },
+        {
+          "name": "Lima",
+          "display_name": "Lima, Peru",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 1944659,
+          "boundingbox": [
+            "-13.3241714",
+            "-10.2741856",
+            "-77.8863105",
+            "-75.5075000"
+          ],
+          "address": {
+            "state": "Lima",
+            "ISO3166-2-lvl4": "PE-LIM",
+            "country": "Peru",
+            "country_code": "pe"
+          },
+          "lat": "-12.2001093",
+          "lon": "-76.2850579",
+          "place_rank": 8,
+          "namedetails": {
+            "name": "Lima",
+            "name:de": "Lima",
+            "name:en": "Lima",
+            "name:es": "Lima",
+            "name:ja": "リマ県",
+            "name:pl": "Lima",
+            "name:ru": "Лима",
+            "name:uk": "Ліма",
+            "ISO3166-2": "PE-LIM",
+            "ref": "LIM",
+            "official_name": "Departamento de Lima",
+            "_place_name:en": "Department of Lima",
+            "name:eo": "Limio",
+            "_place_name:es": "Departamento de Lima",
+            "name:abbreviation": "LIM"
+          },
+          "extratags": {
+            "gns_uni": "-530960",
+            "wikidata": "Q211795",
+            "pe:ubigeo": "15",
+            "wikipedia": "es:Departamento de Lima",
+            "population": "11157400",
+            "linked_place": "state",
+            "wikipedia:en": "Lima Region",
+            "population:date": "2025",
+            "gns_classification": "ADM1",
+            "admin_level": "4"
+          }
+        },
+        {
+          "name": "Province of Lima",
+          "display_name": "Province of Lima, Lima Metropolitan Area, Lima, Peru",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 1944670,
+          "boundingbox": [
+            "-12.5199316",
+            "-11.5724356",
+            "-77.1992129",
+            "-76.6208244"
+          ],
+          "address": {
+            "region": "Province of Lima",
+            "ISO3166-2-lvl6": "PE-LMA",
+            "state_district": "Lima Metropolitan Area",
+            "state": "Lima",
+            "ISO3166-2-lvl4": "PE-LIM",
+            "country": "Peru",
+            "country_code": "pe"
+          },
+          "lat": "-12.0002116",
+          "lon": "-76.8330796",
+          "place_rank": 12,
+          "namedetails": {
+            "name": "Lima",
+            "name:es": "Lima",
+            "name:ru": "Лима",
+            "name:uk": "Ліма",
+            "ISO3166-2": "PE-LMA",
+            "ref": "LIM",
+            "_place_name": "Provincia de Lima",
+            "name:en": "Province of Lima",
+            "_place_name:es": "Provincia de Lima",
+            "name:pl": "Prowincja Lima",
+            "name:abbreviation": "LIM"
+          },
+          "extratags": {
+            "gns_uni": "-530961",
+            "wikidata": "Q579240",
+            "pe:ubigeo": "1501",
+            "wikipedia": "es:Provincia de Lima",
+            "population": "10142492",
+            "linked_place": "region",
+            "wikipedia:en": "Lima Province",
+            "population:date": "2025",
+            "gns_classification": "ADM2",
+            "admin_level": "6"
+          }
+        },
+        {
+          "name": "Lima",
+          "display_name": "Lima, Province of Lima, Lima Metropolitan Area, Lima, Peru",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 1944756,
+          "boundingbox": [
+            "-12.0797663",
+            "-12.0306376",
+            "-77.0884555",
+            "-77.0017774"
+          ],
+          "address": {
+            "city": "Lima",
+            "region": "Province of Lima",
+            "ISO3166-2-lvl6": "PE-LMA",
+            "state_district": "Lima Metropolitan Area",
+            "state": "Lima",
+            "ISO3166-2-lvl4": "PE-LIM",
+            "country": "Peru",
+            "country_code": "pe"
+          },
+          "lat": "-12.0550759",
+          "lon": "-77.0265431",
+          "place_rank": 16,
+          "namedetails": {
+            "name": "Lima"
+          },
+          "extratags": {
+            "heritage": "1",
+            "wikidata": "Q3031413",
+            "pe:ubigeo": "150101",
+            "wikipedia": "es:Distrito de Lima",
+            "population": "314869",
+            "wikipedia:en": "Lima District",
+            "population:date": "2025",
+            "heritage:operator": "whc",
+            "whc:inscription_date": "1988",
+            "admin_level": "8"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Madrid, Spain",
+      "url": "https://nominatim.openstreetmap.org/search?q=Madrid%2C+Spain&countrycodes=es&accept-language=en&format=jsonv2&addressdetails=1&namedetails=1&extratags=1&polygon_geojson=1&limit=10",
+      "status": 200,
+      "data": [
+        {
+          "name": "Madrid",
+          "display_name": "Madrid, Community of Madrid, Spain",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 5326784,
+          "boundingbox": [
+            "40.3119774",
+            "40.6437293",
+            "-3.8889539",
+            "-3.5183264"
+          ],
+          "address": {
+            "city": "Madrid",
+            "state": "Community of Madrid",
+            "ISO3166-2-lvl4": "ES-MD",
+            "country": "Spain",
+            "country_code": "es"
+          },
+          "lat": "40.4167820",
+          "lon": "-3.7035070",
+          "place_rank": 16,
+          "namedetails": {
+            "name": "Madrid",
+            "name:ar": "مدريد",
+            "name:cs": "Madrid",
+            "name:de": "Madrid",
+            "name:el": "Μαδρίτη",
+            "name:en": "Madrid",
+            "name:es": "Madrid",
+            "name:fa": "مادرید",
+            "name:it": "Madrid",
+            "name:ko": "마드리드",
+            "name:pl": "Madryt",
+            "name:ru": "Мадрид",
+            "name:ur": "میدرد",
+            "name:zh": "馬德里",
+            "loc_name": "Madriz",
+            "name:szl": "Madryt",
+            "short_name": "MDZ",
+            "alt_name:ar": "مجريط",
+            "old_name:ar": "مجريط",
+            "name:ab": "Мaдрид",
+            "name:am": "ማድሪድ",
+            "name:an": "Madrit",
+            "name:as": "মাদ্ৰিদ",
+            "name:ba": "Мадрид",
+            "name:be": "Мадрыд",
+            "name:bg": "Мадрид",
+            "name:bh": "मैड्रिड",
+            "name:bn": "মাদ্রিদ",
+            "name:bo": "མ་ད་རིད།",
+            "name:br": "Madrid",
+            "name:ca": "Madrid",
+            "name:ce": "Мадрид",
+            "name:co": "Madridi",
+            "name:cu": "Мадридъ",
+            "name:cv": "Мадрид",
+            "name:eo": "Madrido",
+            "name:eu": "Madril",
+            "name:fr": "Madrid",
+            "name:ga": "Maidrid",
+            "name:he": "מדריד",
+            "name:hi": "मद्रिद",
+            "name:hu": "Madrid",
+            "name:hy": "Մադրիդ",
+            "name:is": "Madrid",
+            "name:ja": "マドリード",
+            "name:ka": "მადრიდი",
+            "name:kk": "Мадрид",
+            "name:kn": "ಮಾದ್ರಿದ್",
+            "name:ks": "مدرِد",
+            "name:ku": "Madrîd",
+            "name:kv": "Мадрид",
+            "name:ky": "Мадрид",
+            "name:la": "Matritum",
+            "name:li": "Madrid",
+            "name:lo": "ມາດິດ",
+            "name:lt": "Madridas",
+            "name:lv": "Madride",
+            "name:mk": "Мадрид",
+            "name:ml": "മാദ്രിദ്",
+            "name:mn": "Мадрид",
+            "name:mr": "माद्रिद",
+            "name:my": "မာဒရစ်မြို့",
+            "name:ne": "म्याड्रिड",
+            "name:nl": "Madrid",
+            "name:no": "Madrid",
+            "name:nv": "Tó Háálį́",
+            "name:oc": "Madrid",
+            "name:or": "ମାଡ୍ରିଦ",
+            "name:os": "Мадрид",
+            "name:pa": "ਮਾਦਰੀਦ",
+            "name:ps": "مادرید",
+            "name:ro": "Madrid",
+            "name:sa": "मद्रिद्",
+            "name:sd": "ميڊرڊ",
+            "name:si": "මැඩ්රිඩ්",
+            "name:sk": "Madrid",
+            "name:sl": "Madrid",
+            "name:sm": "Matariti",
+            "name:sq": "Madridi",
+            "name:sr": "Мадрид",
+            "name:sv": "Madrid",
+            "name:ta": "மத்ரித்",
+            "name:te": "మాడ్రిడ్",
+            "name:tg": "Мадрид",
+            "name:th": "มาดริด",
+            "name:ti": "ማድሪድ",
+            "name:tr": "Madrid",
+            "name:uk": "Мадрид",
+            "_place_name:ur": "میڈرڈ",
+            "name:yi": "מאדריד",
+            "_place_name:zh": "馬德里/马德里",
+            "name:arc": "ܡܕܪܝܕ",
+            "name:arz": "مدريد",
+            "name:ber": "ⵎⴰⴷⵔⵉⴷ",
+            "name:ckb": "مادرید",
+            "name:ext": "Mairil",
+            "name:haw": "Makelika",
+            "name:kab": "Madrid",
+            "name:kbd": "Мадрид",
+            "name:koi": "Мадрид",
+            "name:lez": "Мадрид",
+            "name:mhr": "Мадрид",
+            "name:mrj": "Мадрид",
+            "name:myv": "Мадрид",
+            "name:mzn": "مادرید",
+            "name:pnb": "میڈرڈ",
+            "name:rue": "Мадрід",
+            "name:sah": "Мадрид",
+            "name:tet": "Madríd",
+            "name:udm": "Мадрид",
+            "name:wal": "Maadiride",
+            "name:xmf": "მადრიდი",
+            "name:yue": "馬德里",
+            "name:nds-nl": "Medrid",
+            "name:bat-smg": "Madrids",
+            "name:zh-Hans": "马德里",
+            "name:zh-Hant": "馬德里",
+            "name:be-tarask": "Мадрыд",
+            "name:zh-Latn-pinyin": "Mǎdélǐ"
+          },
+          "extratags": {
+            "ele": "655",
+            "rank": "10",
+            "capital": "yes",
+            "ref:ine": "28079000000",
+            "wikidata": "Q2807",
+            "wikipedia": "es:Madrid",
+            "is_capital": "country",
+            "population": "3477497",
+            "linked_place": "city",
+            "ine:municipio": "28079",
+            "population:date": "2025",
+            "wikimedia_commons": "Category:Madrid",
+            "admin_level": "8"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Lisboa, Portugal",
+      "url": "https://nominatim.openstreetmap.org/search?q=Lisboa%2C+Portugal&countrycodes=pt&accept-language=en&format=jsonv2&addressdetails=1&namedetails=1&extratags=1&polygon_geojson=1&limit=10",
+      "status": 200,
+      "data": [
+        {
+          "name": "Lisbon",
+          "display_name": "Lisbon, Portugal",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 5400890,
+          "boundingbox": [
+            "38.6913994",
+            "38.7967584",
+            "-9.2298356",
+            "-9.0863328"
+          ],
+          "address": {
+            "city": "Lisbon",
+            "county": "Lisbon",
+            "ISO3166-2-lvl6": "PT-11",
+            "country": "Portugal",
+            "country_code": "pt"
+          },
+          "lat": "38.7077507",
+          "lon": "-9.1365919",
+          "place_rank": 14,
+          "namedetails": {
+            "name": "Lisboa",
+            "name:am": "ሊዝቦን",
+            "name:an": "Lisbona",
+            "name:ar": "لشبونة",
+            "name:az": "Lissabon",
+            "name:ba": "Лиссабон",
+            "name:be": "Лісабон",
+            "name:bg": "Лисабон",
+            "name:bn": "লিসবন",
+            "name:bo": "ལི་སི་བཱོན།",
+            "name:br": "Lisbon",
+            "name:bs": "Lisabon",
+            "name:ca": "Lisboa",
+            "name:co": "Lisbona",
+            "name:cs": "Lisabon",
+            "name:cv": "Лиссабон",
+            "name:cy": "Lisbon",
+            "name:da": "Lissabon",
+            "name:de": "Lissabon",
+            "name:ee": "Lisbon",
+            "name:el": "Λισαβόνα",
+            "name:en": "Lisbon",
+            "name:eo": "Lisbono",
+            "name:es": "Lisboa",
+            "name:et": "Lissabon",
+            "name:eu": "Lisboa",
+            "name:fa": "لیسبون",
+            "name:fi": "Lissabon",
+            "name:fo": "Lisboa",
+            "name:fr": "Lisbonne",
+            "name:fy": "Lissabon",
+            "name:ga": "Liospóin",
+            "name:gd": "Lisbon",
+            "name:gl": "Lisboa",
+            "name:gn": "Lisimbã",
+            "name:gv": "Lisboa",
+            "name:he": "ליסבון",
+            "name:hi": "लिस्बन",
+            "name:hr": "Lisabon",
+            "name:ht": "Lisbòn",
+            "name:hu": "Lisszabon",
+            "name:hy": "Լիսաբոն",
+            "name:ia": "Lisbona",
+            "name:id": "Lisboa",
+            "name:ie": "Lisboa",
+            "name:io": "Lisboa",
+            "name:is": "Lissabon",
+            "name:it": "Lisbona",
+            "name:ja": "リスボン",
+            "name:jv": "Lisabon",
+            "name:ka": "ლისაბონი",
+            "name:kk": "Лиссабон",
+            "name:kn": "ಲಿಸ್ಬೊನ್",
+            "name:ko": "리스본",
+            "name:ku": "Lîzbon",
+            "name:kv": "Лиссабон",
+            "name:kw": "Lisboa",
+            "name:ky": "Лиссабон",
+            "name:la": "Olisipo",
+            "name:ln": "Lisboa",
+            "name:lt": "Lisabona",
+            "name:lv": "Lisabona",
+            "name:mi": "Rihipone",
+            "name:mk": "Лисабон",
+            "name:ml": "ലിസ്‌ബൺ",
+            "name:mr": "लिस्बन",
+            "name:ms": "Lisbon",
+            "name:my": "လစ်စဘွန်းမြို့",
+            "name:nl": "Lissabon",
+            "name:nn": "Lisboa",
+            "name:no": "Lisboa",
+            "name:oc": "Lisbona",
+            "name:os": "Лиссабон",
+            "name:pl": "Lizbona",
+            "name:pt": "Lisboa",
+            "name:qu": "Lisboa",
+            "name:rm": "Lisbona",
+            "name:rn": "Lisboa",
+            "name:ro": "Lisabona",
+            "name:ru": "Лиссабон",
+            "name:sa": "लिस्बन",
+            "name:sc": "Lisbona",
+            "name:sh": "Lisabon",
+            "name:sk": "Lisabon",
+            "name:sl": "Lizbona",
+            "name:sq": "Lisbona",
+            "name:sr": "Лисабон",
+            "name:st": "Lisbon",
+            "name:sv": "Lissabon",
+            "name:sw": "Lisbon",
+            "name:ta": "லிஸ்பன்",
+            "name:te": "లిస్బన్",
+            "name:tg": "Лиссабон",
+            "name:th": "ลิสบอน",
+            "name:tl": "Lisboa",
+            "name:tr": "Lizbon",
+            "name:tt": "Лиссабон",
+            "name:tw": "Lisbon",
+            "name:ty": "Lisboa",
+            "name:ug": "لىسبون",
+            "name:uk": "Лісабон",
+            "name:ur": "لزبن",
+            "name:vi": "Lisboa",
+            "name:vo": "Lisboa",
+            "name:wo": "Lisbon",
+            "name:yi": "ליסבאן",
+            "name:yo": "Lisbon",
+            "name:zh": "里斯本",
+            "nat_ref": "LSB",
+            "name:ace": "Lisbon",
+            "name:arc": "ܠܫܒܘܢܐ",
+            "name:arz": "ليشبوا",
+            "name:ast": "Lisboa",
+            "name:ckb": "لیسبۆن",
+            "name:crh": "Lisbon",
+            "name:csb": "Lisabón",
+            "name:diq": "Lizbon",
+            "name:ext": "Lisboa",
+            "name:frp": "Lisbona",
+            "name:fur": "Lisbone",
+            "name:haw": "Likepona",
+            "name:hif": "Lisbon",
+            "name:hsb": "Lisabon",
+            "name:ilo": "Lisbon",
+            "name:kab": "Lisbun",
+            "name:lad": "Lisboa",
+            "name:lij": "Lisbonn-a",
+            "name:lmo": "Lisbuna",
+            "name:mrj": "Лиссабон",
+            "name:mwl": "Lisboua",
+            "name:myv": "Лиссабон ош",
+            "name:mzn": "لیسبون",
+            "name:nah": "Lisboa",
+            "name:nan": "Lisboa",
+            "name:nov": "Lisboa",
+            "name:pap": "Lisboa",
+            "name:pms": "Lisbon-a",
+            "name:pnb": "لزبن",
+            "name:rmy": "Lisbon",
+            "name:sah": "Лиссабон",
+            "name:scn": "Lisbona",
+            "name:sco": "Lisbon",
+            "name:srn": "Lisbon",
+            "name:szl": "Lizbůna",
+            "name:tet": "Lizboa",
+            "name:tzl": "Lispovia",
+            "name:udm": "Лиссабон",
+            "name:vec": "Łisbóna",
+            "name:war": "Lisboa",
+            "name:bat-smg": "Lisabuona",
+            "name:roa-rup": "Lisabon",
+            "name:zh-Hans": "里斯本",
+            "name:zh-Hant": "里斯本",
+            "official_name": "Município de Lisboa",
+            "name:af": "Lissabon",
+            "name:av": "Лиссабон",
+            "name:ce": "Лиссабон",
+            "name:cu": "Лисабонъ",
+            "name:ff": "Lisbon",
+            "_place_name:gv": "Lisbon",
+            "name:ha": "Lisbon",
+            "_place_name:kn": "ಲಿಸ್ಬನ್",
+            "_place_name:ku": "Lîsabon",
+            "name:lb": "Lissabon",
+            "name:li": "Lissabon",
+            "name:lo": "ລີຊະບົນ",
+            "_place_name:mi": "Rihipane",
+            "_place_name:ml": "ലിസ്ബൺ",
+            "name:mn": "Лиссабон",
+            "_place_name:mr": "लिसबोन",
+            "name:mt": "Liżbona",
+            "name:or": "ଲିସବନ",
+            "name:pa": "ਲਿਸਬਨ",
+            "_place_name:rm": "Lissabon",
+            "name:sd": "لزبن",
+            "name:sn": "Lisbon",
+            "name:so": "Lissabon",
+            "name:tk": "Lissabon",
+            "name:uz": "Lissabon",
+            "name:be-tarask": "Лісабон",
+            "int_name": "Lisbon",
+            "alt_name:ar": "أشبونة",
+            "alt_name:ku": "Lîzbon",
+            "old_name:tr": "Üşbûne",
+            "name:zh-Latn-pinyin": "Lǐsīběn",
+            "old_name:-400": "Olissipo Felicitas Julia"
+          },
+          "extratags": {
+            "ele": "2",
+            "capital": "yes",
+            "ref:ine": "1106",
+            "website": "http://www.cm-lisboa.pt/",
+            "wikidata": "Q597",
+            "wikipedia": "pt:Lisboa",
+            "population": "545923",
+            "start_date": "1147",
+            "border_type": "município",
+            "linked_place": "city",
+            "population:date": "2021",
+            "wikimedia_commons": "Category:Lisbon",
+            "admin_level": "7"
+          }
+        },
+        {
+          "name": "Lisbon",
+          "display_name": "Lisbon, Portugal",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 2897141,
+          "boundingbox": [
+            "38.6731469",
+            "39.3177287",
+            "-9.5005266",
+            "-8.7818610"
+          ],
+          "address": {
+            "county": "Lisbon",
+            "ISO3166-2-lvl6": "PT-11",
+            "country": "Portugal",
+            "country_code": "pt"
+          },
+          "lat": "38.9952469",
+          "lon": "-9.1435928",
+          "place_rank": 12,
+          "namedetails": {
+            "name": "Lisboa",
+            "name:de": "Lissabon",
+            "name:en": "Lisbon",
+            "name:es": "Lisboa",
+            "name:eu": "Lisboa",
+            "name:fr": "Lisbonne",
+            "name:it": "Lisbona",
+            "name:ja": "リスボン",
+            "name:la": "Olisipo",
+            "name:nl": "Lissabon",
+            "name:pt": "Lisboa",
+            "name:ro": "Lisabona",
+            "name:ru": "Лиссабон",
+            "name:sk": "Lisabon",
+            "name:uk": "Лісабон",
+            "ISO3166-2": "PT-11",
+            "official_name": "Distrito de Lisboa",
+            "official_name:en": "Lisbon District",
+            "official_name:fr": "District de Lisbonne",
+            "official_name:pt": "Distrito de Lisboa"
+          },
+          "extratags": {
+            "ref:ine": "11",
+            "wikidata": "Q207199",
+            "wikipedia": "pt:Distrito de Lisboa",
+            "population": "2275846",
+            "start_date": "1835",
+            "border_type": "distrito",
+            "population:date": "2021",
+            "admin_level": "6"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Araguari, Brazil",
+      "url": "https://nominatim.openstreetmap.org/search?q=Araguari%2C+Brazil&countrycodes=br&accept-language=en&format=jsonv2&addressdetails=1&namedetails=1&extratags=1&polygon_geojson=1&limit=10",
+      "status": 200,
+      "data": [
+        {
+          "name": "Araguari",
+          "display_name": "Araguari, Minas Gerais, Southeast Region, Brazil",
+          "category": "boundary",
+          "type": "administrative",
+          "osm_type": "relation",
+          "osm_id": 314597,
+          "boundingbox": [
+            "-18.8914555",
+            "-18.3229102",
+            "-48.6664225",
+            "-47.8720000"
+          ],
+          "address": {
+            "city": "Araguari",
+            "state": "Minas Gerais",
+            "ISO3166-2-lvl4": "BR-MG",
+            "region": "Southeast Region",
+            "country": "Brazil",
+            "country_code": "br"
+          },
+          "lat": "-18.6511256",
+          "lon": "-48.1933764",
+          "place_rank": 16,
+          "namedetails": {
+            "name": "Araguari",
+            "name:pt": "Araguari",
+            "_place_name:pt": "Araguari",
+            "name:ru": "Арагуари"
+          },
+          "extratags": {
+            "wikidata": "Q1637522",
+            "wikipedia": "pt:Araguari",
+            "population": "117808",
+            "ref:LOCODE": "BRARG",
+            "linked_place": "city",
+            "IBGE:GEOCODIGO": "3103504",
+            "population:date": "2023-08-31",
+            "admin_level": "8"
+          }
+        }
+      ]
+    }
+  ]
+}
