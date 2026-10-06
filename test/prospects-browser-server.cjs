@@ -9,18 +9,20 @@ const root = path.resolve(__dirname, ".."), localRequire = createRequire(path.jo
 const databaseUrl = process.env.TEST_DATABASE_URL;
 if (!databaseUrl || !["127.0.0.1", "localhost"].includes(new URL(databaseUrl).hostname)) throw new Error("Use apenas PostgreSQL local descartável em TEST_DATABASE_URL.");
 const port = 3161, origin = `http://127.0.0.1:${port}`;
+const frontendOrigin = process.env.FRONTEND_BROWSER_TEST === "true" ? "http://localhost:3162" : null;
 const config = auth.configuration({ AUTH_MODE: "password", DATABASE_URL: databaseUrl,
-  DATA_ENCRYPTION_KEY: crypto.randomBytes(32).toString("base64"), BREVO_API_KEY: "fixture-only-not-a-real-key", EMAIL_FROM: "sender@example.test" }, { hosted: false, origin });
+  DATA_ENCRYPTION_KEY: crypto.randomBytes(32).toString("base64"), BREVO_API_KEY: "fixture-only-not-a-real-key", EMAIL_FROM: "sender@example.test" }, { hosted: false, origin, frontendOrigin });
 const store = accounts.createStore({ databaseUrl, encryptionKey: config.encryptionKey, local: true });
 const sql = new Pool(accounts.databaseOptions(databaseUrl, true));
 const service = auth.createService(config, { store, mailer: async () => { throw new Error("Email is prohibited in this fixture server."); } });
 const context = { require: name => name === "./auth.cjs" ? { ...auth, configuration: () => config, createService: () => service } : localRequire(name),
-  module: { exports: {} }, __dirname: root, process: { env: { APP_ORIGIN: origin, PORT: String(port) } },
+  module: { exports: {} }, __dirname: root, process: { env: { APP_ORIGIN: origin, APP_FRONTEND_ORIGIN: frontendOrigin || "", PORT: String(port) } },
   console, Buffer, URL, URLSearchParams, AbortSignal, structuredClone, setTimeout, clearTimeout, fetch };
 const source = fs.readFileSync(path.join(root, "server.cjs"), "utf8");
 vm.runInNewContext(source.slice(0, source.lastIndexOf("server.listen(")) + "\nmodule.exports={server,jobs};", context);
 const backend = context.module.exports, fixtures = {}, owners = [];
 const phrase = "Senha exclusiva de fixture local 2026!";
+let frontend;
 async function start() {
   await store.ready(); const passwordHash = await passwords.hashPassword(phrase);
   for (const device of ["desktop", "mobile"]) {
@@ -57,8 +59,32 @@ async function start() {
     return realHandler(request, response);
   });
   backend.server.listen(port, "127.0.0.1", () => console.log("List browser fixtures ready on loopback."));
+  if (frontendOrigin) {
+    // Local HTTP equivalent of the external rewrite. Preserve Origin, cookies,
+    // CSRF, methods and all Set-Cookie headers; serve the actual build directory.
+    const http = require("node:http"), { publicFiles } = require("../static-resources.cjs");
+    frontend = http.createServer((request, response) => {
+      const pathname = new URL(request.url, frontendOrigin).pathname;
+      if (pathname.startsWith("/api/") || ["/auth/logout", "/health", "/__test/info"].includes(pathname)) {
+        const upstream = http.request(origin + request.url, { method: request.method,
+          headers: { ...request.headers, host: new URL(origin).host, "x-forwarded-host": new URL(frontendOrigin).host } }, incoming => {
+          response.writeHead(incoming.statusCode, incoming.headers); incoming.pipe(response);
+        });
+        upstream.on("error", () => { response.writeHead(502); response.end(); });
+        request.pipe(upstream); return;
+      }
+      require("../request-security.cjs").headers(response, false);
+      if (!["GET", "HEAD"].includes(request.method) || !Object.hasOwn(publicFiles, pathname)) { response.writeHead(404); response.end(); return; }
+      const file = pathname === "/" ? "index.html" : pathname.slice(1);
+      const content = fs.readFileSync(path.join(root, "dist", file));
+      response.writeHead(200, { "Content-Type": publicFiles[pathname][1], "Cache-Control": "no-cache" });
+      response.end(request.method === "HEAD" ? undefined : content);
+    });
+    frontend.listen(3162, "127.0.0.1", () => console.log("Static frontend and API proxy fixtures ready on loopback."));
+  }
 }
 async function stop() {
+  frontend?.close();
   backend.server.close();
   await sql.query("DELETE FROM prospect_accounts WHERE id=ANY($1::uuid[])", [owners]);
   await store.close(); await sql.end(); process.exit(0);

@@ -28,7 +28,9 @@ function configuration(env, hosting) {
   if (!env.DATABASE_URL) throw new Error("Configure DATABASE_URL para as contas.");
   vault(env.DATA_ENCRYPTION_KEY);
   databaseOptions(env.DATABASE_URL, !hosting.hosted);
-  return { mode, origin: origin.origin, hosted: hosting.hosted, secure: origin.protocol === "https:",
+  return { mode, origin: hosting.frontendOrigin || origin.origin,
+    allowedOrigins: [...new Set([origin.origin, hosting.frontendOrigin].filter(Boolean))],
+    hosted: hosting.hosted, secure: origin.protocol === "https:",
     databaseUrl: env.DATABASE_URL, encryptionKey: env.DATA_ENCRYPTION_KEY, email: emailService.configuration(env),
     administrators: (env.ADMIN_EMAILS || "").split(",").filter(x => x.trim()).map(gmail) };
 }
@@ -83,7 +85,8 @@ function createService(config, { store, mailer } = {}) {
     checkMutation(request, identity) {
       const challenge = cookieValue(request, challengeName);
       const expected = identity?.csrf || (challenge ? store.csrf(`anonymous:${challenge}`) : null);
-      return request.headers.origin === config.origin && equal(request.headers["x-csrf-token"], expected) && request.headers["sec-fetch-site"] !== "cross-site";
+      return (config.allowedOrigins || [config.origin]).includes(request.headers.origin) &&
+        equal(request.headers["x-csrf-token"], expected) && request.headers["sec-fetch-site"] !== "cross-site";
     },
     async requestEmail(request, input, purpose) {
       const email = gmail(input.email);

@@ -5,6 +5,7 @@
   "description": "Pesquisa de empresas locais e verificação de websites.",
   "scripts": {
     "start": "node server.cjs",
+    "build:frontend": "node scripts/build-frontend.cjs",
     "test": "node --test test/*.test.cjs",
     "eval:agent": "node agent-evaluation.cjs"
   },

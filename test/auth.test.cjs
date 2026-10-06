@@ -67,6 +67,29 @@ test("cookie anônimo e origem protegem inclusive o login contra CSRF", () => {
   assert.equal(service.checkMutation({ headers: { ...request.headers, "x-csrf-token": "wrong" } }, null), false);
   assert.equal(service.checkMutation({ headers: { ...request.headers, "sec-fetch-site": "cross-site" } }, null), false);
 });
+
+test("interface Vercel mantém CSRF e cookies protegidos, links usam origem configurada", async () => {
+  const hosting = require("../hosting.cjs").configuration({ RENDER: "true", RENDER_EXTERNAL_URL: "https://api.onrender.com",
+    APP_FRONTEND_ORIGIN: "https://prospect.vercel.app" });
+  const config = auth.configuration({ ...env(), DATABASE_URL: "postgres://fixture:fixture@db.example/app" }, hosting);
+  const box = vault(config.encryptionKey), messages = [];
+  const service = auth.createService(config, { store: { csrf: value => box.mac("csrf", value), allow: async () => true,
+    issueEmailToken: async () => {} }, mailer: async value => { messages.push(value); } });
+  const account = service.account({ headers: {} }, null);
+  const headers = { origin: hosting.frontendOrigin, cookie: account.cookies[0].split(";")[0],
+    "x-csrf-token": account.data.csrfToken, "sec-fetch-site": "same-origin" };
+  for (const origin of [hosting.origin, hosting.frontendOrigin]) assert.equal(service.checkMutation({ headers: { ...headers, origin } }, null), true);
+  for (const origin of [undefined, "null", "https://preview.vercel.app", "https://prospect.vercel.app.evil.example", "https://evil.example"]) {
+    assert.equal(service.checkMutation({ headers: { ...headers, origin, "x-forwarded-host": "prospect.vercel.app" } }, null), false);
+  }
+  assert.equal(service.checkMutation({ headers: { ...headers, "x-csrf-token": "wrong" } }, null), false);
+  assert.equal(service.checkMutation({ headers: { ...headers, "sec-fetch-site": "cross-site" } }, null), false);
+  assert.match(account.cookies[0], /HttpOnly; SameSite=Lax; Max-Age=600; Secure$/);
+  assert.doesNotMatch(account.cookies[0], /Domain=/i);
+  await service.requestEmail({ headers, socket: { remoteAddress: "127.0.0.1" } }, { email: "fixture@gmail.com" }, "activate");
+  assert.equal(new URL(messages[0].link).origin, hosting.frontendOrigin);
+  assert.match(new URL(messages[0].link).hash, /^#activate=/);
+});
 test("senhas usam scrypt com salt próprio, preservam espaços e rejeitam senha incorreta", async () => {
   const phrase = "Uma frase privada longa 2026!";
   const a = await passwords.hashPassword(phrase), b = await passwords.hashPassword(phrase);

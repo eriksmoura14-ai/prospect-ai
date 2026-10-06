@@ -18,7 +18,20 @@ function configuration(env) {
   if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) {
     throw new Error("APP_ORIGIN deve ser uma URL HTTP(S), sem credenciais.");
   }
-  return { hosted, port, origin: url.origin, bind: hosted ? "0.0.0.0" : "127.0.0.1" };
+  let frontendOrigin = null;
+  if (env.APP_FRONTEND_ORIGIN) {
+    let frontend;
+    try { frontend = new URL(env.APP_FRONTEND_ORIGIN); }
+    catch { throw new Error("APP_FRONTEND_ORIGIN deve ser o endereço exato da interface."); }
+    if (!["http:", "https:"].includes(frontend.protocol) || frontend.username || frontend.password ||
+        frontend.pathname !== "/" || frontend.search || frontend.hash || frontend.hostname.includes("*") ||
+        (hosted && frontend.protocol !== "https:") ||
+        (!hosted && !["localhost", "127.0.0.1", "[::1]"].includes(frontend.hostname))) {
+      throw new Error("APP_FRONTEND_ORIGIN exige HTTPS hospedado ou loopback local, sem credenciais, caminhos ou curingas.");
+    }
+    frontendOrigin = frontend.origin;
+  }
+  return { hosted, port, origin: url.origin, frontendOrigin, bind: hosted ? "0.0.0.0" : "127.0.0.1" };
 }
 
 module.exports = { configuration };

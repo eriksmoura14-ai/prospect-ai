@@ -1,11 +1,12 @@
 node_modules/
 .cache/
+.artifacts/
+dist/
+baseline/
+test/
 __pycache__/
 *.pyc
 .env
 .env.*
 *.key
 *.pem
-.artifacts/
-dist/
-.vercel/
