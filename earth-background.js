@@ -15,6 +15,7 @@ function startEarth(host) {
   let disposed = false;
   let inViewport = true;
   let currentTarget = null;
+  let targetCountry = "";
   let pendingFrame = 0;
   let previousFrame = 0;
   let needsPaint = true;
@@ -23,6 +24,7 @@ function startEarth(host) {
   let labelDirty = true;
   let viewWidth = 0;
   let viewHeight = 0;
+  let guideWidth = 0;
   let labelWidth = 0;
   let labelHeight = 0;
   let journey = null;
@@ -35,6 +37,7 @@ function startEarth(host) {
   let planetMaterial;
   let clouds;
   let glow;
+  let leader;
   let resizeObserver;
   let viewportObserver;
   const resources = new Set();
@@ -45,9 +48,9 @@ function startEarth(host) {
     .map(name => [name, { loaded: false, width: 0, height: 0, path: "" }]));
   const starStatus = { layers: 0, count: 0, galacticCount: 0 };
   const defaultRotation = new THREE.Quaternion()
-    .fromArray(geographicQuaternion(-12, -45));
+    .fromArray(geographicQuaternion(14, -65));
   const targetScales = { country: 1, state: 1.08, city: 1.16 };
-  const lightDirection = new THREE.Vector3(0.6, 2.8, 5.8).normalize();
+  const lightDirection = new THREE.Vector3(-2.3, 3.6, 7.2).normalize();
   const motionButton = document.getElementById("earth-motion");
   const locationLabel = document.createElement("div");
   locationLabel.className = "earth-location";
@@ -58,6 +61,21 @@ function startEarth(host) {
   locationName.className = "earth-location-name";
   locationLabel.append(locationKicker, locationName);
   host.append(locationLabel);
+  const svgNamespace = "http://www.w3.org/2000/svg";
+  const locationGuide = document.createElementNS(svgNamespace, "svg");
+  locationGuide.classList.add("earth-location-guide");
+  locationGuide.setAttribute("aria-hidden", "true");
+  locationGuide.setAttribute("hidden", "");
+  leader = document.createElementNS(svgNamespace, "polyline");
+  leader.classList.add("earth-location-leader");
+  const guideHalo = document.createElementNS(svgNamespace, "circle");
+  guideHalo.classList.add("earth-location-halo");
+  guideHalo.setAttribute("r", "11");
+  const guideCore = document.createElementNS(svgNamespace, "circle");
+  guideCore.classList.add("earth-location-core");
+  guideCore.setAttribute("r", "5.5");
+  locationGuide.append(leader, guideHalo, guideCore);
+  host.append(locationGuide);
 
   // Useful when verifying the real canvas and reduced-motion behavior; no
   // authentication, business data or provider configuration is exposed.
@@ -109,19 +127,20 @@ function startEarth(host) {
     host.classList.remove("webgl-ready");
     host.classList.add("earth-fallback");
     locationLabel.hidden = true;
+    locationGuide.setAttribute("hidden", "");
     updateMotionButton();
   }
 
   try {
     renderer = new THREE.WebGLRenderer({
-      antialias: window.innerWidth > 640,
+      antialias: true,
       alpha: true,
       powerPreference: "low-power"
     });
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.28;
+    renderer.toneMappingExposure = 1.4;
     renderer.domElement.className = "earth-canvas";
     renderer.domElement.setAttribute("aria-hidden", "true");
     renderer.domElement.tabIndex = -1;
@@ -138,8 +157,8 @@ function startEarth(host) {
     const sphere = keep(new THREE.SphereGeometry(earthRadius, segments, segments));
     planetMaterial = keep(new THREE.MeshPhongMaterial({
       color: 0xffffff,
-      specular: 0x15283d,
-      shininess: 45
+      specular: 0x142d50,
+      shininess: 62
     }));
     // Blue Marble uses almost-black water. The existing specular texture is
     // its matching water mask, so brighten oceans without tinting continents
@@ -149,16 +168,18 @@ function startEarth(host) {
         #include <map_fragment>
         #ifdef USE_SPECULARMAP
           float ocean = texture2D(specularMap, vSpecularMapUv).r;
-          vec3 oceanBlue = vec3(0.008, 0.038, 0.12);
+          vec3 oceanBlue = vec3(0.006, 0.026, 0.11);
           diffuseColor.rgb = mix(diffuseColor.rgb,
-            max(diffuseColor.rgb, oceanBlue), ocean * 0.88);
+            max(diffuseColor.rgb, oceanBlue), ocean * 0.94);
+          diffuseColor.rgb = mix(diffuseColor.rgb,
+            pow(diffuseColor.rgb, vec3(0.85)), (1.0 - ocean) * 0.3);
         #endif
       `);
     };
-    planetMaterial.customProgramCacheKey = () => "prospect-earth-ocean-v1";
+    planetMaterial.customProgramCacheKey = () => "prospect-earth-ocean-v2";
     earth.add(new THREE.Mesh(sphere, planetMaterial));
-    scene.add(new THREE.AmbientLight(0xb7cffc, 0.32));
-    const sunlight = new THREE.DirectionalLight(0xfff8ef, 3.2);
+    scene.add(new THREE.AmbientLight(0xc6daff, 0.46));
+    const sunlight = new THREE.DirectionalLight(0xfffaf2, 3.5);
     sunlight.position.copy(lightDirection).multiplyScalar(8);
     scene.add(sunlight);
     const reflectedLight = new THREE.DirectionalLight(0x3271af, 0.09);
@@ -180,8 +201,10 @@ function startEarth(host) {
     const material = keep(new THREE.ShaderMaterial({
       uniforms: {
         sunlight: { value: lightDirection },
-        dayColor: { value: new THREE.Color(0x7cd4ff) },
-        nightColor: { value: new THREE.Color(0x245ea8) }
+        dayColor: { value: new THREE.Color(0x68d0ff) },
+        nightColor: { value: new THREE.Color(0x176eff) },
+        haloStrength: { value: 1.1 },
+        falloff: { value: 3.6 }
       },
       vertexShader: `
         varying vec3 vWorldNormal;
@@ -197,15 +220,18 @@ function startEarth(host) {
         uniform vec3 sunlight;
         uniform vec3 dayColor;
         uniform vec3 nightColor;
+        uniform float haloStrength;
+        uniform float falloff;
         varying vec3 vWorldNormal;
         varying vec3 vView;
         void main() {
           vec3 normal = normalize(vWorldNormal);
           float grazing = 1.0 - abs(dot(normal, normalize(vView)));
-          float opticalDepth = pow(clamp(grazing, 0.0, 1.0), 3.6);
+          float opticalDepth = pow(clamp(grazing, 0.0, 1.0), falloff);
           float day = smoothstep(-0.25, 0.6, dot(normal, sunlight));
           vec3 scatteredLight = mix(nightColor, dayColor, day);
-          gl_FragColor = vec4(scatteredLight, opticalDepth * (0.24 + day * 0.55));
+          gl_FragColor = vec4(scatteredLight,
+            opticalDepth * (0.48 + day * 0.52) * haloStrength);
           #include <colorspace_fragment>
         }
       `,
@@ -214,9 +240,34 @@ function startEarth(host) {
       blending: THREE.AdditiveBlending,
       depthWrite: false
     }));
-    const shell = keep(new THREE.SphereGeometry(earthRadius * 1.026,
+    const shell = keep(new THREE.SphereGeometry(earthRadius * 1.008,
       segments, segments));
     earth.add(new THREE.Mesh(shell, material));
+    // A static, soft light profile supplies atmospheric bloom without an
+    // expensive full-canvas post-processing pass or a hard second sphere.
+    const haloCanvas = document.createElement("canvas");
+    haloCanvas.width = haloCanvas.height = 256;
+    const context = haloCanvas.getContext("2d");
+    if (context) {
+      const bloom = context.createRadialGradient(128, 128, 0, 128, 128, 128);
+      for (const [stop, color] of [
+        [0, "rgba(0, 140, 255, 0)"], [0.73, "rgba(0, 140, 255, 0)"],
+        [0.79, "rgba(30, 154, 255, .07)"], [0.818, "rgba(50, 185, 255, .32)"],
+        [0.836, "rgba(25, 159, 255, .95)"], [0.851, "rgba(18, 113, 255, .72)"],
+        [0.88, "rgba(0, 130, 255, .19)"], [0.94, "rgba(0, 116, 255, .04)"],
+        [1, "rgba(0, 116, 255, 0)"]
+      ]) bloom.addColorStop(stop, color);
+      context.fillStyle = bloom;
+      context.fillRect(0, 0, 256, 256);
+      const haloMaterial = keep(new THREE.SpriteMaterial({
+        map: keep(new THREE.CanvasTexture(haloCanvas)),
+        transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending,
+        depthWrite: false, toneMapped: false
+      }));
+      const halo = new THREE.Sprite(haloMaterial);
+      halo.scale.setScalar(earthRadius * 2 * 1.24);
+      earth.add(halo);
+    }
   }
 
   function softDotTexture(color) {
@@ -316,9 +367,9 @@ function startEarth(host) {
           float coverage = texture2D(cloudTexture, vUv).a;
           float day = smoothstep(-0.12, 0.6,
             dot(normalize(vWorldNormal), sunlight));
-          vec3 cloudLight = mix(vec3(0.045, 0.065, 0.10),
-            vec3(0.86, 0.94, 1.0), day);
-          gl_FragColor = vec4(cloudLight, coverage * 0.74);
+          vec3 cloudLight = mix(vec3(0.12, 0.19, 0.30),
+            vec3(1.3, 1.36, 1.4), day);
+          gl_FragColor = vec4(cloudLight, coverage * 0.88);
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
         }
@@ -332,11 +383,11 @@ function startEarth(host) {
 
   function createMarker() {
     const group = new THREE.Group();
-    const core = keep(new THREE.SphereGeometry(0.018, 12, 8));
+    const core = keep(new THREE.SphereGeometry(0.046, 16, 12));
     const cyan = keep(new THREE.MeshBasicMaterial({ color: 0x20e7f1 }));
     group.add(new THREE.Mesh(core, cyan));
-    const innerRing = keep(new THREE.TorusGeometry(0.042, 0.0025, 8, 48));
-    const outerRing = keep(new THREE.TorusGeometry(0.074, 0.0014, 8, 48));
+    const innerRing = keep(new THREE.TorusGeometry(0.067, 0.003, 8, 48));
+    const outerRing = keep(new THREE.TorusGeometry(0.105, 0.0018, 8, 48));
     group.add(new THREE.Mesh(innerRing, cyan));
     const translucent = keep(new THREE.MeshBasicMaterial({
       color: 0x20e7f1, transparent: true, opacity: 0.48, depthWrite: false
@@ -351,7 +402,7 @@ function startEarth(host) {
       depthWrite: false
     }));
     glow = new THREE.Sprite(spriteMaterial);
-    glow.scale.setScalar(0.29);
+    glow.scale.setScalar(0.4);
     group.add(glow);
     return group;
   }
@@ -402,18 +453,25 @@ function startEarth(host) {
     if (!width || !height) return;
     const mobile = textureProfile === "mobile";
     viewWidth = width; viewHeight = height;
+    const hostBox = host.getBoundingClientRect();
+    const heroBox = host.closest(".hero-copy")?.getBoundingClientRect();
+    const availableRight = Math.min(window.innerWidth - 12,
+      heroBox?.right ?? hostBox.right) - hostBox.left;
+    guideWidth = Math.max(width, Math.min(width + (mobile ? 32 : 110), availableRight));
     labelWidth = labelHeight = 0; labelDirty = true;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,
       mobile ? 1.25 : 1.5));
     renderer.setSize(width, height, false);
+    locationGuide.setAttribute("viewBox", `0 0 ${guideWidth} ${height}`);
+    locationGuide.style.width = `${guideWidth}px`;
     camera.aspect = width / height;
     // Fit the complete atmosphere at the largest city zoom in the narrower
     // host dimension. Perspective and canvas dimensions use the same aspect,
     // so the sphere stays circular at every responsive breakpoint.
     const halfFov = THREE.MathUtils.degToRad(camera.fov / 2);
     const limitingHalfFov = Math.atan(Math.tan(halfFov) * Math.min(1, camera.aspect));
-    const largestRadius = earthRadius * targetScales.city * 1.045;
-    camera.position.z = largestRadius / Math.sin(Math.atan(Math.tan(limitingHalfFov) * 0.92));
+    const largestRadius = earthRadius * targetScales.city * 1.055;
+    camera.position.z = largestRadius / Math.sin(Math.atan(Math.tan(limitingHalfFov) * 0.93));
     camera.updateProjectionMatrix();
     globePlacement.position.set(0, 0, 0);
     globePlacement.quaternion.identity();
@@ -483,13 +541,15 @@ function startEarth(host) {
     labelDirty = true;
     labelWidth = labelHeight = 0;
     locationLabel.hidden = !ready || !currentTarget || !currentTarget.label;
+    locationGuide.toggleAttribute("hidden", locationLabel.hidden);
     if (locationLabel.hidden) return;
     locationKicker.textContent = {
       country: "PAÍS SELECIONADO",
       state: "REGIÃO SELECIONADA",
       city: "DESTINO SELECIONADO"
     }[currentTarget.stage];
-    locationName.textContent = currentTarget.label;
+    locationName.textContent = targetCountry && currentTarget.stage !== "country"
+      ? `${currentTarget.label}, ${targetCountry}` : currentTarget.label;
   }
 
   const labelPoint = new THREE.Vector3();
@@ -500,6 +560,7 @@ function startEarth(host) {
   function positionLocationLabel() {
     if (!ready || !currentTarget?.label || !marker.visible) {
       locationLabel.hidden = true;
+      locationGuide.setAttribute("hidden", "");
       return;
     }
     labelUpdates++;
@@ -512,26 +573,43 @@ function startEarth(host) {
     if (!facesViewer || labelPoint.z > 1 || Math.abs(labelPoint.x) > 1.05 ||
         Math.abs(labelPoint.y) > 1.05) {
       locationLabel.hidden = true;
+      locationGuide.setAttribute("hidden", "");
       return;
     }
     locationLabel.hidden = false;
+    locationGuide.removeAttribute("hidden");
     const width = viewWidth;
     const height = viewHeight;
     const pointX = (labelPoint.x + 1) * width / 2;
     const pointY = (1 - labelPoint.y) * height / 2;
-    if (!labelWidth) labelWidth = locationLabel.offsetWidth || Math.min(240, width - 24);
-    if (!labelHeight) labelHeight = locationLabel.offsetHeight || 48;
-    const preferredX = pointX + labelWidth + 24 < width
-      ? pointX + 18 : pointX - labelWidth - 18 >= 12
-        ? pointX - labelWidth - 18 : pointX - labelWidth / 2;
-    locationLabel.style.left = `${Math.max(12,
-      Math.min(width - labelWidth - 12, preferredX))}px`;
-    locationLabel.style.top = `${Math.max(12,
-      Math.min(height - labelHeight - 12, pointY + 20))}px`;
+    if (!labelWidth) labelWidth = locationLabel.offsetWidth || Math.min(190, width - 24);
+    if (!labelHeight) labelHeight = locationLabel.offsetHeight || 24;
+    const labelX = Math.max(12, guideWidth - labelWidth - 8);
+    const labelY = Math.max(12,
+      Math.min(height - labelHeight - 20,
+        pointY + (labelX < pointX + 12 ? 17 : 5)));
+    locationLabel.style.left = `${labelX}px`;
+    locationLabel.style.top = `${labelY}px`;
+    const lineY = labelY + labelHeight + 3;
+    const lineEnd = guideWidth - 8;
+    const elbowX = Math.max(pointX + 18, labelX - 7);
+    leader.setAttribute("points", `${pointX},${pointY} ${Math.min(lineEnd, elbowX)},${lineY} ${lineEnd},${lineY}`);
+    for (const dot of [guideHalo, guideCore]) {
+      dot.setAttribute("cx", pointX);
+      dot.setAttribute("cy", pointY);
+    }
   }
 
   function moveTo(detail) {
     const nextTarget = validLocation(detail);
+    targetCountry = "";
+    if (nextTarget && typeof detail.countryCode === "string" &&
+        /^[A-Z]{2}$/.test(detail.countryCode)) {
+      try {
+        targetCountry = new Intl.DisplayNames(["pt-BR"], { type: "region" })
+          .of(detail.countryCode) || "";
+      } catch { /* The place name remains available without DisplayNames. */ }
+    }
     // An unavailable/manual place must not leave a marker on the previous
     // city and suggest that it is the newly chosen location.
     currentTarget = nextTarget;
@@ -548,6 +626,10 @@ function startEarth(host) {
       ? new THREE.Quaternion().fromArray(geographicQuaternion(
         nextTarget.latitude, nextTarget.longitude))
       : defaultRotation.clone();
+    // Move the selected point a little down and right on the visible globe,
+    // making room for the callout without changing its actual coordinates.
+    if (nextTarget) orientation.premultiply(new THREE.Quaternion()
+      .setFromEuler(new THREE.Euler(0.18, 0.30, 0, "YXZ")));
     const scale = nextTarget ? targetScales[nextTarget.stage] : 1;
     if (reducedMotion || paused) {
       earth.quaternion.copy(orientation);
@@ -590,9 +672,23 @@ function startEarth(host) {
     if (!motionButton) return;
     motionButton.hidden = !ready || failed || reducedMotion;
     const label = paused ? "Retomar animação" : "Pausar animação";
-    motionButton.textContent = label;
+    const icon = document.createElementNS(svgNamespace, "svg");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("width", "20");
+    icon.setAttribute("height", "20");
+    icon.setAttribute("aria-hidden", "true");
+    const symbol = document.createElementNS(svgNamespace, "path");
+    symbol.setAttribute("d", paused ? "M8 5 19 12 8 19Z" : "M8 5v14M16 5v14");
+    symbol.setAttribute("fill", paused ? "currentColor" : "none");
+    symbol.setAttribute("stroke", "currentColor");
+    symbol.setAttribute("stroke-width", paused ? "1" : "3");
+    symbol.setAttribute("stroke-linecap", "round");
+    symbol.setAttribute("stroke-linejoin", "round");
+    icon.append(symbol);
+    motionButton.replaceChildren(icon);
     motionButton.setAttribute("aria-label", label);
     motionButton.setAttribute("aria-pressed", String(paused));
+    motionButton.title = label;
   }
 
   function onPause() {

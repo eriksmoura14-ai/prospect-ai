@@ -5,7 +5,7 @@ const { performance } = require("node:perf_hooks");
 const failure = (status, message, options = {}) => Object.assign(new Error(message),
   { status, safeRequestError: true, ...options });
 const CSP = "default-src 'self'; script-src 'self'; script-src-attr 'none'; " +
-  "style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; " +
+  "style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; " +
   "object-src 'none'; base-uri 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'self'";
 
 function headers(response, hostedHTTPS) {

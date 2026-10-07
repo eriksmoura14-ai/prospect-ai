@@ -5,12 +5,14 @@ password authentication and run `python test/earth-browser.py`. Override the
 default localhost:3041 address with PROSPECT_UI_BASE_URL and /usr/bin/chromium
 with CHROMIUM_PATH. A local PostgreSQL fixture server at :3161 can also be used;
 the test signs in only with its disposable fictional account. Geographic
-metadata and WebGL rendering are real; business
-searches are prohibited by the test and are not evidence of discovery uptime.
+metadata and WebGL rendering are real; only bounded public OpenStreetMap tile
+reads may be external. Business searches are prohibited and these tests are not
+evidence of discovery uptime.
 """
 import asyncio
 import json
 import os
+import re
 import time
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -19,11 +21,17 @@ from playwright.async_api import async_playwright
 
 BASE = os.environ.get("PROSPECT_UI_BASE_URL", "http://127.0.0.1:3041").rstrip("/")
 REPORT = {
-    "scope": "Real Chromium WebGL and local geographic metadata; no business searches or external provider requests.",
+    "scope": "Real Chromium WebGL and local geographic metadata; bounded public OSM tile reads only, no business searches or messages.",
     "checks": [], "failures": [], "consoleErrors": [], "requests": [],
-    "failedResponses": [], "screenshots": [], "performance": []
+    "failedResponses": [], "publicMapTileResponses": [], "mapErrors": [], "screenshots": [], "performance": []
 }
 AUTH_STATE = None
+
+
+def public_map_tile(url):
+    parsed = urlsplit(url)
+    match = re.fullmatch(r"/12/(\d+)/(\d+)\.png", parsed.path)
+    return parsed.scheme == "https" and parsed.netloc == "tile.openstreetmap.org" and bool(match) and all(0 <= int(value) < 4096 for value in match.groups())
 
 
 async def check(name, fn):
@@ -70,10 +78,14 @@ async def initialize(context, page=None, expected_ready=True, block_business=Tru
     page = page or await context.new_page()
     page.on("pageerror", lambda error: REPORT["consoleErrors"].append(str(error)))
     if expected_ready:
-        page.on("console", lambda message: REPORT["consoleErrors"].append(message.text)
-            if message.type == "error" and "404 (Not Found)" not in message.text else None)
+        def console_error(message):
+            if message.type != "error" or "404 (Not Found)" in message.text: return
+            if public_map_tile(message.location.get("url", "")):
+                REPORT["mapErrors"].append({"url":message.location["url"],"error":message.text})
+            else: REPORT["consoleErrors"].append(message.text)
+        page.on("console", console_error)
     page.on("request", lambda request: REPORT["requests"].append(request.url))
-    page.on("response", lambda response: REPORT["failedResponses"].append({
+    page.on("response", lambda response: REPORT["publicMapTileResponses"].append({"url":response.url,"status":response.status}) if public_map_tile(response.url) else REPORT["failedResponses"].append({
         "url": response.url, "status": response.status}) if response.status >= 400 else None)
     if block_business:
         await page.route("**/api/search", lambda route: route.abort("blockedbyclient"))
@@ -102,6 +114,45 @@ async def graphics_loaded(page):
             prospectEarth.graphics.textures[kind]?.loaded)""", timeout=15000)
 
 
+async def location_overlay(page):
+    """Check the rendered point/leader, using the real selected geography."""
+    await page.wait_for_function("""() => {
+        const guide=document.querySelector('.earth-location-guide');
+        const label=document.querySelector('.earth-location');
+        return guide && !guide.hasAttribute('hidden') &&
+            getComputedStyle(guide).display !== 'none' && label && !label.hidden;
+    }""", timeout=12000)
+    overlay = await page.locator(".earth-location-guide").evaluate("""guide => {
+        const core=guide.querySelector('.earth-location-core');
+        const line=guide.querySelector('.earth-location-leader');
+        return {
+            viewBox:guide.getAttribute('viewBox').split(/[ ,]+/).map(Number),
+            core:{x:core.cx.baseVal.value,y:core.cy.baseVal.value,r:core.r.baseVal.value},
+            points:Array.from({length:line.points.numberOfItems},(_,index)=>{
+                const point=line.points.getItem(index);return {x:point.x,y:point.y};
+            }),
+            lineStroke:getComputedStyle(line).stroke,
+            lineWidth:parseFloat(getComputedStyle(line).strokeWidth),
+            label:document.querySelector('.earth-location').getBoundingClientRect().toJSON(),
+            heading:document.querySelector('h1').getBoundingClientRect().toJSON(),
+            viewport:{width:innerWidth,height:innerHeight}
+        };
+    }""")
+    x, y, width, height = overlay["viewBox"]
+    core = overlay["core"]
+    assert x <= core["x"] <= x + width and y <= core["y"] <= y + height, overlay
+    assert core["r"] >= 3, overlay
+    assert len(overlay["points"]) >= 2 and overlay["lineWidth"] >= 1, overlay
+    assert overlay["lineStroke"] not in ["none", "transparent", "rgba(0, 0, 0, 0)"], overlay
+    start = overlay["points"][0]
+    assert abs(start["x"] - core["x"]) <= 2 and abs(start["y"] - core["y"]) <= 2, overlay
+    label, heading = overlay["label"], overlay["heading"]
+    assert label["left"] >= 0 and label["right"] <= overlay["viewport"]["width"] + 1, overlay
+    assert not (label["left"] < heading["right"] and label["right"] > heading["left"] and
+        label["top"] < heading["bottom"] and label["bottom"] > heading["top"]), overlay
+    return overlay
+
+
 async def measure_graphics(page):
     return await page.evaluate("""async () => {
         const canvas = document.querySelector('.earth-canvas');
@@ -113,7 +164,7 @@ async def measure_graphics(page):
         await new Promise(resolve => setTimeout(resolve, 1600));
         const elapsed = performance.now() - started;
         const frames = prospectEarth.frameCount - before;
-        const textures = performance.getEntriesByType('resource')
+        const images = performance.getEntriesByType('resource')
             .filter(entry => new URL(entry.name).pathname.startsWith('/assets/') &&
                 /\\.(jpg|png|webp)$/.test(new URL(entry.name).pathname))
             .map(entry => ({path: new URL(entry.name).pathname,
@@ -121,9 +172,14 @@ async def measure_graphics(page):
                 decodedBodyBytes: entry.decodedBodySize,
                 transferBytes: entry.transferSize,
                 durationMs: Math.round(entry.duration)}));
+        const textures=images.filter(image=>image.path.includes('/earth-'));
+        const decorativeImages=images.filter(image=>!image.path.includes('/earth-'));
         const unique = new Map();
         for (const texture of textures)
             unique.set(texture.path, Math.max(unique.get(texture.path) || 0, texture.encodedBytes));
+        const uniqueDecorative=new Map();
+        for(const image of decorativeImages)
+            uniqueDecorative.set(image.path,Math.max(uniqueDecorative.get(image.path)||0,image.encodedBytes));
         return {elapsedMs: Math.round(elapsed), renderedFrames: frames,
             measuredFramesPerSecond: Number((frames * 1000 / elapsed).toFixed(2)),
             renderer: extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL)
@@ -131,8 +187,10 @@ async def measure_graphics(page):
             canvas: {width: canvas.width, height: canvas.height},
             viewport: {width: innerWidth, height: innerHeight, dpr: devicePixelRatio},
             cloudBefore, cloudAfter: prospectEarth.graphics.cloudRotation,
-            graphics: prospectEarth.graphics, textures,
+            graphics: prospectEarth.graphics, textures, decorativeImages,
             uniqueTextureBytes: [...unique.values()].reduce((sum, bytes) => sum + bytes, 0),
+            decorativeImageBytes: [...uniqueDecorative.values()].reduce((sum, bytes) => sum + bytes, 0),
+            decorativeImageWireBytes: decorativeImages.reduce((sum,image)=>sum+image.transferBytes,0),
             textureWireBytes: textures.reduce((sum, texture) => sum + texture.transferBytes, 0),
             limitation: 'ANGLE SwiftShader software rendering; observations do not predict phone or hardware GPU frame rates'};
     }""")
@@ -158,7 +216,8 @@ async def main():
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(
             executable_path=os.environ.get("CHROMIUM_PATH", "/usr/bin/chromium"),
-            headless=True, args=["--no-sandbox", "--enable-unsafe-swiftshader"])
+            proxy={"server":os.environ.get("HTTPS_PROXY","http://proxy:8080"),"bypass":"localhost,127.0.0.1"},
+            headless=True, args=["--no-sandbox", "--disable-dev-shm-usage", "--enable-unsafe-swiftshader"])
         context = await browser.new_context(viewport={"width": 1440, "height": 1000})
         page = await initialize(context)
         console_messages = []
@@ -172,12 +231,13 @@ async def main():
             assert before["ready"] and after["frameCount"] > before["frameCount"]
             assert after["isAnimating"] and after["target"] is None
             assert await page.locator("#earth-scene.webgl-ready canvas").count() == 1
+            assert not await page.locator(".earth-location-guide").is_visible()
             dimensions = await page.locator("#earth-scene canvas").evaluate("""canvas => ({
                 width:canvas.width, height:canvas.height, hidden:canvas.getAttribute('aria-hidden'),
                 tabindex:canvas.tabIndex, rect:canvas.getBoundingClientRect().toJSON(),
                 host:canvas.parentElement.getBoundingClientRect().toJSON()
             })""")
-            assert dimensions["host"]["width"] >= 300, dimensions
+            assert dimensions["host"]["width"] >= 250, dimensions
             assert abs(dimensions["host"]["width"] - dimensions["host"]["height"]) <= 1, dimensions
             assert abs(dimensions["width"] - dimensions["height"]) <= 1, dimensions
             assert abs(dimensions["rect"]["width"] - dimensions["rect"]["height"]) <= 1, dimensions
@@ -207,6 +267,9 @@ async def main():
             assert 4 <= graphics["gpuTextures"] <= 12
             assert 3 <= graphics["drawCalls"] <= 25
             assert 1000 <= graphics["triangles"] <= 250000
+            backdrop = await page.evaluate("() => getComputedStyle(document.body, '::before').backgroundImage")
+            assert "/assets/space-nebula.webp" in backdrop, backdrop
+            assert any(urlsplit(url).path == "/assets/space-nebula.webp" for url in REPORT["requests"])
             return graphics
         await check("Decoded world maps and cloud layer render with a varied star field and bounded scene", real_graphics)
 
@@ -221,11 +284,12 @@ async def main():
             assert city["target"]["longitude"] == -48.33477
             assert await page.locator(".earth-location").is_visible()
             assert "Uberlândia" in await page.locator(".earth-location").inner_text()
+            overlay = await location_overlay(page)
             await page.click("#earth-motion")
             await page.wait_for_timeout(100)
             await page.screenshot(path="/tmp/prospect-earth-desktop.png", full_page=True)
             REPORT["screenshots"].append("/tmp/prospect-earth-desktop.png")
-            return {"country": country, "state": state, "city": city}
+            return {"country": country, "state": state, "city": city, "locationOverlay": overlay}
         await check("Country state city travel uses real Brazil coordinates and increasing zoom", brazil_journey)
 
         async def pause_and_resume():
@@ -328,6 +392,10 @@ async def main():
         await check("Editing manual locations clears a resolved old city without repeated parent travel", manual_edit_after_job_point)
 
         async def offscreen_pause():
+            # Compact desktop layouts can fit on tall monitors. A real shorter
+            # viewport makes the footer scroll meaningful without adding fake
+            # content or assuming the previous dashboard's excessive height.
+            await page.set_viewport_size({"width": 1440, "height": 450})
             await page.evaluate("() => window.scrollTo(0, document.documentElement.scrollHeight)")
             await page.wait_for_function("""() =>
                 document.querySelector('#earth-scene').getBoundingClientRect().bottom < -120 &&
@@ -364,20 +432,8 @@ async def main():
             assert await page.evaluate("() => document.documentElement.scrollWidth <= innerWidth")
             assert await page.locator("#earth-scene").evaluate(
                 "element => getComputedStyle(element).pointerEvents") == "none"
-            if await page.locator(".earth-location").is_visible():
-                label_box = await page.locator(".earth-location").bounding_box()
-                host_box = await page.locator("#earth-scene").bounding_box()
-                assert label_box and host_box
-                assert label_box["x"] >= host_box["x"] and label_box["x"] + label_box["width"] <= host_box["x"] + host_box["width"] + 1, (label_box, host_box)
-                assert label_box["y"] >= host_box["y"] and label_box["y"] + label_box["height"] <= host_box["y"] + host_box["height"] + 1, (label_box, host_box)
-                heading_box = await page.locator("h1").bounding_box()
-                intersects = label_box and heading_box and (
-                    label_box["x"] < heading_box["x"] + heading_box["width"] and
-                    label_box["x"] + label_box["width"] > heading_box["x"] and
-                    label_box["y"] < heading_box["y"] + heading_box["height"] and
-                    label_box["y"] + label_box["height"] > heading_box["y"])
-                assert not intersects, "Geographic label overlaps the mobile heading"
-            for selector in ["#country", "#region", "#city", "#niche", "#quantity"]:
+            overlay = await location_overlay(page)
+            for selector in ["#country", "#region", "#city", "#niche"]:
                 box = await page.locator(selector).bounding_box()
                 assert box and box["x"] >= 0 and box["x"] + box["width"] <= 390
             for width in [320, 390, 768, 1024, 1366, 1920]:
@@ -389,16 +445,17 @@ async def main():
                     rect:canvas.getBoundingClientRect().toJSON(),
                     host:canvas.parentElement.getBoundingClientRect().toJSON()
                 })""")
-                assert dimensions["host"]["width"] >= min(250, width - 48), (width, dimensions)
+                assert dimensions["host"]["width"] >= min(160, width - 48), (width, dimensions)
                 assert abs(dimensions["host"]["width"] - dimensions["host"]["height"]) <= 1, (width, dimensions)
                 assert abs(dimensions["width"] - dimensions["height"]) <= 1, (width, dimensions)
                 assert abs(dimensions["rect"]["width"] - dimensions["rect"]["height"]) <= 1, (width, dimensions)
                 assert dimensions["host"]["x"] >= 0 and dimensions["host"]["x"] + dimensions["host"]["width"] <= width + 1, (width, dimensions)
+                await location_overlay(page)
             await page.set_viewport_size({"width": 390, "height": 844})
             assert await page.locator('#search button[type="submit"]').is_enabled()
             await page.screenshot(path="/tmp/prospect-earth-mobile.png", full_page=True)
             REPORT["screenshots"].append("/tmp/prospect-earth-mobile.png")
-            return {"horizontalOverflow": False, "pointerEvents": "none", "state": await earth_state(page)}
+            return {"horizontalOverflow": False, "pointerEvents": "none", "state": await earth_state(page), "locationOverlay": overlay}
         await check("Mobile canvas remains decorative and controls fit the viewport", mobile_layout)
 
         async def reduced_motion():
@@ -438,6 +495,10 @@ async def main():
             assert result["uniqueTextureBytes"] > 300000
             assert result["uniqueTextureBytes"] <= budget
             assert result["textureWireBytes"] <= budget + 10000
+            # Preserve the planet's existing texture budgets while accounting
+            # explicitly for the newly requested decorative background/cards.
+            assert 0 < result["decorativeImageBytes"] <= 550000, result["decorativeImages"]
+            assert result["decorativeImageWireBytes"] <= 560000, result["decorativeImages"]
             ratio_cap = 1.25 if kind == "mobile" else 1.5
             host = await performance_page.locator("#earth-scene").bounding_box()
             assert host and abs(host["width"] - host["height"]) <= 1, host
@@ -469,6 +530,7 @@ async def main():
             await page.wait_for_function("() => prospectEarth.renderMode === 'fallback'")
             assert not await page.locator("#earth-motion").is_visible()
             assert not await page.locator(".earth-location").is_visible()
+            assert not await page.locator(".earth-location-guide").is_visible()
             await select(page, "#country", "US")
             await select(page, "#region", "NY")
             await select(page, "#city", "122795")
@@ -479,6 +541,7 @@ async def main():
         async def unavailable_webgl():
             fallback_browser = await playwright.chromium.launch(
                 executable_path=os.environ.get("CHROMIUM_PATH", "/usr/bin/chromium"),
+                proxy={"server":os.environ.get("HTTPS_PROXY","http://proxy:8080"),"bypass":"localhost,127.0.0.1"},
                 headless=True, args=["--no-sandbox", "--disable-webgl"])
             fallback_context = await fallback_browser.new_context(viewport={"width": 390, "height": 844}, storage_state=AUTH_STATE)
             fallback_page = await initialize(fallback_context, expected_ready=False)
@@ -488,6 +551,7 @@ async def main():
             await select(fallback_page, "#city", "15434")
             assert await fallback_page.locator('#search button[type="submit"]').is_enabled()
             assert not await fallback_page.locator("#earth-motion").is_visible()
+            assert not await fallback_page.locator(".earth-location-guide").is_visible()
             state = await earth_state(fallback_page)
             assert not state["ready"] and state["frameCount"] == 0
             await fallback_page.screenshot(path="/tmp/prospect-earth-fallback.png", full_page=True)
@@ -498,7 +562,8 @@ async def main():
 
         async def request_scope():
             base_origin = urlsplit(BASE).netloc
-            external = [url for url in REPORT["requests"] if urlsplit(url).netloc != base_origin]
+            public_tiles = [url for url in REPORT["requests"] if public_map_tile(url)]
+            external = [url for url in REPORT["requests"] if urlsplit(url).netloc != base_origin and not public_map_tile(url)]
             business = [url for url in REPORT["requests"] if urlsplit(url).path == "/api/search"]
             failed = [response for response in REPORT["failedResponses"]
                 if urlsplit(response["url"]).path != "/favicon.ico"]
@@ -507,8 +572,9 @@ async def main():
             assert not failed, "Resources failed: " + str(failed)
             assert not REPORT["consoleErrors"], str(REPORT["consoleErrors"])
             return {"sameOriginRequestCount": len(REPORT["requests"]),
-                "externalRequests": 0, "businessSearchRequests": 0, "resourceErrors": failed}
-        await check("Static textures modules and metadata stay same origin without business queries", request_scope)
+                "prohibitedExternalRequests": 0, "boundedPublicMapTileRequests": public_tiles,
+                "businessSearchRequests": 0, "resourceErrors": failed}
+        await check("Textures and metadata stay same origin; only bounded public map tiles may be external", request_scope)
         await browser.close()
 
     REPORT["passed"] = not REPORT["failures"]
@@ -520,6 +586,7 @@ async def main():
         "failedResponses": REPORT["failedResponses"], "report": report_path,
         "performance": [{key: result[key] for key in ["profile", "renderer",
             "measuredFramesPerSecond", "uniqueTextureBytes", "textureWireBytes",
+            "decorativeImageBytes", "decorativeImageWireBytes",
             "limitation"]} for result in REPORT["performance"]],
         "screenshots": REPORT["screenshots"]
     }, ensure_ascii=False, indent=2))

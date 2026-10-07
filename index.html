@@ -626,12 +626,14 @@
   <link rel="stylesheet" href="/earth.css">
   <link rel="stylesheet" href="/prospects.css">
   <link rel="stylesheet" href="/dashboard.css">
+  <link rel="stylesheet" href="/location-map.css">
   <script src="/earth-loader.js" defer></script>
   <script src="/location-picker.js" defer></script>
   <script src="/account-ui.js" defer></script>
   <script src="/prospects-ui.js" defer></script>
   <script src="/app.js" defer></script>
   <script src="/dashboard.js" defer></script>
+  <script src="/location-map.js" defer></script>
 </head>
 
 <body>
@@ -649,6 +651,8 @@
       <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
       <symbol id="icon-phone" viewBox="0 0 24 24"><path d="m5 3 4 1 1 5-3 2c2 3 3 4 6 6l2-3 5 1 1 4c-1 5-8 2-12-2S2 4 5 3Z"/></symbol>
       <symbol id="icon-store" viewBox="0 0 24 24"><path d="M4 10v11h16V10M3 10l2-7h14l2 7M3 10c0 4 4 4 4 0 0 4 5 4 5 0 0 4 5 4 5 0 0 4 4 4 4 0M9 21v-7h6v7"/></symbol>
+      <symbol id="icon-bookmark" viewBox="0 0 24 24"><path d="M5 3h14v18l-7-5-7 5Z"/></symbol>
+      <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><ellipse cx="12" cy="12" rx="4" ry="10"/><path d="M2 12h20M4 6h16M4 18h16"/></symbol>
       <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
     </defs>
   </svg>
@@ -679,15 +683,14 @@
   <div class="app-content">
   <header class="app-topbar">
     <div class="topbar-heading">
-      <button id="menu-toggle" class="icon-button" type="button" aria-label="Abrir menu" aria-controls="app-sidebar" aria-expanded="false"><svg class="ui-icon" aria-hidden="true"><use href="#icon-menu"/></svg></button>
-      <a class="mobile-brand brand" href="#explore-section" aria-label="Prospect AI, descobrir empresas"><img class="logo" src="/assets/icon.svg" width="34" height="34" alt=""><span>Prospect AI</span></a>
+      <button id="menu-toggle" class="mobile-brand brand" type="button" aria-label="Prospect AI, abrir menu" aria-controls="app-sidebar" aria-expanded="false"><img class="logo" src="/assets/icon.svg" width="34" height="34" alt=""><span>Prospect AI</span></button>
       <span class="breadcrumb">Workspace <span aria-hidden="true">/</span> <strong id="nav-current">Descobrir</strong></span>
       <span class="version">Pesquisa de empresas · v0.6</span>
     </div>
     <div class="header-actions">
       <span class="version">Pesquisa de empresas · v0.6</span>
       <details id="account-controls" hidden>
-        <summary aria-label="Minha conta"><svg class="ui-icon" aria-hidden="true"><use href="#icon-account"/></svg><span id="account-email">Minha conta</span></summary>
+        <summary aria-label="Minha conta"><span id="topbar-avatar" class="profile-avatar" aria-hidden="true">P</span><span id="account-email">Minha conta</span></summary>
         <button id="account-logout" type="button">Sair</button>
         <button id="account-delete-open" type="button" class="account-danger">Excluir conta</button>
         <p id="account-actions-status" role="status"></p>
@@ -755,21 +758,22 @@
 
     <div id="workspace" hidden>
     <div class="search-stage">
-    <form id="search" class="panel">
-      <div class="search-heading"><svg class="ui-icon" aria-hidden="true"><use href="#icon-search"/></svg><h2>Descobrir empresas</h2><p>Selecione país, estado e cidade para começar.</p></div>
-      <label for="country"><span class="field-step">1</span> País
+    <form id="search" class="panel" aria-label="Descobrir empresas">
+      <label for="country" class="country-field">País
+        <span class="country-select-wrap"><span id="country-flag" class="country-flag" aria-hidden="true">🌐</span>
         <select id="country" name="country" required disabled aria-describedby="location-status">
           <option value="">Carregando países…</option>
         </select>
+        </span>
       </label>
 
-      <label for="region"><span class="field-step">2</span> Estado / província
+      <label for="region">Estado / província
         <select id="region" name="region" required disabled>
           <option value="">Selecione o país primeiro</option>
         </select>
       </label>
 
-      <label for="city"><span class="field-step">3</span> Cidade
+      <label for="city">Cidade
         <select id="city" name="city" required disabled>
           <option value="">Selecione o estado primeiro</option>
         </select>
@@ -803,6 +807,7 @@
         </select>
       </label>
 
+      <details class="search-options"><summary>Opções da busca</summary>
       <label for="quantity" class="quantity-field">
         Limite de empresas
 
@@ -817,13 +822,16 @@
           <option value="50">50</option>
         </select>
       </label>
+      <p>A quantidade escolhida é um limite, não uma garantia de resultados.</p>
+      </details>
 
       <button
         class="primary"
         type="submit"
         disabled
       >
-        Conectando…
+        <svg class="ui-icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+        <span>Conectando…</span>
       </button>
     </form>
 
@@ -832,10 +840,6 @@
         Busca em toda a área selecionada.
       </span>
 
-      <span>
-        A quantidade escolhida é um limite,
-        não uma garantia de resultados.
-      </span>
     </p>
     </div>
 
@@ -843,8 +847,9 @@
     <section id="results-section" class="results-section panel" aria-labelledby="results-title">
     <div class="result-head">
       <div><div class="results-heading"><h2 id="results-title">Empresas encontradas</h2><span id="results-count" class="results-count" hidden></span></div><p id="summary" role="status" aria-live="polite" aria-atomic="true">Conectando ao servidor…</p></div>
-      <div class="exports"><button id="overview-toggle" type="button" aria-controls="search-overview" aria-expanded="false">Ver localização</button><button id="csv" type="button" title="Exportar os resultados que correspondem aos filtros" disabled>Exportar CSV</button><button id="json" type="button" title="Exportar os resultados e evidências disponíveis" disabled>Exportar JSON</button></div>
+      <button id="overview-toggle" type="button" aria-controls="search-overview" aria-expanded="false"><svg class="ui-icon" aria-hidden="true"><use href="#icon-pin"/></svg><span>Ver mapa</span></button>
     </div>
+    <details class="result-options"><summary><svg class="ui-icon" aria-hidden="true"><use href="#icon-list"/></svg>Filtros e opções</summary>
     <section class="stats" aria-label="Resumo da pesquisa">
       <div class="panel stat"><span>Encontradas</span><strong id="total">0</strong></div>
       <div class="panel stat highlight"><span>Site não identificado</span><strong id="prospects">0</strong></div>
@@ -864,11 +869,14 @@
         <label for="sort">Ordenar por<select id="sort"><option value="score">Prioridade</option><option value="confidence">Confiança</option><option value="name">Nome</option></select></label>
       </div>
     </div>
+    <div class="exports"><button id="csv" type="button" title="Exportar os resultados que correspondem aos filtros" disabled>Exportar CSV</button><button id="json" type="button" title="Exportar os resultados e evidências disponíveis" disabled>Exportar JSON</button></div>
+    </details>
     <div id="cards" class="cards"><div class="panel empty"><h3>Sua pesquisa começa aqui</h3><p>Escolha um local e um nicho para encontrar empresas com informações comerciais públicas.</p></div></div>
     <div class="notice">Cadastros públicos podem estar incompletos ou desatualizados. Telefone ou site não informado não significa inexistente. Confira as fontes e eventuais divergências antes de entrar em contato.</div>
     </section>
     <aside id="search-overview" class="search-overview panel" aria-labelledby="overview-title">
       <h2 id="overview-title">Visão da busca</h2>
+      <div id="overview-map" class="location-map" aria-label="Mapa do local selecionado"></div>
       <div class="overview-location"><svg class="ui-icon" aria-hidden="true"><use href="#icon-pin"/></svg><div><span>Local selecionado</span><strong id="overview-location">Selecione uma cidade</strong></div></div>
       <dl class="overview-facts">
         <div><dt>País</dt><dd id="overview-country">A definir</dd></div>
@@ -919,6 +927,7 @@
         © OpenStreetMap contributors · ODbL
       </a>
       <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Powered by Geoapify</a>
+      · <a href="https://locationiq.com" target="_blank" rel="noopener noreferrer">Search by LocationIQ.com</a>
       · <a href="https://github.com/dr5hn/countries-states-cities-database" target="_blank" rel="noopener">Localidades: Countries States Cities Database · ODbL</a>
     </footer>
   </main>

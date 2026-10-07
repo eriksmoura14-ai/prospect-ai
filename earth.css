@@ -12,30 +12,20 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 68% 8%, rgba(12, 102, 159, .22), transparent 40%),
-    radial-gradient(ellipse at 91% 47%, rgba(12, 58, 102, .12), transparent 48%),
-    radial-gradient(ellipse at 31% 70%, rgba(18, 46, 78, .15), transparent 39%),
-    radial-gradient(1px 1px at 17px 38px, #d8edff9c 90%, transparent),
-    radial-gradient(1px 1px at 103px 157px, #63bfff72 90%, transparent),
-    radial-gradient(1px 1px at 241px 93px, #b0dbff91 90%, transparent),
-    radial-gradient(1.5px 1.5px at 371px 229px, #85d9ff91 65%, transparent),
-    radial-gradient(1px 1px at 59px 206px, #c3dbff57 90%, transparent),
-    radial-gradient(1px 1px at 197px 21px, #e0f1ff85 90%, transparent),
-    radial-gradient(1px 1px at 89px 51px, #a3d9ff73 90%, transparent),
-    radial-gradient(1px 1px at 283px 178px, #74c0ff62 90%, transparent);
-  background-size: auto, auto, auto, 431px 263px, 509px 397px,
-    617px 331px, 719px 487px, 383px 419px, 557px 283px,
-    647px 503px, 463px 367px;
+    linear-gradient(180deg, #02091666 0%, #02091674 48%, #020916c5 100%),
+    url("/assets/space-nebula.webp") center top / cover no-repeat,
+    radial-gradient(ellipse at 68% 8%, #1266a66e, transparent 52%),
+    #030b17;
 }
 
 #earth-scene {
   position: absolute;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
-  contain: layout paint;
-  background: radial-gradient(circle at 50% 48%, rgba(0, 157, 212, .08), transparent 66%);
+  contain: layout;
+  background: transparent;
 }
 
 /* Local textures remain available when WebGL is unsupported or loses context. */
@@ -44,13 +34,13 @@ body::before {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 76%;
+  width: 79%;
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(circle at 36% 28%, #286ca2, #06203d 51%, #020b18 88%);
-  box-shadow: inset -23px -18px 50px #000b, inset 7px 1px 18px #72dfff69,
-    0 0 7px #6deaff72, 0 0 29px #008fe137;
+  box-shadow: inset -23px -18px 50px #0009, inset 7px 1px 18px #72dfff99,
+    0 0 3px 1px #76dfff, 0 0 10px 3px #149fff9c, 0 0 26px 8px #0875df68;
 }
 
 #earth-scene.earth-fallback::before {
@@ -65,33 +55,47 @@ body::before {
 
 .earth-location {
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   width: max-content;
-  max-width: min(220px, calc(100% - 24px));
-  padding: 8px 11px;
-  color: #e9f7ff;
-  background: rgba(3, 16, 29, .90);
-  border: 1px solid rgba(16, 215, 234, .55);
-  border-radius: 9px;
+  max-width: min(190px, 75%);
+  padding: 0 1px;
+  color: #fff;
+  background: none;
+  border: 0;
+  border-radius: 0;
   font-size: 12px;
   line-height: 1.4;
+  text-align: right;
   overflow-wrap: anywhere;
-  box-shadow: 0 0 18px #08d5ed19;
-  text-shadow: 0 1px 4px #000;
+  text-shadow: 0 1px 3px #000, 0 0 8px #000;
 }
 
-.earth-location-kicker {
-  display: block;
-  margin-bottom: 3px;
-  color: #20dfed;
-  font-size: 9px;
-  letter-spacing: .08em;
-}
+.earth-location-kicker { display: none; }
+.earth-location-name { display: block; font-weight: 600; }
 
-.earth-location-name { display: block; font-weight: 650; }
+.earth-location-guide {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.earth-location-guide[hidden] { display: none; }
+.earth-location-leader {
+  fill: none;
+  stroke: #06eef2;
+  stroke-width: 1.35px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px #00eaf270);
+}
+.earth-location-halo { fill: #02e6ed38; filter: drop-shadow(0 0 6px #02e6ed); }
+.earth-location-core { fill: #03f0ef; filter: drop-shadow(0 0 5px #03f0ef); }
 
 @media (max-width: 640px) {
-  .earth-location { max-width: min(190px, calc(100% - 24px)); font-size: 11px; }
-  #earth-scene::before { box-shadow: inset -18px -15px 38px #000b,
-    inset 6px 1px 15px #72dfff69, 0 0 6px #6deaff72, 0 0 24px #008fe137; }
+  body::before { background-position: center, 40% top, center, center; }
+  .earth-location { max-width: min(150px, 75%); font-size: 12px; }
 }
