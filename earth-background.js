@@ -13,6 +13,7 @@ function startEarth(host) {
   let ready = false;
   let failed = false;
   let disposed = false;
+  let inViewport = true;
   let currentTarget = null;
   let pendingFrame = 0;
   let previousFrame = 0;
@@ -34,6 +35,8 @@ function startEarth(host) {
   let planetMaterial;
   let clouds;
   let glow;
+  let resizeObserver;
+  let viewportObserver;
   const resources = new Set();
   const textureLoader = new THREE.TextureLoader();
   const earthRadius = 1.72;
@@ -69,7 +72,7 @@ function startEarth(host) {
       get frameCount() { return frameCount; },
       get zoom() { return earth?.scale.x ?? 1; },
       get isAnimating() {
-        return ready && !failed && !paused && !reducedMotion && !document.hidden;
+        return ready && !failed && !paused && !reducedMotion && !document.hidden && inViewport;
       },
       get graphics() {
         return {
@@ -118,7 +121,7 @@ function startEarth(host) {
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.18;
+    renderer.toneMappingExposure = 1.28;
     renderer.domElement.className = "earth-canvas";
     renderer.domElement.setAttribute("aria-hidden", "true");
     renderer.domElement.tabIndex = -1;
@@ -135,12 +138,27 @@ function startEarth(host) {
     const sphere = keep(new THREE.SphereGeometry(earthRadius, segments, segments));
     planetMaterial = keep(new THREE.MeshPhongMaterial({
       color: 0xffffff,
-      specular: 0x395168,
-      shininess: 100
+      specular: 0x15283d,
+      shininess: 45
     }));
+    // Blue Marble uses almost-black water. The existing specular texture is
+    // its matching water mask, so brighten oceans without tinting continents
+    // or changing any geographic detail from the original NASA texture.
+    planetMaterial.onBeforeCompile = shader => {
+      shader.fragmentShader = shader.fragmentShader.replace("#include <map_fragment>", `
+        #include <map_fragment>
+        #ifdef USE_SPECULARMAP
+          float ocean = texture2D(specularMap, vSpecularMapUv).r;
+          vec3 oceanBlue = vec3(0.008, 0.038, 0.12);
+          diffuseColor.rgb = mix(diffuseColor.rgb,
+            max(diffuseColor.rgb, oceanBlue), ocean * 0.88);
+        #endif
+      `);
+    };
+    planetMaterial.customProgramCacheKey = () => "prospect-earth-ocean-v1";
     earth.add(new THREE.Mesh(sphere, planetMaterial));
-    scene.add(new THREE.AmbientLight(0xb7cffc, 0.23));
-    const sunlight = new THREE.DirectionalLight(0xfff8ef, 2.5);
+    scene.add(new THREE.AmbientLight(0xb7cffc, 0.32));
+    const sunlight = new THREE.DirectionalLight(0xfff8ef, 3.2);
     sunlight.position.copy(lightDirection).multiplyScalar(8);
     scene.add(sunlight);
     const reflectedLight = new THREE.DirectionalLight(0x3271af, 0.09);
@@ -162,8 +180,8 @@ function startEarth(host) {
     const material = keep(new THREE.ShaderMaterial({
       uniforms: {
         sunlight: { value: lightDirection },
-        dayColor: { value: new THREE.Color(0x86bdff) },
-        nightColor: { value: new THREE.Color(0x234b8c) }
+        dayColor: { value: new THREE.Color(0x7cd4ff) },
+        nightColor: { value: new THREE.Color(0x245ea8) }
       },
       vertexShader: `
         varying vec3 vWorldNormal;
@@ -187,7 +205,7 @@ function startEarth(host) {
           float opticalDepth = pow(clamp(grazing, 0.0, 1.0), 3.6);
           float day = smoothstep(-0.25, 0.6, dot(normal, sunlight));
           vec3 scatteredLight = mix(nightColor, dayColor, day);
-          gl_FragColor = vec4(scatteredLight, opticalDepth * (0.18 + day * 0.35));
+          gl_FragColor = vec4(scatteredLight, opticalDepth * (0.24 + day * 0.55));
           #include <colorspace_fragment>
         }
       `,
@@ -196,7 +214,7 @@ function startEarth(host) {
       blending: THREE.AdditiveBlending,
       depthWrite: false
     }));
-    const shell = keep(new THREE.SphereGeometry(earthRadius * 1.018,
+    const shell = keep(new THREE.SphereGeometry(earthRadius * 1.026,
       segments, segments));
     earth.add(new THREE.Mesh(shell, material));
   }
@@ -273,12 +291,39 @@ function startEarth(host) {
     const mobile = textureProfile === "mobile";
     const geometry = keep(new THREE.SphereGeometry(earthRadius * 1.006,
       mobile ? 48 : 72, mobile ? 48 : 72));
-    const material = keep(new THREE.MeshPhongMaterial({
-      map: texture,
+    const material = keep(new THREE.ShaderMaterial({
+      uniforms: {
+        cloudTexture: { value: texture },
+        sunlight: { value: lightDirection }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vWorldNormal;
+        void main() {
+          vUv = uv;
+          vWorldNormal = normalize(mat3(modelMatrix) * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D cloudTexture;
+        uniform vec3 sunlight;
+        varying vec2 vUv;
+        varying vec3 vWorldNormal;
+        void main() {
+          // Read coverage from alpha explicitly; transparent cloud gaps must
+          // reveal the surface, rather than introducing an opaque dark layer.
+          float coverage = texture2D(cloudTexture, vUv).a;
+          float day = smoothstep(-0.12, 0.6,
+            dot(normalize(vWorldNormal), sunlight));
+          vec3 cloudLight = mix(vec3(0.045, 0.065, 0.10),
+            vec3(0.86, 0.94, 1.0), day);
+          gl_FragColor = vec4(cloudLight, coverage * 0.74);
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
+        }
+      `,
       transparent: true,
-      opacity: 0.84,
-      shininess: 4,
-      specular: 0x111111,
       depthWrite: false
     }));
     clouds = new THREE.Mesh(geometry, material);
@@ -288,18 +333,18 @@ function startEarth(host) {
   function createMarker() {
     const group = new THREE.Group();
     const core = keep(new THREE.SphereGeometry(0.018, 12, 8));
-    const green = keep(new THREE.MeshBasicMaterial({ color: 0xb8ff87 }));
-    group.add(new THREE.Mesh(core, green));
+    const cyan = keep(new THREE.MeshBasicMaterial({ color: 0x20e7f1 }));
+    group.add(new THREE.Mesh(core, cyan));
     const innerRing = keep(new THREE.TorusGeometry(0.042, 0.0025, 8, 48));
     const outerRing = keep(new THREE.TorusGeometry(0.074, 0.0014, 8, 48));
-    group.add(new THREE.Mesh(innerRing, green));
+    group.add(new THREE.Mesh(innerRing, cyan));
     const translucent = keep(new THREE.MeshBasicMaterial({
-      color: 0xb8ff87, transparent: true, opacity: 0.48, depthWrite: false
+      color: 0x20e7f1, transparent: true, opacity: 0.48, depthWrite: false
     }));
     group.add(new THREE.Mesh(outerRing, translucent));
     const spriteMaterial = keep(new THREE.SpriteMaterial({
-      map: softDotTexture("180, 255, 122"),
-      color: 0xb8ff87,
+      map: softDotTexture("32, 231, 241"),
+      color: 0x20e7f1,
       transparent: true,
       opacity: 0.62,
       blending: THREE.AdditiveBlending,
@@ -352,35 +397,32 @@ function startEarth(host) {
 
   function resize() {
     if (disposed || failed) return;
-    const width = host.clientWidth || window.innerWidth;
-    const height = host.clientHeight || window.innerHeight;
+    const width = host.clientWidth;
+    const height = host.clientHeight;
     if (!width || !height) return;
-    const mobile = width <= 640;
+    const mobile = textureProfile === "mobile";
     viewWidth = width; viewHeight = height;
     labelWidth = labelHeight = 0; labelDirty = true;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,
       mobile ? 1.25 : 1.5));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    camera.position.z = mobile ? 8.5 : 8.6;
+    // Fit the complete atmosphere at the largest city zoom in the narrower
+    // host dimension. Perspective and canvas dimensions use the same aspect,
+    // so the sphere stays circular at every responsive breakpoint.
+    const halfFov = THREE.MathUtils.degToRad(camera.fov / 2);
+    const limitingHalfFov = Math.atan(Math.tan(halfFov) * Math.min(1, camera.aspect));
+    const largestRadius = earthRadius * targetScales.city * 1.045;
+    camera.position.z = largestRadius / Math.sin(Math.atan(Math.tan(limitingHalfFov) * 0.92));
     camera.updateProjectionMatrix();
-    const visibleWidth = 2 * camera.position.z *
-      Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
-    const visibleHeight = visibleWidth / camera.aspect;
-    const maximumRadiusFraction = earthRadius * targetScales.city * 1.08 / visibleWidth;
-    const desktopCenter = Math.min(0.76, 0.98 - maximumRadiusFraction);
-    globePlacement.position.set(visibleWidth * (mobile ? 0.23 : desktopCenter - 0.5),
-      visibleHeight * (mobile ? 0.28 : 0.10), 0);
-    // The globe is deliberately off center. Align its front with the camera's
-    // actual sightline, otherwise perspective pushes the chosen pin to its rim.
-    globePlacement.quaternion.setFromRotationMatrix(new THREE.Matrix4().lookAt(
-      camera.position, globePlacement.position, new THREE.Vector3(0, 1, 0)));
+    globePlacement.position.set(0, 0, 0);
+    globePlacement.quaternion.identity();
     requestFrame();
   }
 
   function requestFrame(forcePaint = true) {
     if (forcePaint) needsPaint = true;
-    if (disposed || failed || document.hidden || pendingFrame) return;
+    if (disposed || failed || document.hidden || !inViewport || pendingFrame) return;
     pendingFrame = requestAnimationFrame(renderFrame);
   }
 
@@ -392,7 +434,7 @@ function startEarth(host) {
 
   function renderFrame(now) {
     pendingFrame = 0;
-    if (disposed || failed || document.hidden) return;
+    if (disposed || failed || document.hidden || !inViewport) return;
     if (!reducedMotion && !paused && !needsPaint && previousFrame &&
         now - previousFrame < 1000 / 30 - 0.5) {
       requestFrame(false);
@@ -456,7 +498,7 @@ function startEarth(host) {
   const viewDirection = new THREE.Vector3();
 
   function positionLocationLabel() {
-    if (!ready || !currentTarget?.label || !marker.visible || viewWidth <= 640) {
+    if (!ready || !currentTarget?.label || !marker.visible) {
       locationLabel.hidden = true;
       return;
     }
@@ -479,12 +521,13 @@ function startEarth(host) {
     const pointY = (1 - labelPoint.y) * height / 2;
     if (!labelWidth) labelWidth = locationLabel.offsetWidth || Math.min(240, width - 24);
     if (!labelHeight) labelHeight = locationLabel.offsetHeight || 48;
-    const preferredX = pointX + labelWidth + 32 < width
-      ? pointX + 18 : pointX - labelWidth - 18;
+    const preferredX = pointX + labelWidth + 24 < width
+      ? pointX + 18 : pointX - labelWidth - 18 >= 12
+        ? pointX - labelWidth - 18 : pointX - labelWidth / 2;
     locationLabel.style.left = `${Math.max(12,
       Math.min(width - labelWidth - 12, preferredX))}px`;
     locationLabel.style.top = `${Math.max(12,
-      Math.min(height - labelHeight - 12, pointY - labelHeight / 2))}px`;
+      Math.min(height - labelHeight - 12, pointY + 20))}px`;
   }
 
   function moveTo(detail) {
@@ -578,6 +621,8 @@ function startEarth(host) {
     }
     disposed = true;
     stopFrames();
+    resizeObserver?.disconnect();
+    viewportObserver?.disconnect();
     window.removeEventListener("resize", resize);
     window.removeEventListener("prospect:location", onLocation);
     document.removeEventListener("visibilitychange", onVisibility);
@@ -597,6 +642,18 @@ function startEarth(host) {
     fallback();
   });
   window.addEventListener("resize", resize, { passive: true });
+  if (window.ResizeObserver) {
+    resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(host);
+  }
+  if (window.IntersectionObserver) {
+    viewportObserver = new IntersectionObserver(entries => {
+      inViewport = entries.some(entry => entry.isIntersecting);
+      if (inViewport) requestFrame();
+      else stopFrames();
+    }, { rootMargin: "120px" });
+    viewportObserver.observe(host);
+  }
   window.addEventListener("prospect:location", onLocation);
   document.addEventListener("visibilitychange", onVisibility);
   motionPreference.addEventListener("change", onMotionPreference);

@@ -3,7 +3,9 @@
 Requires Python 3, playwright, and Chromium. Start Prospect AI locally without
 password authentication and run `python test/earth-browser.py`. Override the
 default localhost:3041 address with PROSPECT_UI_BASE_URL and /usr/bin/chromium
-with CHROMIUM_PATH. Geographic metadata and WebGL rendering are real; business
+with CHROMIUM_PATH. A local PostgreSQL fixture server at :3161 can also be used;
+the test signs in only with its disposable fictional account. Geographic
+metadata and WebGL rendering are real; business
 searches are prohibited by the test and are not evidence of discovery uptime.
 """
 import asyncio
@@ -21,6 +23,7 @@ REPORT = {
     "checks": [], "failures": [], "consoleErrors": [], "requests": [],
     "failedResponses": [], "screenshots": [], "performance": []
 }
+AUTH_STATE = None
 
 
 async def check(name, fn):
@@ -53,6 +56,9 @@ async def earth_state(page):
 
 
 async def settled(page, stage, label, scale):
+    # The hero intentionally pauses GPU work offscreen. Return to the actual
+    # canvas before asserting the completed visual journey.
+    await page.locator("#earth-scene").scroll_into_view_if_needed()
     await page.wait_for_function("""([stage, label, scale]) =>
         prospectEarth.target?.stage === stage && prospectEarth.target?.label === label &&
         Math.abs(prospectEarth.zoom - scale) < 0.00001""", arg=[stage, label, scale])
@@ -60,6 +66,7 @@ async def settled(page, stage, label, scale):
 
 
 async def initialize(context, page=None, expected_ready=True, block_business=True):
+    global AUTH_STATE
     page = page or await context.new_page()
     page.on("pageerror", lambda error: REPORT["consoleErrors"].append(str(error)))
     if expected_ready:
@@ -71,7 +78,19 @@ async def initialize(context, page=None, expected_ready=True, block_business=Tru
     if block_business:
         await page.route("**/api/search", lambda route: route.abort("blockedbyclient"))
     await page.goto(BASE, wait_until="networkidle")
+    await page.wait_for_function("""() => !document.querySelector('#country').disabled ||
+        (document.querySelector('#login-panel') && !document.querySelector('#login-panel').hidden)""")
+    if await page.locator("#login-panel").count() and await page.locator("#login-panel").is_visible():
+        fixture_response = await context.request.get(BASE + "/__test/info")
+        assert fixture_response.ok, "Authenticated Earth tests require the disposable loopback fixture server."
+        fixture = (await fixture_response.json())["desktop"]
+        await page.locator("#login-email").fill(fixture["alice"]["email"])
+        await page.locator("#login-password").fill(fixture["password"])
+        await page.locator("#account-login-form button[type=submit]").click()
+        await page.wait_for_function("() => !document.querySelector('#workspace').hidden")
+        AUTH_STATE = await context.storage_state()
     await page.wait_for_function("() => !document.querySelector('#country').disabled")
+    await page.locator("#earth-scene").scroll_into_view_if_needed()
     if expected_ready:
         await page.wait_for_function("() => window.prospectEarth?.ready", timeout=15000)
     return page
@@ -131,12 +150,8 @@ async def capture_realism(page, kind):
     await page.screenshot(path=path)
     REPORT["screenshots"].append(path)
     if kind == "desktop":
-        await page.evaluate("""() => document.querySelectorAll('header, main')
-            .forEach(element => element.style.visibility = 'hidden')""")
-        await page.screenshot(path="/tmp/earth-realism-after-scene.png")
+        await page.locator(".hero-earth-slot").screenshot(path="/tmp/earth-realism-after-scene.png")
         REPORT["screenshots"].append("/tmp/earth-realism-after-scene.png")
-        await page.evaluate("""() => document.querySelectorAll('header, main')
-            .forEach(element => element.style.visibility = '')""")
 
 
 async def main():
@@ -157,13 +172,21 @@ async def main():
             assert before["ready"] and after["frameCount"] > before["frameCount"]
             assert after["isAnimating"] and after["target"] is None
             assert await page.locator("#earth-scene.webgl-ready canvas").count() == 1
-            dimensions = await page.locator("#earth-scene canvas").evaluate(
-                "canvas => ({width: canvas.width, height: canvas.height, hidden: canvas.getAttribute('aria-hidden'), tabindex: canvas.tabIndex})")
-            assert dimensions["width"] >= 1440 and dimensions["height"] >= 1000
+            dimensions = await page.locator("#earth-scene canvas").evaluate("""canvas => ({
+                width:canvas.width, height:canvas.height, hidden:canvas.getAttribute('aria-hidden'),
+                tabindex:canvas.tabIndex, rect:canvas.getBoundingClientRect().toJSON(),
+                host:canvas.parentElement.getBoundingClientRect().toJSON()
+            })""")
+            assert dimensions["host"]["width"] >= 300, dimensions
+            assert abs(dimensions["host"]["width"] - dimensions["host"]["height"]) <= 1, dimensions
+            assert abs(dimensions["width"] - dimensions["height"]) <= 1, dimensions
+            assert abs(dimensions["rect"]["width"] - dimensions["rect"]["height"]) <= 1, dimensions
+            assert dimensions["width"] >= dimensions["host"]["width"] - 1
+            assert dimensions["height"] >= dimensions["host"]["height"] - 1
             assert dimensions["hidden"] == "true" and dimensions["tabindex"] == -1
             assert not [message for message in console_messages if message["type"] == "error"]
             return {"before": before, "after": after, "canvas": dimensions}
-        await check("Real WebGL canvas renders and rotates before location selection", actual_canvas)
+        await check("Real square WebGL canvas renders and rotates inside the hero before selection", actual_canvas)
 
         async def real_graphics():
             await graphics_loaded(page)
@@ -304,6 +327,31 @@ async def main():
                 "fixtureScope": "Decorative job-location event; no business request"}
         await check("Editing manual locations clears a resolved old city without repeated parent travel", manual_edit_after_job_point)
 
+        async def offscreen_pause():
+            await page.evaluate("() => window.scrollTo(0, document.documentElement.scrollHeight)")
+            await page.wait_for_function("""() =>
+                document.querySelector('#earth-scene').getBoundingClientRect().bottom < -120 &&
+                !prospectEarth.isAnimating""")
+            await page.wait_for_timeout(100)
+            before = await earth_state(page)
+            await page.wait_for_timeout(350)
+            after = await earth_state(page)
+            assert after["frameCount"] == before["frameCount"], (before, after)
+            assert after["graphics"]["cloudRotation"] == before["graphics"]["cloudRotation"]
+            # Dispatch the real dropdown change while leaving the viewport at
+            # the footer, so browser auto-scrolling cannot wake the canvas.
+            await page.evaluate("""() => {
+                const country=document.querySelector('#country');
+                country.value='BR';country.dispatchEvent(new Event('change',{bubbles:true}));
+            }""")
+            await page.wait_for_function("() => prospectEarth.target?.label === 'Brasil'")
+            selected = await earth_state(page)
+            assert selected["frameCount"] == after["frameCount"]
+            returned = await settled(page, "country", "Brasil", 1)
+            assert returned["isAnimating"] and returned["frameCount"] > selected["frameCount"]
+            return {"offscreenFramesAdded": 0, "offscreenSelection": selected["target"], "returned": returned}
+        await check("Offscreen hero stops GPU frames and preserves location changes until return", offscreen_pause)
+
         async def mobile_layout():
             await page.set_viewport_size({"width": 390, "height": 844})
             await select(page, "#country", "BR")
@@ -318,6 +366,10 @@ async def main():
                 "element => getComputedStyle(element).pointerEvents") == "none"
             if await page.locator(".earth-location").is_visible():
                 label_box = await page.locator(".earth-location").bounding_box()
+                host_box = await page.locator("#earth-scene").bounding_box()
+                assert label_box and host_box
+                assert label_box["x"] >= host_box["x"] and label_box["x"] + label_box["width"] <= host_box["x"] + host_box["width"] + 1, (label_box, host_box)
+                assert label_box["y"] >= host_box["y"] and label_box["y"] + label_box["height"] <= host_box["y"] + host_box["height"] + 1, (label_box, host_box)
                 heading_box = await page.locator("h1").bounding_box()
                 intersects = label_box and heading_box and (
                     label_box["x"] < heading_box["x"] + heading_box["width"] and
@@ -328,6 +380,21 @@ async def main():
             for selector in ["#country", "#region", "#city", "#niche", "#quantity"]:
                 box = await page.locator(selector).bounding_box()
                 assert box and box["x"] >= 0 and box["x"] + box["width"] <= 390
+            for width in [320, 390, 768, 1024, 1366, 1920]:
+                await page.set_viewport_size({"width": width, "height": 1000})
+                await page.wait_for_timeout(100)
+                assert await page.evaluate("() => document.documentElement.scrollWidth <= innerWidth"), width
+                dimensions = await page.locator("#earth-scene canvas").evaluate("""canvas => ({
+                    width:canvas.width,height:canvas.height,
+                    rect:canvas.getBoundingClientRect().toJSON(),
+                    host:canvas.parentElement.getBoundingClientRect().toJSON()
+                })""")
+                assert dimensions["host"]["width"] >= min(250, width - 48), (width, dimensions)
+                assert abs(dimensions["host"]["width"] - dimensions["host"]["height"]) <= 1, (width, dimensions)
+                assert abs(dimensions["width"] - dimensions["height"]) <= 1, (width, dimensions)
+                assert abs(dimensions["rect"]["width"] - dimensions["rect"]["height"]) <= 1, (width, dimensions)
+                assert dimensions["host"]["x"] >= 0 and dimensions["host"]["x"] + dimensions["host"]["width"] <= width + 1, (width, dimensions)
+            await page.set_viewport_size({"width": 390, "height": 844})
             assert await page.locator('#search button[type="submit"]').is_enabled()
             await page.screenshot(path="/tmp/prospect-earth-mobile.png", full_page=True)
             REPORT["screenshots"].append("/tmp/prospect-earth-mobile.png")
@@ -336,7 +403,7 @@ async def main():
 
         async def reduced_motion():
             reduced_context = await browser.new_context(
-                viewport={"width": 1200, "height": 900}, reduced_motion="reduce")
+                viewport={"width": 1200, "height": 900}, reduced_motion="reduce", storage_state=AUTH_STATE)
             reduced_page = await initialize(reduced_context)
             await reduced_page.wait_for_timeout(150)
             before = await earth_state(reduced_page)
@@ -358,7 +425,7 @@ async def main():
         await check("Reduced motion renders real Earth once and updates selections without animation", reduced_motion)
 
         async def performance_profile(kind, viewport, dpr, budget):
-            performance_context = await browser.new_context(viewport=viewport, device_scale_factor=dpr)
+            performance_context = await browser.new_context(viewport=viewport, device_scale_factor=dpr, storage_state=AUTH_STATE)
             # Playwright request routing disables HTTP caching. This separate
             # page performs no search action and preserves real browser cache
             # behavior so transferSize measures the actual asset download.
@@ -372,8 +439,11 @@ async def main():
             assert result["uniqueTextureBytes"] <= budget
             assert result["textureWireBytes"] <= budget + 10000
             ratio_cap = 1.25 if kind == "mobile" else 1.5
-            assert result["canvas"]["width"] <= viewport["width"] * ratio_cap
-            assert result["canvas"]["height"] <= viewport["height"] * ratio_cap
+            host = await performance_page.locator("#earth-scene").bounding_box()
+            assert host and abs(host["width"] - host["height"]) <= 1, host
+            assert abs(result["canvas"]["width"] - result["canvas"]["height"]) <= 1, result["canvas"]
+            assert result["canvas"]["width"] <= host["width"] * ratio_cap + 1
+            assert result["canvas"]["height"] <= host["height"] * ratio_cap + 1
             if kind == "mobile":
                 assert result["graphics"]["textures"]["day"]["width"] == 2048
                 assert not [item for item in result["textures"]
@@ -410,7 +480,7 @@ async def main():
             fallback_browser = await playwright.chromium.launch(
                 executable_path=os.environ.get("CHROMIUM_PATH", "/usr/bin/chromium"),
                 headless=True, args=["--no-sandbox", "--disable-webgl"])
-            fallback_context = await fallback_browser.new_context(viewport={"width": 390, "height": 844})
+            fallback_context = await fallback_browser.new_context(viewport={"width": 390, "height": 844}, storage_state=AUTH_STATE)
             fallback_page = await initialize(fallback_context, expected_ready=False)
             await fallback_page.wait_for_function("() => window.prospectEarth?.renderMode === 'fallback'")
             await select(fallback_page, "#country", "BR")

@@ -1,48 +1,61 @@
-:root {
-  --bg: #02040a;
-  --panel: rgba(11, 20, 34, .83);
-  --border: rgba(141, 181, 218, .23);
-  --text: #f0f5fb;
-  --muted: #b1bed0;
-  --accent: #b1f472;
-}
-
+/* The hero owns the scene dimensions; the renderer keeps a true sphere inside it. */
 body {
   isolation: isolate;
   min-height: 100vh;
-  background: #02040a;
+  background: #030b17;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 68% 8%, rgba(12, 102, 159, .22), transparent 40%),
+    radial-gradient(ellipse at 91% 47%, rgba(12, 58, 102, .12), transparent 48%),
+    radial-gradient(ellipse at 31% 70%, rgba(18, 46, 78, .15), transparent 39%),
+    radial-gradient(1px 1px at 17px 38px, #d8edff9c 90%, transparent),
+    radial-gradient(1px 1px at 103px 157px, #63bfff72 90%, transparent),
+    radial-gradient(1px 1px at 241px 93px, #b0dbff91 90%, transparent),
+    radial-gradient(1.5px 1.5px at 371px 229px, #85d9ff91 65%, transparent),
+    radial-gradient(1px 1px at 59px 206px, #c3dbff57 90%, transparent),
+    radial-gradient(1px 1px at 197px 21px, #e0f1ff85 90%, transparent),
+    radial-gradient(1px 1px at 89px 51px, #a3d9ff73 90%, transparent),
+    radial-gradient(1px 1px at 283px 178px, #74c0ff62 90%, transparent);
+  background-size: auto, auto, auto, 431px 263px, 509px 397px,
+    617px 331px, 719px 487px, 383px 419px, 557px 283px,
+    647px 503px, 463px 367px;
 }
 
 #earth-scene {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: -2;
+  z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse at 92% 8%, rgba(55, 72, 133, .13), transparent 42%),
-    radial-gradient(ellipse at 66% 86%, rgba(31, 56, 93, .10), transparent 46%),
-    radial-gradient(ellipse at 19% 48%, rgba(45, 32, 68, .07), transparent 35%),
-    #02040a;
+  contain: layout paint;
+  background: radial-gradient(circle at 50% 48%, rgba(0, 157, 212, .08), transparent 66%);
 }
 
-/* O fundo estático mantém o visual disponível sem WebGL. */
+/* Local textures remain available when WebGL is unsupported or loses context. */
 #earth-scene::before {
   content: "";
   position: absolute;
-  top: 4vh;
-  right: -14vh;
-  width: min(86vw, 94vh);
+  top: 50%;
+  left: 50%;
+  width: 76%;
   aspect-ratio: 1;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle at 67% 22%, #163452, #051023 48%, #01030b 90%);
-  box-shadow: inset -30px -20px 75px #000c, inset 8px 2px 22px #76cbf85c, 0 0 32px #249ef535;
-  opacity: .82;
+  background: radial-gradient(circle at 36% 28%, #286ca2, #06203d 51%, #020b18 88%);
+  box-shadow: inset -23px -18px 50px #000b, inset 7px 1px 18px #72dfff69,
+    0 0 7px #6deaff72, 0 0 29px #008fe137;
 }
 
 #earth-scene.earth-fallback::before {
   background:
-    radial-gradient(circle at 67% 22%, transparent 12%, rgba(1, 7, 20, .2) 48%, #01030b 90%),
+    radial-gradient(circle at 36% 28%, transparent 15%, rgba(1, 10, 28, .08) 46%, #010817e8 92%),
     url("/assets/earth-clouds.webp") center / 200% 100%,
     url("/assets/earth-day.jpg") center / 200% 100%;
 }
@@ -50,84 +63,35 @@ body {
 #earth-scene.webgl-ready::before { display: none; }
 #earth-scene canvas { display: block; width: 100%; height: 100%; }
 
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(2, 5, 12, .88) 0, rgba(2, 5, 12, .54) 39%, rgba(2, 5, 12, .02) 80%);
-}
-
-header {
-  padding: 18px max(28px, calc((100vw - 1440px) / 2));
-  background: rgba(3, 9, 18, .35);
-  border-color: rgba(126, 171, 213, .15);
-}
-
-.header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
-.earth-motion { min-height: 34px; padding: 6px 10px; font-size: 12px; background: rgba(12, 24, 38, .8); }
-.logo { box-shadow: 0 0 20px #aff4731c; }
-
-main { max-width: 1496px; padding: 40px 28px; }
-h1 { max-width: 730px; font-size: clamp(34px, 3.7vw, 56px); letter-spacing: -.04em; }
-.hero-accent { color: var(--accent); }
-.intro { margin: 14px 0 24px; font-size: 18px; }
-.notice { max-width: 980px; background: rgba(9, 23, 40, .66); border-color: rgba(104, 151, 191, .28); }
-#search, .form-note, .stats { width: min(100%, 980px); }
-.panel, .stat { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 8px 24px #0000001a; }
-.stat { background: rgba(9, 21, 35, .78); }
-input, select { background: rgba(4, 13, 24, .82); border-color: rgba(132, 169, 203, .31); }
-button { background: rgba(16, 30, 46, .88); }
-.primary { color: #15220c; background: var(--accent); box-shadow: 0 0 22px #adf07412; }
-.primary:hover:not(:disabled) { background: #c3fc92; box-shadow: 0 0 25px #adf0742b; }
-.stat strong { color: #e9f1ff; }
-.stat.prospects strong { color: var(--accent); }
-footer { border-color: rgba(142, 184, 217, .22); }
-
 .earth-location {
   position: absolute;
+  z-index: 1;
   width: max-content;
-  max-width: 230px;
-  padding: 7px 11px;
+  max-width: min(220px, calc(100% - 24px));
+  padding: 8px 11px;
   color: #e9f7ff;
-  background: rgba(3, 16, 29, .85);
-  border: 1px solid rgba(175, 238, 116, .55);
-  border-radius: 8px;
-  font-size: 13px;
+  background: rgba(3, 16, 29, .90);
+  border: 1px solid rgba(16, 215, 234, .55);
+  border-radius: 9px;
+  font-size: 12px;
   line-height: 1.4;
-  box-shadow: 0 0 20px #abf07316;
+  overflow-wrap: anywhere;
+  box-shadow: 0 0 18px #08d5ed19;
   text-shadow: 0 1px 4px #000;
 }
-.earth-location-kicker { display: block; margin-bottom: 3px; color: var(--accent); font-size: 9px; letter-spacing: .08em; }
+
+.earth-location-kicker {
+  display: block;
+  margin-bottom: 3px;
+  color: #20dfed;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
 .earth-location-name { display: block; font-weight: 650; }
 
-@media (max-width: 1100px) {
-  body::after { background: linear-gradient(90deg, rgba(2, 5, 12, .76), rgba(2, 5, 12, .10)); }
-  #search, .form-note, .stats { width: 100%; }
-  .notice { max-width: none; }
-  h1 { max-width: 650px; }
-}
-
-@media (max-width: 700px) {
-  header { padding: 14px 16px; }
-  .header-actions { flex-direction: column; align-items: flex-end; gap: 6px; }
-  .version { max-width: 160px; font-size: 11px; }
-  .earth-motion { min-height: 29px; padding: 4px 8px; font-size: 11px; }
-  main { padding: 28px 16px; }
-  h1 { max-width: 310px; font-size: 36px; }
-  .intro { max-width: 265px; font-size: 15px; margin-bottom: 34px; }
-  body::after { background: linear-gradient(180deg, #02071055, #02071066 27%, #020710cf 68%); }
-  #earth-scene::before { top: 8vh; right: -25vw; width: 105vw; }
-  .notice { background: rgba(7, 20, 35, .87); }
-  .panel, .stat { background: rgba(6, 17, 30, .91); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-  .earth-location { max-width: 160px; font-size: 11px; }
-}
-
 @media (max-width: 640px) {
-  .earth-location { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .primary { box-shadow: none; }
+  .earth-location { max-width: min(190px, calc(100% - 24px)); font-size: 11px; }
+  #earth-scene::before { box-shadow: inset -18px -15px 38px #000b,
+    inset 6px 1px 15px #72dfff69, 0 0 6px #6deaff72, 0 0 24px #008fe137; }
 }

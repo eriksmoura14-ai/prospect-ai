@@ -179,7 +179,6 @@ function makeCard(row) {
   const saveButton = prospectLists.button(row, lastJob);
   if (saveButton) tools.append(saveButton);
   actions.append(tools);
-  business.append(actions);
 
   const verification = node("div", "verification");
   verification.append(
@@ -231,7 +230,7 @@ function makeCard(row) {
   const analysisHeading = node("summary");
   analysisHeading.append(node("span", "", "Ver análise e evidências"), uiIcon("arrow"));
   analysis.append(analysisHeading, website, verification, score, evidenceLinks);
-  card.append(business, analysis);
+  card.append(business, actions, analysis);
   return card;
 }
 
@@ -377,6 +376,17 @@ function setBusy(value) {
   locationPicker.sync();
 }
 
+// Keep the visual search overview tied to the actual job, including history.
+// Changing this presentation does not change the search filters or its area.
+function publishDiscovery(job) {
+  const country = job?.discoveryDiagnostics?.geocode?.selected?.address?.country_code ||
+    job?.discoveryDiagnostics?.location?.countryCode || "";
+  window.dispatchEvent(new CustomEvent("prospect:discovery", { detail: job ? {
+    place: job.place || job.city || "", geographicScope: job.geographicScope || "",
+    state: job.state, message: job.message || "", countryCode: country.toUpperCase(), niche: job.niche || ""
+  } : null }));
+}
+
 async function watch(jobId) {
   const generation = accountUI.epoch;
   let failures = 0;
@@ -404,6 +414,7 @@ async function watch(jobId) {
     }
 
     lastJob = job;
+    publishDiscovery(job);
     const point = job.discoveryDiagnostics?.geocode?.selected;
     if (point && Number.isFinite(point.latitude) && Number.isFinite(point.longitude)) {
       const key = `${jobId}:${point.latitude}:${point.longitude}`;
@@ -453,6 +464,7 @@ $("search").addEventListener("submit", async event => {
   // Só mantém a pesquisa anterior se a criação da nova busca falhar.
   rows = [];
   lastJob = null;
+  publishDiscovery(null);
   progressText = pendingJob ? "Reconectando à pesquisa…" : "Iniciando pesquisa…";
   setBusy(true);
   render();
@@ -475,6 +487,7 @@ $("search").addEventListener("submit", async event => {
       try {
         rows = [];
         lastJob = null;
+        publishDiscovery(null);
         rememberJob(error.jobId);
         await watch(error.jobId);
       } catch (watchError) {
@@ -485,6 +498,7 @@ $("search").addEventListener("submit", async event => {
       if (!storedJob() && !lastJob && previousJob) {
         rows = previousRows;
         lastJob = previousJob;
+        publishDiscovery(previousJob);
       }
       searchError = error.message;
       progressText = searchError;
@@ -643,6 +657,7 @@ function saveOfferSettings(settings) {
 
 window.addEventListener("prospect:session-expired", () => {
   rows = []; lastJob = null; ready = false; searched = false; searchError = "";
+  publishDiscovery(null);
   aiCompanyStates.clear();
   if (aiPanel) { aiPanel.dialog.close(); aiPanel.dialog.remove(); aiPanel = null; }
   render();
@@ -667,13 +682,13 @@ function createAIPanel() {
     .ai-dialog textarea{width:100%;min-height:100px;box-sizing:border-box;
       background:#0c111a;color:#edf2fa;border:1px solid #3b4860;border-radius:8px;
       padding:12px;font:inherit;resize:vertical;margin-top:6px}
-    .ai-dialog textarea:focus-visible{outline:3px solid #a6ef75;outline-offset:2px}
+    .ai-dialog textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
     .ai-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
     .ai-row>*{flex:1}.ai-dialog .ai-output{min-height:140px}
     .ai-dialog .ai-audit{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;
       background:#0c111a;border-radius:8px;color:#c3cddd}
     .ai-dialog .ai-note{font-size:13px;color:#a2aec1;margin:8px 0}
-    .ai-dialog .ai-status{font-size:14px;color:#a6ef75;white-space:pre-wrap}
+    .ai-dialog .ai-status{font-size:14px;color:var(--accent);white-space:pre-wrap}
     .ai-dialog details p{font-size:13px;overflow-wrap:anywhere}
   `;
   document.head.append(style);
@@ -773,6 +788,13 @@ function createAIPanel() {
   }
   close.addEventListener("click", () => { saveState(); dialog.close(); });
   dialog.addEventListener("cancel", saveState);
+  dialog.addEventListener("close", () => {
+    const target = panel.returnFocus;
+    panel.returnFocus = null;
+    if (!$("workspace").hidden && target instanceof HTMLElement && target.isConnected && !target.disabled) {
+      target.focus({ preventScroll: true });
+    }
+  });
   copy.addEventListener("click", async () => {
     if (!draft.value.trim()) { status.textContent = "Gere ou escreva um rascunho primeiro."; return; }
     try { await navigator.clipboard.writeText(draft.value); status.textContent = "Rascunho copiado."; }
@@ -864,6 +886,7 @@ function showAISources(panel, evidence) {
 
 function openAIPanel(row, jobId) {
   if (!aiPanel) aiPanel = createAIPanel();
+  aiPanel.returnFocus = document.activeElement;
   if (aiPanel.busy && aiPanel.selection?.row.osmId !== row.osmId) {
     aiPanel.dialog.showModal();
     aiPanel.status.textContent = "Aguarde a geração atual antes de trocar de empresa.";
@@ -892,9 +915,10 @@ function openAIPanel(row, jobId) {
   aiPanel.dialog.showModal();
 }
 
-function openAgentSettings() {
+function openAgentSettings(event) {
   if ($("workspace").hidden) return;
   if (!aiPanel) aiPanel = createAIPanel();
+  aiPanel.returnFocus = event?.detail?.returnFocus || document.activeElement;
   if (aiPanel.busy) {
     aiPanel.dialog.showModal();
     aiPanel.status.textContent = "Aguarde a geração atual antes de alterar o perfil.";
