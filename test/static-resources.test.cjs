@@ -103,3 +103,12 @@ test("HTML compression retains LocationIQ attribution and images retain their or
   assert.equal(image.headers["cache-control"], "private, max-age=3600");
   assert.equal((await get("/assets/earth-day.jpg", { "Accept-Encoding": "identity;q=0" })).status, 406);
 });
+
+test("an existing visible LocationIQ link is retained without duplicate attribution", async t => {
+  const { root, get } = await fixture(t, { locationIQ: true });
+  const html = '<!doctype html><body><footer><a href="https://locationiq.com">Search by LocationIQ.com</a></footer></body>';
+  await fs.writeFile(path.join(root, "index.html"), html);
+  const page = await get("/");
+  assert.equal(page.status, 200);
+  assert.equal(page.body.toString(), html);
+});

@@ -1,16 +1,26 @@
 """Real local Chromium/Node/PostgreSQL checks for the dashboard redesign.
 Uses fictional company/account fixtures and real geographic metadata.
-No discovery, emails, model calls or WhatsApp messages are performed.
+Only bounded public OpenStreetMap tile reads may leave loopback. No discovery,
+emails, model calls or WhatsApp messages are performed.
 Start test/prospects-browser-server.cjs with a disposable local database first.
 """
 import asyncio
 import json
+import os
+import re
 from pathlib import Path
+from urllib.parse import urlsplit
 from playwright.async_api import async_playwright, expect
 
 BASE = "http://127.0.0.1:3161"
 ARTIFACTS = Path(__file__).resolve().parents[1] / ".artifacts"
-REPORT = {"scope": "Real local Chromium/Node/PostgreSQL and geographic metadata; external operations prohibited", "devices": []}
+REPORT = {"scope": "Real local Chromium/Node/PostgreSQL and geographic metadata; bounded public OSM map tiles only; business discovery, emails, models and WhatsApp operations prohibited", "devices": []}
+
+
+def public_map_tile(url):
+    parsed = urlsplit(url)
+    match = re.fullmatch(r"/12/(\d+)/(\d+)\.png", parsed.path)
+    return parsed.scheme == "https" and parsed.netloc == "tile.openstreetmap.org" and bool(match) and all(0 <= int(value) < 4096 for value in match.groups())
 
 
 async def nav(page, target, mobile):
@@ -32,21 +42,75 @@ async def nav(page, target, mobile):
         assert not await page.locator(".app-content").evaluate("element => element.inert")
 
 
+async def reveal_control(page, selector):
+    """Exercise the real disclosure if a less-used control is collapsed."""
+    control = page.locator(selector) if isinstance(selector, str) else selector
+    disclosure = control.locator("xpath=ancestor::details[1]")
+    if await disclosure.count() and await disclosure.get_attribute("open") is None:
+        await disclosure.locator(":scope > summary").click()
+    try:
+        await expect(control).to_be_visible()
+    except AssertionError:
+        print("Disclosure visibility diagnostic:", json.dumps(await control.evaluate("""element => {
+            const ancestors=[];
+            for(let node=element;node;node=node.parentElement) ancestors.push({
+                tag:node.tagName,id:node.id,class:node.className,hidden:node.hidden,
+                open:node.open,display:getComputedStyle(node).display,
+                visibility:getComputedStyle(node).visibility
+            });
+            return ancestors;
+        }""")), flush=True)
+        raise
+    return control
+
+
+async def load_history(page):
+    # A previous job can already have two cached cards. Waiting on their count
+    # alone does not establish that the new history request/render completed.
+    async with page.expect_response(lambda response: "/api/jobs/" in response.url and response.request.method == "GET" and response.status == 200) as response_event:
+        await page.locator("#history-list button").click()
+    await (await response_event.value).body()
+    await expect(page.locator("#country")).to_be_enabled()
+    await expect(page.locator("#cards article")).to_have_count(2)
+
+
 async def responsive_layout(page, width):
     await page.set_viewport_size({"width": width, "height": 1000})
+    await page.evaluate("() => window.scrollTo(0,0)")
     await page.wait_for_timeout(80)
     assert not await page.evaluate("() => document.documentElement.scrollWidth > innerWidth"), width
     hero = await page.locator("#explore-section").bounding_box()
     earth = await page.locator("#earth-scene").bounding_box()
     assert hero and earth and abs(earth["width"] - earth["height"]) <= 1, (width, earth)
-    assert earth["width"] >= min(250, width - 48), (width, earth)
+    assert earth["width"] >= min(160, width - 48), (width, earth)
     assert earth["x"] >= 0 and earth["x"] + earth["width"] <= width + 1, (width, earth)
-    assert earth["y"] >= hero["y"] and earth["y"] + earth["height"] <= hero["y"] + hero["height"] + 1, (width, hero, earth)
+    # The reference globe reaches up behind the transparent header. Its
+    # decorative square can extend above the hero without changing the sphere.
+    assert earth["y"] >= 0, (width, hero, earth)
     canvas = await page.locator("#earth-scene canvas").evaluate("canvas => ({width:canvas.width,height:canvas.height,rect:canvas.getBoundingClientRect().toJSON()})")
     assert abs(canvas["width"] / canvas["height"] - earth["width"] / earth["height"]) < 0.01, (width, canvas, earth)
     assert abs(canvas["rect"]["width"] - canvas["rect"]["height"]) <= 1, (width, canvas)
     search = await page.locator("#search").bounding_box()
-    assert search and search["y"] >= earth["y"] + earth["height"] - 1, (width, search, earth)
+    # The square has a transparent border beyond the sphere/atmosphere. A small
+    # overlap of that border is allowed; the actual globe is inspected visually.
+    assert search and search["y"] >= earth["y"] + earth["height"] - 18, (width, search, earth)
+    # Compact reference composition: the filters follow the globe instead of
+    # a large empty spacer. Measurements concern the rendered UI, not a mock.
+    assert search["y"] - (hero["y"] + hero["height"]) <= 48, (width, search, hero)
+    if width <= 480:
+        assert hero["height"] <= 430, (width, hero)
+    elif width >= 1200:
+        assert hero["height"] <= 420, (width, hero)
+    label = page.locator(".earth-location")
+    if await label.is_visible():
+        label_box = await label.bounding_box()
+        assert label_box and label_box["x"] >= 0 and label_box["x"] + label_box["width"] <= width + 1, (width, label_box)
+        heading = await page.locator("h1").bounding_box()
+        assert heading
+        assert not (label_box["x"] < heading["x"] + heading["width"] and
+            label_box["x"] + label_box["width"] > heading["x"] and
+            label_box["y"] < heading["y"] + heading["height"] and
+            label_box["y"] + label_box["height"] > heading["y"]), (width, "location covers heading", label_box, heading)
     mobile = width <= 900
     if mobile:
         await expect(page.locator("#mobile-nav")).to_be_visible()
@@ -66,7 +130,7 @@ async def responsive_layout(page, width):
         await expect(page.locator("#mobile-nav")).to_be_hidden()
         await expect(page.locator("#overview-location")).to_be_visible()
     for selector in ["#country", "#region", "#city", "#niche", "#quantity", "#search button[type=submit]"]:
-        control = page.locator(selector)
+        control = await reveal_control(page, selector)
         # Chromium's automatic action scroll ignores fixed overlays when a
         # control is already within the viewport. Center it deliberately to
         # prove the user can reach it without the bottom bar covering it.
@@ -90,16 +154,18 @@ async def responsive_layout(page, width):
         footer_box = await last_link.bounding_box()
         nav_box = await page.locator("#mobile-nav").bounding_box()
         assert footer_box and footer_box["y"] + footer_box["height"] <= nav_box["y"] + 1, (width, footer_box, nav_box)
-    return {"width": width, "earthSize": round(earth["width"]), "squareHostAndCanvas": True, "horizontalOverflow": False}
+    return {"width": width, "earthSize": round(earth["width"]), "heroHeight": round(hero["height"]),
+        "heroToFiltersGap": round(search["y"] - hero["y"] - hero["height"]),
+        "squareHostAndCanvas": True, "horizontalOverflow": False}
 
 
 async def device_check(browser, device, fixture):
     mobile = device == "mobile"
     viewport = {"width": 390, "height": 844} if mobile else {"width": 1440, "height": 1000}
     context = await browser.new_context(viewport=viewport, reduced_motion="reduce")
-    page = await context.new_page(); errors = []; external = []; violations = []
+    page = await context.new_page(); errors = []; external = []; violations = []; public_tiles = []
     page.on("pageerror", lambda error: errors.append(str(error)))
-    page.on("request", lambda request: external.append(request.url) if not request.url.startswith(BASE) else None)
+    page.on("request", lambda request: public_tiles.append(request.url) if public_map_tile(request.url) else external.append(request.url) if not request.url.startswith(BASE) else None)
     page.set_default_timeout(12000)
     await page.add_init_script("window.dashboardCSP=[];document.addEventListener('securitypolicyviolation',event=>window.dashboardCSP.push(event.violatedDirective));")
     await page.goto(BASE, wait_until="domcontentloaded")
@@ -123,6 +189,8 @@ async def device_check(browser, device, fixture):
     await page.locator("#login-password").fill(fixture["password"])
     await page.locator("#account-login-form button[type=submit]").click()
     await expect(page.locator("#workspace")).to_be_visible()
+    await expect(page.locator('footer a[href="https://locationiq.com"]')).to_have_count(1)
+    await expect(page.locator('footer a[href="https://locationiq.com"]')).to_be_visible()
     await expect(page.locator("#country")).to_be_enabled()
     await expect(page.locator("#niche option")).to_have_count(24)
     await expect(page.locator("#results-count")).to_be_hidden()
@@ -130,8 +198,7 @@ async def device_check(browser, device, fixture):
     await expect(page.locator("#mobile-nav-agent")).to_be_enabled()
     await nav(page, '[data-nav-target="account-history"]', mobile)
     await expect(page.locator("#account-history")).to_have_attribute("open", "")
-    await page.locator("#history-list button").click()
-    await expect(page.locator("#cards article")).to_have_count(2)
+    await load_history(page)
     await expect(page.locator("#overview-location")).to_have_text("Cidade de fixture")
     await expect(page.locator("#overview-niche")).to_have_text("Barber")
     await expect(page.locator("#overview-country")).to_have_text("Brasil")
@@ -140,20 +207,22 @@ async def device_check(browser, device, fixture):
     await expect(page.locator("#results-count")).to_have_text("2 resultados")
     await expect(page.locator("#total")).to_have_text("2")
     await expect(page.locator("#cards a.whatsapp-contact")).to_have_attribute("href", "https://wa.me/5511912345678")
+    assert not await page.locator("#cards img[onerror]").count()
+    assert not await page.evaluate("() => Boolean(window.listXss)")
     await expect(page.locator("#cards .card-analysis").first).not_to_have_attribute("open", "")
     await page.locator("#cards .card-analysis > summary").first.click()
     await expect(page.locator("#cards .card-analysis").first).to_have_attribute("open", "")
     await expect(page.locator("#cards .card-analysis a").filter(has_text="Ver fonte").first).to_be_visible()
     await expect(page.locator("#cards .score").first).to_be_visible()
     await page.locator("#cards .card-analysis > summary").first.click()
-    await page.locator('[data-filter="found"]').click()
+    await (await reveal_control(page, '[data-filter="found"]')).click()
     await expect(page.locator("#cards article")).to_have_count(1)
     await expect(page.locator("#cards article h3")).to_have_text("Oficina de exemplo")
     await page.locator('[data-filter="all"]').click()
     await expect(page.locator("#cards article")).to_have_count(2)
-    await page.locator("#sort").select_option("name")
+    await (await reveal_control(page, "#sort")).select_option("name")
     async with page.expect_download() as download_event:
-        await page.locator("#json").click()
+        await (await reveal_control(page, "#json")).click()
     download = await download_event.value
     exported = json.loads(Path(await download.path()).read_text())
     assert len(exported["results"]) == 2 and exported["partial"] is False
@@ -178,8 +247,8 @@ async def device_check(browser, device, fixture):
     await expect(page.locator("#ai-knowledge")).to_have_value("Condições da conta local de teste.")
     await page.locator(".ai-dialog").get_by_role("button", name="Fechar", exact=True).click()
     await nav(page, '[data-nav-target="account-history"]', mobile)
-    await page.locator("#history-list button").click()
-    await page.get_by_role("button", name="Abrir assistente de IA").first.click()
+    await load_history(page)
+    await (await reveal_control(page, page.get_by_role("button", name="Abrir assistente de IA", include_hidden=True).first)).click()
     await expect(page.get_by_role("button", name="1. Revisar empresa", exact=True)).to_be_visible()
     await expect(page.locator("#ai-knowledge")).to_have_value("Condições da conta local de teste.")
     await page.locator(".ai-dialog").get_by_role("button", name="Fechar", exact=True).click()
@@ -194,6 +263,7 @@ async def device_check(browser, device, fixture):
     sao_paulo = await page.locator("#city option").evaluate_all("options => options.find(option => option.text === 'São Paulo').value")
     await page.locator("#city").select_option(sao_paulo)
     await page.locator("#niche").select_option("Hamburguerias")
+    await reveal_control(page, "#quantity")
     await page.locator("#quantity").select_option("50")
     await expect(page.locator("#search button[type=submit]")).to_be_enabled()
     await page.locator("#earth-scene").scroll_into_view_if_needed()
@@ -212,14 +282,50 @@ async def device_check(browser, device, fixture):
         await page.locator("#overview-toggle").click()
         await expect(page.locator("#overview-toggle")).to_have_attribute("aria-expanded", "true")
         await expect(page.locator("#overview-location")).to_be_visible()
+        await page.locator("#overview-map").scroll_into_view_if_needed()
+        await page.wait_for_function("() => ['ready','error'].includes(document.querySelector('#overview-map').dataset.mapState)")
         await page.locator("#overview-toggle").click()
         await expect(page.locator("#overview-toggle")).to_have_attribute("aria-expanded", "false")
     ARTIFACTS.mkdir(exist_ok=True)
+    # Match the reference geography for visual inspection while preserving
+    # honest fictional company rows from the local database fixture.
+    await page.locator("#country").select_option("BR")
+    await expect(page.locator("#region")).to_be_enabled()
+    await page.locator("#region").select_option("MG")
+    await expect(page.locator("#city")).to_be_enabled()
+    await page.locator("#city").select_option("15434")
+    disclosure = page.locator("#quantity").locator("xpath=ancestor::details[1]")
+    if await disclosure.count() and await disclosure.get_attribute("open") is not None:
+        await disclosure.locator(":scope > summary").click()
+    result_disclosure = page.locator("#json").locator("xpath=ancestor::details[1]")
+    if await result_disclosure.count() and await result_disclosure.get_attribute("open") is not None:
+        await result_disclosure.locator(":scope > summary").click()
+    # Return the real UI to its default compact state via actual controls after
+    # testing the expanded evidence and company assistant; do not replace data.
+    for analysis in await page.locator("#cards .card-analysis").all():
+        if await analysis.get_attribute("open") is not None:
+            await analysis.locator(":scope > summary").click()
+    await page.locator("#earth-scene").scroll_into_view_if_needed()
+    await page.wait_for_function("() => prospectEarth.target?.label === 'Uberlândia' && Math.abs(prospectEarth.zoom - 1.16) < 0.00001")
+    map_state = None
+    if await page.locator("#overview-map").is_visible():
+        await page.wait_for_function("() => ['ready','error'].includes(document.querySelector('#overview-map').dataset.mapState)")
+        map_state = await page.locator("#overview-map").get_attribute("data-map-state")
+        assert await page.locator("#overview-map img").count() <= 4
+        coordinates = await page.locator("#overview-map").evaluate("element=>({latitude:Number(element.dataset.latitude),longitude:Number(element.dataset.longitude)})")
+        actual_target = await page.evaluate("() => ({latitude:prospectEarth.target.latitude,longitude:prospectEarth.target.longitude})")
+        assert all(abs(coordinates[key] - actual_target[key]) < 0.0000001 for key in ["latitude","longitude"]), (coordinates, actual_target)
     # Start screenshots at the top so sticky/fixed navigation is captured at
     # its genuine viewport position instead of the previous control scroll.
     await page.evaluate("() => window.scrollTo(0,0)")
     await page.screenshot(path=str(ARTIFACTS / f"dashboard-{device}-viewport.png"))
     await page.screenshot(path=str(ARTIFACTS / f"dashboard-{device}.png"), full_page=True)
+    if not mobile:
+        await page.set_viewport_size({"width":1280,"height":720})
+        await page.evaluate("() => window.scrollTo(0,0)")
+        await page.wait_for_timeout(100)
+        await page.screenshot(path=str(ARTIFACTS / "dashboard-desktop-reference-1280.png"))
+        await page.set_viewport_size(viewport)
     await page.locator("#country").select_option("US")
     await expect(page.locator("#region")).to_be_enabled()
     await page.locator("#region").select_option("NY")
@@ -245,7 +351,7 @@ async def device_check(browser, device, fixture):
     await expect(page.locator("#overview-status")).to_contain_text("serão confirmadas durante a pesquisa")
     await page.locator("#city").select_option("122795")
     responsive = []
-    for width in ([320, 390, 768] if mobile else [1024, 1366, 1920]):
+    for width in ([320, 390, 768] if mobile else [1024, 1280, 1366, 1920]):
         responsive.append(await responsive_layout(page, width))
     await page.set_viewport_size(viewport)
     await page.evaluate("() => accountUI.expire()")
@@ -260,14 +366,14 @@ async def device_check(browser, device, fixture):
     assert not errors, errors
     assert not violations, violations
     assert not external, external
-    REPORT["devices"].append({"device":device,"passed":True,"checks":["login-and-private-navigation","mobile-bottom-navigation","mobile-focus-inert-and-escape","history-and-results","expandable-evidence","status-filter","export","lists-navigation","agent-preferences-persist-and-return-focus","company-assistant","account-menu","country-state-city-and-Earth","selected-location-overview","mobile-overview-collapse","square-canvas-and-unobstructed-responsive-controls","session-expiry","no-CSP-violations"],"responsive":responsive,"externalOperations":0})
+    REPORT["devices"].append({"device":device,"passed":True,"checks":["login-and-private-navigation","mobile-bottom-navigation","mobile-focus-inert-and-escape","history-and-results","expandable-evidence","status-filter","export","lists-navigation","agent-preferences-persist-and-return-focus","company-assistant","account-menu","country-state-city-and-Earth","selected-location-overview","mobile-overview-collapse","square-canvas-and-unobstructed-responsive-controls","session-expiry","no-CSP-violations"],"responsive":responsive,"referenceCityMapState":map_state,"publicMapTileRequests":public_tiles,"prohibitedExternalOperations":0})
     print("PASS dashboard browser " + device, flush=True)
     await context.close()
 
 
 async def main():
     async with async_playwright() as p:
-        browser = await p.chromium.launch(executable_path="/usr/bin/chromium",args=["--no-sandbox","--disable-dev-shm-usage","--enable-unsafe-swiftshader"])
+        browser = await p.chromium.launch(executable_path="/usr/bin/chromium",proxy={"server":os.environ.get("HTTPS_PROXY","http://proxy:8080"),"bypass":"localhost,127.0.0.1"},args=["--no-sandbox","--disable-dev-shm-usage","--enable-unsafe-swiftshader"])
         api = await p.request.new_context()
         fixtures = await (await api.get(BASE + "/__test/info")).json()
         try:

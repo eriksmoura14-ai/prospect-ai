@@ -16,6 +16,8 @@ const files = {
   "/app.js": ["app.js", "text/javascript; charset=utf-8"],
   "/dashboard.js": ["dashboard.js", "text/javascript; charset=utf-8"],
   "/dashboard.css": ["dashboard.css", "text/css; charset=utf-8"],
+  "/location-map.js": ["location-map.js", "text/javascript; charset=utf-8"],
+  "/location-map.css": ["location-map.css", "text/css; charset=utf-8"],
   "/account-ui.js": ["account-ui.js", "text/javascript; charset=utf-8"],
   "/account.css": ["account.css", "text/css; charset=utf-8"],
   "/prospects-ui.js": ["prospects-ui.js", "text/javascript; charset=utf-8"],
@@ -35,6 +37,8 @@ const files = {
   "/assets/earth-specular.jpg": ["assets/earth-specular.jpg", "image/jpeg"],
   "/assets/earth-night.jpg": ["assets/earth-night.jpg", "image/jpeg"],
   "/assets/icon.svg": ["assets/icon.svg", "image/svg+xml"],
+  "/assets/space-nebula.webp": ["assets/space-nebula.webp", "image/webp"],
+  "/assets/niche-illustrations.webp": ["assets/niche-illustrations.webp", "image/webp"],
   "/vendor/three.LICENSE.txt": ["node_modules/three/LICENSE", "text/plain; charset=utf-8"]
 };
 
@@ -60,6 +64,9 @@ function unchanged(header, etag) {
 
 function prepareContent(file, content, locationIQ = false) {
   if (file !== "index.html" || !locationIQ) return content;
+  // The redesigned interface keeps the provider's visible credit in its footer.
+  // Preserve the legacy insertion only for pages that do not already credit it.
+  if (/href=["']https:\/\/locationiq\.com\/?["']/i.test(content.toString("utf8"))) return content;
   return Buffer.from(content.toString("utf8").replace(/<body\b[^>]*>/i, body => body +
     '<div style="padding:10px 24px;text-align:center">' +
     '<a href="https://locationiq.com" target="_blank" ' +

@@ -80,6 +80,7 @@
     }
     const email = enabled && typeof accountUI !== "undefined" ? accountUI.profile?.email : "";
     document.getElementById("sidebar-avatar").textContent = email ? email[0].toUpperCase() : "P";
+    document.getElementById("topbar-avatar").textContent = email ? email[0].toUpperCase() : "P";
     if (!enabled) {
       discovery = null;
       overviewExpanded = false;
@@ -105,11 +106,15 @@
     const expanded = !mobile.matches || overviewExpanded;
     overview.hidden = !expanded;
     overviewToggle.setAttribute("aria-expanded", String(expanded));
-    overviewToggle.textContent = overviewExpanded ? "Ocultar localização" : "Ver localização";
+    const text = overviewToggle.querySelector("span");
+    if (text) text.textContent = overviewExpanded ? "Ocultar mapa" : "Ver mapa";
   }
 
   function syncOverview() {
     if (!overview) return;
+    const countryCode = document.getElementById("country")?.value || "";
+    document.getElementById("country-flag").textContent = /^[A-Z]{2}$/.test(countryCode)
+      ? [...countryCode].map(char => String.fromCodePoint(127397 + char.charCodeAt(0))).join("") : "🌐";
     const country = selectedLabel("country");
     const regionSelect = document.getElementById("region");
     const citySelect = document.getElementById("city");
@@ -193,6 +198,12 @@
   overviewToggle?.addEventListener("click", () => {
     overviewExpanded = !overviewExpanded;
     syncOverviewVisibility();
+    if (overviewExpanded && mobile.matches) {
+      overview.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
+      const heading = overview.querySelector("h2");
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
   });
   for (const id of ["country", "region", "city", "niche"]) {
     document.getElementById(id)?.addEventListener("change", changedSelection);

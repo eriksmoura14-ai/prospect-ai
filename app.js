@@ -64,9 +64,14 @@ function uiIcon(name) {
   return icon;
 }
 
-function businessIcon() {
-  const mark = node("span", "business-icon");
-  mark.append(uiIcon("store"));
+function businessIcon(category = "") {
+  const niche = String(category).toLocaleLowerCase("pt-BR");
+  const illustration = /barber|cabeleire|barbear/.test(niche) ? "barber"
+    : /café|cafe|coffee|cafeter/.test(niche) ? "coffee"
+    : /restaur|hamb|pizza|lanch|churras|food/.test(niche) ? "food" : "shop";
+  const mark = node("span", "business-icon category-illustration category-" + illustration);
+  mark.setAttribute("aria-label", "Ilustração do nicho; não é uma foto da empresa");
+  mark.append(node("span", "illustration-caption", "Ilustração"));
   return mark;
 }
 
@@ -135,8 +140,19 @@ function makeCard(row) {
     node("h3", "", row.name),
     node("p", "meta", `${row.category} · ${row.city} · OpenStreetMap`)
   );
-  heading.append(businessIcon(), identity);
-  business.append(heading, node("span", `badge ${state.className}`, state.label));
+  const businessStatus = node("div", "business-status");
+  const websiteStatus = node("span", `website-status ${state.className}`, state.label);
+  websiteStatus.prepend(uiIcon("globe"));
+  const contactStatus = node("span", "contact-status" + (row.phoneVerification === "conflict" ? " warning" : row.whatsappStatus === "listed" ? "" : " unconfirmed"),
+    row.phoneVerification === "conflict" ? "Contato a revisar"
+      : row.whatsappStatus === "listed" ? "WhatsApp informado"
+        : row.phone ? "Telefone publicado" : "Telefone não informado");
+  contactStatus.prepend(uiIcon("phone"));
+  businessStatus.append(websiteStatus, contactStatus);
+  identity.append(businessStatus);
+  if (row.whatsappUrl || row.whatsappSuggestedUrl) identity.append(node("p", "contact-disclaimer", "Conta WhatsApp não verificada"));
+  heading.append(businessIcon(row.category), identity);
+  business.append(heading);
 
   const contact = node("div", "contact");
   const phone = node("span", "", row.phone || "Telefone não informado");
@@ -144,7 +160,6 @@ function makeCard(row) {
   phone.prepend(uiIcon("phone")); address.prepend(uiIcon("pin"));
   contact.append(phone, address);
   if (row.phoneVerification === "conflict") contact.append(node("span","reason","Telefones divergentes; revise antes de entrar em contato."));
-  business.append(contact);
 
   const website = node("div", "website");
   const websiteUrl = safeWebsite(row.website);
@@ -177,8 +192,12 @@ function makeCard(row) {
   aiButton.addEventListener("click", () => openAIPanel(row, lastJob.id));
   tools.append(aiButton);
   const saveButton = prospectLists.button(row, lastJob);
-  if (saveButton) tools.append(saveButton);
-  actions.append(tools);
+  if (saveButton) {
+    saveButton.textContent = "";
+    saveButton.append(uiIcon("bookmark"), node("span", "save-label", "Salvar na lista"));
+    saveButton.title = "Salvar na lista";
+    actions.append(saveButton);
+  }
 
   const verification = node("div", "verification");
   verification.append(
@@ -229,7 +248,13 @@ function makeCard(row) {
   analysis.dataset.osmId = row.osmId;
   const analysisHeading = node("summary");
   analysisHeading.append(node("span", "", "Ver análise e evidências"), uiIcon("arrow"));
-  analysis.append(analysisHeading, website, verification, score, evidenceLinks);
+  analysis.append(analysisHeading, contact, website, verification, score, evidenceLinks, tools);
+  if (!contactButton) {
+    const detailsButton = node("button", "card-details", "Ver detalhes");
+    detailsButton.type = "button";
+    detailsButton.addEventListener("click", () => { analysis.open = true; analysisHeading.focus(); });
+    actions.prepend(detailsButton);
+  }
   card.append(business, actions, analysis);
   return card;
 }
@@ -371,19 +396,23 @@ function setBusy(value) {
   busy = value;
   $("search").querySelectorAll("input, select, button")
     .forEach(element => { element.disabled = value || !ready; });
-  $("search").querySelector('button[type="submit"]').textContent =
-    value ? "Aguarde…" : storedJob() ? "Reconectar pesquisa" : "Buscar empresas";
+  $("search").querySelector('button[type="submit"]').replaceChildren(
+    uiIcon("search"),
+    node("span", "", value ? "Aguarde…" : storedJob() ? "Reconectar pesquisa" : "Buscar empresas")
+  );
   locationPicker.sync();
 }
 
 // Keep the visual search overview tied to the actual job, including history.
 // Changing this presentation does not change the search filters or its area.
 function publishDiscovery(job) {
-  const country = job?.discoveryDiagnostics?.geocode?.selected?.address?.country_code ||
+  const point = job?.discoveryDiagnostics?.geocode?.selected;
+  const country = point?.address?.country_code ||
     job?.discoveryDiagnostics?.location?.countryCode || "";
   window.dispatchEvent(new CustomEvent("prospect:discovery", { detail: job ? {
     place: job.place || job.city || "", geographicScope: job.geographicScope || "",
-    state: job.state, message: job.message || "", countryCode: country.toUpperCase(), niche: job.niche || ""
+    state: job.state, message: job.message || "", countryCode: country.toUpperCase(), niche: job.niche || "",
+    latitude: point?.latitude, longitude: point?.longitude
   } : null }));
 }
 
@@ -580,6 +609,8 @@ async function initialize() {
     link("Localidades: Countries States Cities Database · ODbL", "https://github.com/dr5hn/countries-states-cities-database"),
     node("span", "", " · "),
     link("Terra: NASA / Blue Marble e Black Marble", "https://science.nasa.gov/earth/earth-observatory/earth-at-night/maps/"),
+    node("span", "", " · "),
+    link("Search by LocationIQ.com", "https://locationiq.com"),
     node("span", "", " · "), link("Privacidade", "/privacy.html")
   );
   setBusy(true);
