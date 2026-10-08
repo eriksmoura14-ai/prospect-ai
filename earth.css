@@ -39,8 +39,8 @@ body::before {
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(circle at 36% 28%, #286ca2, #06203d 51%, #020b18 88%);
-  box-shadow: inset -23px -18px 50px #0009, inset 7px 1px 18px #72dfff99,
-    0 0 3px 1px #76dfff, 0 0 10px 3px #149fff9c, 0 0 26px 8px #0875df68;
+  box-shadow: inset -23px -18px 50px #000b, inset 7px 1px 18px #72dfff69,
+    0 0 7px #6deaff72, 0 0 29px #008fe137;
 }
 
 #earth-scene.earth-fallback::before {
@@ -96,6 +96,10 @@ body::before {
 .earth-location-core { fill: #03f0ef; filter: drop-shadow(0 0 5px #03f0ef); }
 
 @media (max-width: 640px) {
+  #earth-scene::before {
+    box-shadow: inset -18px -15px 38px #000b, inset 6px 1px 15px #72dfff69,
+      0 0 6px #6deaff72, 0 0 24px #008fe137;
+  }
   body::before { background-position: center, 40% top, center, center; }
   .earth-location { max-width: min(150px, 75%); font-size: 12px; }
 }
