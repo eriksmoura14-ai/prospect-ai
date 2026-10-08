@@ -741,12 +741,12 @@
         <button class="account-back" type="button">Voltar ao login</button>
       </form>
       <form id="account-password-form" class="account-form" hidden>
-        <p>Crie uma senha de pelo menos 15 caracteres, exclusiva do Prospect AI. Você pode usar uma frase.</p>
+        <p id="account-password-help">Use de 9 a 128 caracteres e inclua pelo menos um número. O ponto (.) é permitido. Crie uma senha exclusiva do Prospect AI.</p>
         <label for="account-new-password">Nova senha do Prospect AI
-          <input id="account-new-password" type="password" name="password" autocomplete="new-password" minlength="15" maxlength="128" required>
+          <input id="account-new-password" type="password" name="password" autocomplete="new-password" minlength="9" maxlength="128" pattern="(?=.*[0-9]).{9,128}" title="Use de 9 a 128 caracteres com pelo menos um número. O ponto (.) é permitido." aria-describedby="account-password-help" required>
         </label>
         <label for="account-repeat-password">Repita a senha
-          <input id="account-repeat-password" type="password" name="password-repeat" autocomplete="new-password" minlength="15" maxlength="128" required>
+          <input id="account-repeat-password" type="password" name="password-repeat" autocomplete="new-password" minlength="9" maxlength="128" pattern="(?=.*[0-9]).{9,128}" title="Repita a senha de 9 a 128 caracteres com pelo menos um número. O ponto (.) é permitido." aria-describedby="account-password-help" required>
         </label>
         <button type="submit" class="primary">Salvar senha e entrar</button>
         <button class="account-back" type="button">Voltar ao login</button>
