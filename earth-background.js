@@ -48,9 +48,9 @@ function startEarth(host) {
     .map(name => [name, { loaded: false, width: 0, height: 0, path: "" }]));
   const starStatus = { layers: 0, count: 0, galacticCount: 0 };
   const defaultRotation = new THREE.Quaternion()
-    .fromArray(geographicQuaternion(14, -65));
+    .fromArray(geographicQuaternion(-12, -45));
   const targetScales = { country: 1, state: 1.08, city: 1.16 };
-  const lightDirection = new THREE.Vector3(-2.3, 3.6, 7.2).normalize();
+  const lightDirection = new THREE.Vector3(0.6, 2.8, 5.8).normalize();
   const motionButton = document.getElementById("earth-motion");
   const locationLabel = document.createElement("div");
   locationLabel.className = "earth-location";
@@ -140,7 +140,7 @@ function startEarth(host) {
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.4;
+    renderer.toneMappingExposure = 1.28;
     renderer.domElement.className = "earth-canvas";
     renderer.domElement.setAttribute("aria-hidden", "true");
     renderer.domElement.tabIndex = -1;
@@ -157,8 +157,8 @@ function startEarth(host) {
     const sphere = keep(new THREE.SphereGeometry(earthRadius, segments, segments));
     planetMaterial = keep(new THREE.MeshPhongMaterial({
       color: 0xffffff,
-      specular: 0x142d50,
-      shininess: 62
+      specular: 0x15283d,
+      shininess: 45
     }));
     // Blue Marble uses almost-black water. The existing specular texture is
     // its matching water mask, so brighten oceans without tinting continents
@@ -168,18 +168,16 @@ function startEarth(host) {
         #include <map_fragment>
         #ifdef USE_SPECULARMAP
           float ocean = texture2D(specularMap, vSpecularMapUv).r;
-          vec3 oceanBlue = vec3(0.006, 0.026, 0.11);
+          vec3 oceanBlue = vec3(0.008, 0.038, 0.12);
           diffuseColor.rgb = mix(diffuseColor.rgb,
-            max(diffuseColor.rgb, oceanBlue), ocean * 0.94);
-          diffuseColor.rgb = mix(diffuseColor.rgb,
-            pow(diffuseColor.rgb, vec3(0.85)), (1.0 - ocean) * 0.3);
+            max(diffuseColor.rgb, oceanBlue), ocean * 0.88);
         #endif
       `);
     };
-    planetMaterial.customProgramCacheKey = () => "prospect-earth-ocean-v2";
+    planetMaterial.customProgramCacheKey = () => "prospect-earth-ocean-v1";
     earth.add(new THREE.Mesh(sphere, planetMaterial));
-    scene.add(new THREE.AmbientLight(0xc6daff, 0.46));
-    const sunlight = new THREE.DirectionalLight(0xfffaf2, 3.5);
+    scene.add(new THREE.AmbientLight(0xb7cffc, 0.32));
+    const sunlight = new THREE.DirectionalLight(0xfff8ef, 3.2);
     sunlight.position.copy(lightDirection).multiplyScalar(8);
     scene.add(sunlight);
     const reflectedLight = new THREE.DirectionalLight(0x3271af, 0.09);
@@ -201,10 +199,8 @@ function startEarth(host) {
     const material = keep(new THREE.ShaderMaterial({
       uniforms: {
         sunlight: { value: lightDirection },
-        dayColor: { value: new THREE.Color(0x68d0ff) },
-        nightColor: { value: new THREE.Color(0x176eff) },
-        haloStrength: { value: 1.1 },
-        falloff: { value: 3.6 }
+        dayColor: { value: new THREE.Color(0x7cd4ff) },
+        nightColor: { value: new THREE.Color(0x245ea8) }
       },
       vertexShader: `
         varying vec3 vWorldNormal;
@@ -220,18 +216,15 @@ function startEarth(host) {
         uniform vec3 sunlight;
         uniform vec3 dayColor;
         uniform vec3 nightColor;
-        uniform float haloStrength;
-        uniform float falloff;
         varying vec3 vWorldNormal;
         varying vec3 vView;
         void main() {
           vec3 normal = normalize(vWorldNormal);
           float grazing = 1.0 - abs(dot(normal, normalize(vView)));
-          float opticalDepth = pow(clamp(grazing, 0.0, 1.0), falloff);
+          float opticalDepth = pow(clamp(grazing, 0.0, 1.0), 3.6);
           float day = smoothstep(-0.25, 0.6, dot(normal, sunlight));
           vec3 scatteredLight = mix(nightColor, dayColor, day);
-          gl_FragColor = vec4(scatteredLight,
-            opticalDepth * (0.48 + day * 0.52) * haloStrength);
+          gl_FragColor = vec4(scatteredLight, opticalDepth * (0.24 + day * 0.55));
           #include <colorspace_fragment>
         }
       `,
@@ -240,34 +233,9 @@ function startEarth(host) {
       blending: THREE.AdditiveBlending,
       depthWrite: false
     }));
-    const shell = keep(new THREE.SphereGeometry(earthRadius * 1.008,
+    const shell = keep(new THREE.SphereGeometry(earthRadius * 1.026,
       segments, segments));
     earth.add(new THREE.Mesh(shell, material));
-    // A static, soft light profile supplies atmospheric bloom without an
-    // expensive full-canvas post-processing pass or a hard second sphere.
-    const haloCanvas = document.createElement("canvas");
-    haloCanvas.width = haloCanvas.height = 256;
-    const context = haloCanvas.getContext("2d");
-    if (context) {
-      const bloom = context.createRadialGradient(128, 128, 0, 128, 128, 128);
-      for (const [stop, color] of [
-        [0, "rgba(0, 140, 255, 0)"], [0.73, "rgba(0, 140, 255, 0)"],
-        [0.79, "rgba(30, 154, 255, .07)"], [0.818, "rgba(50, 185, 255, .32)"],
-        [0.836, "rgba(25, 159, 255, .95)"], [0.851, "rgba(18, 113, 255, .72)"],
-        [0.88, "rgba(0, 130, 255, .19)"], [0.94, "rgba(0, 116, 255, .04)"],
-        [1, "rgba(0, 116, 255, 0)"]
-      ]) bloom.addColorStop(stop, color);
-      context.fillStyle = bloom;
-      context.fillRect(0, 0, 256, 256);
-      const haloMaterial = keep(new THREE.SpriteMaterial({
-        map: keep(new THREE.CanvasTexture(haloCanvas)),
-        transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending,
-        depthWrite: false, toneMapped: false
-      }));
-      const halo = new THREE.Sprite(haloMaterial);
-      halo.scale.setScalar(earthRadius * 2 * 1.24);
-      earth.add(halo);
-    }
   }
 
   function softDotTexture(color) {
@@ -367,9 +335,9 @@ function startEarth(host) {
           float coverage = texture2D(cloudTexture, vUv).a;
           float day = smoothstep(-0.12, 0.6,
             dot(normalize(vWorldNormal), sunlight));
-          vec3 cloudLight = mix(vec3(0.12, 0.19, 0.30),
-            vec3(1.3, 1.36, 1.4), day);
-          gl_FragColor = vec4(cloudLight, coverage * 0.88);
+          vec3 cloudLight = mix(vec3(0.045, 0.065, 0.10),
+            vec3(0.86, 0.94, 1.0), day);
+          gl_FragColor = vec4(cloudLight, coverage * 0.74);
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
         }
