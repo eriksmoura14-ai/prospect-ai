@@ -88,6 +88,36 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       }
       assert.notEqual(userA.id,userB.id);hashA=(await store.credentials(emailA)).password_hash;
     });
+    await t.test("cadastro e recuperação aplicam a regra mesmo sem validação do navegador", async()=>{
+      const client=browser(), email=`policy${suffix}@gmail.com`;
+      const invalid=["Abcd.123", "Abcdefgh.", "x".repeat(128)+"1"];
+      await client.refresh();
+      assert.equal((await client.call("POST","/api/auth/register",{email})).status,202);
+      const activation=new URL(messages.at(-1).link).hash.split("=")[1];
+      for(const password of invalid) {
+        assert.equal((await client.call("POST","/api/auth/activate",{token:activation,password})).status,400);
+        assert.equal(await store.credentials(email),null);
+        assert.equal(await store.validEmailToken("activate",activation),true);
+      }
+      assert.equal((await client.call("POST","/api/auth/activate",{token:activation,password:"Abcd.1234"})).status,200);
+      const profile=(await client.refresh()).data;
+      assert.equal(profile.authenticated,true);
+      const oldSession=client.jar.get(service.sessionName);
+      assert.equal((await client.call("POST","/api/auth/forgot",{email})).status,202);
+      const reset=new URL(messages.at(-1).link).hash.split("=")[1];
+      for(const password of invalid) {
+        assert.equal((await client.call("POST","/api/auth/reset",{token:reset,password})).status,400);
+        assert.ok(await store.session(oldSession));
+        assert.equal(await store.validEmailToken("reset",reset),true);
+      }
+      assert.equal((await client.call("POST","/api/auth/reset",{token:reset,password:"Next.5678"})).status,200);
+      assert.equal(await store.session(oldSession),null);
+      await client.refresh();
+      assert.equal((await client.call("POST","/api/auth/login",{email,password:"Next.5678"})).status,200);
+      await client.refresh();
+      assert.equal((await client.call("POST","/api/auth/reset",{token:reset,password:"Next.5678"})).status,400);
+      await store.deleteAccount(profile.user.id,(await store.credentials(email)).password_hash);
+    });
     await t.test("sessões têm hash no banco; perfis e links não ficam em texto aberto",async()=>{
       const {rows}=await sql.query("SELECT * FROM prospect_accounts WHERE id=ANY($1::uuid[])",[[userA.id,userB.id]]);
       const data=JSON.stringify(rows);

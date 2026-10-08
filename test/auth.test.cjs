@@ -108,6 +108,25 @@ test("fila de hashes limita memória e rejeita excesso de trabalho", async () =>
   const refusal = results.find(x => x.status === "rejected");
   assert.equal(refusal.reason.status, 429);
 });
+test("novas senhas exigem mais de oito caracteres e um número, preservando pontos e espaços", async () => {
+  for (const value of ["Abcd.123", "Abcdefgh.", "x".repeat(128)+"1", null]) {
+    await assert.rejects(passwords.hashPassword(value), {status:400});
+  }
+  const phrase = "Abcd.1234";
+  const hash = await passwords.hashPassword(phrase);
+  assert.equal(await passwords.verifyPassword(phrase, hash), true);
+  assert.equal(await passwords.verifyPassword("Abcd1234", hash), false);
+  assert.equal(passwords.normalize("123456789", true), "123456789");
+  assert.equal(passwords.normalize(" frase 1 com espaços. ", true), " frase 1 com espaços. ");
+  assert.equal(passwords.normalize("x".repeat(127)+"1", true).length, 128);
+});
+test("senhas antigas sem número continuam autenticando com o hash scrypt existente", async () => {
+  // Hash de uma senha fictícia gerado antes da mudança de política.
+  const legacyHash = "scrypt$131072$8$1$78c7dd329a8a70e9b7eddd4808bdb1c1$8a0b2ebc18fdeca016c167a0bbc010edba3d60ed3e4a0447f1367c8c28f00ed1";
+  const phrase = "Uma frase antiga sem números.";
+  assert.equal(await passwords.verifyPassword(phrase, legacyHash), true);
+  await assert.rejects(passwords.hashPassword(phrase), {status:400});
+});
 test("adaptador de e-mail usa HTTPS e não expõe chave no corpo; envio real depende de configuração externa", async () => {
   let captured;
   const send = mail.createMailer({ apiKey: "local-fixture", from: "sender@example.test" }, async (url, options) => {

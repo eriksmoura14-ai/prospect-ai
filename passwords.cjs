@@ -23,8 +23,12 @@ function normalize(value, creating = false) {
   if (typeof value !== "string") throw Object.assign(new Error("Informe sua senha."), { status: 400 });
   const password = value.normalize("NFC");
   const length = [...password].length;
-  if (length > 128 || Buffer.byteLength(password) > 512 || !length || (creating && length < 15)) {
-    throw Object.assign(new Error("Use uma senha de 15 a 128 caracteres, diferente da senha do Gmail."), { status: 400 });
+  if (length > 128 || Buffer.byteLength(password) > 512 || !length ||
+      (creating && (length < 9 || !/[0-9]/.test(password)))) {
+    const message = creating
+      ? "Use uma senha de 9 a 128 caracteres com pelo menos um número. O ponto (.) é permitido."
+      : "Informe sua senha do Prospect AI, com até 128 caracteres.";
+    throw Object.assign(new Error(message), { status: 400 });
   }
   return password;
 }

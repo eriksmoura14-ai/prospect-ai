@@ -32,7 +32,7 @@ As variáveis de Geoapify, LocationIQ e Groq continuam no servidor e não precis
 
 ## Proteções e retenção
 
-- Senhas: scrypt com salt aleatório, `N=131072`, `r=8`, `p=1`. Mínimo 15 caracteres; máximo 128. Uma operação por vez e fila limitada controlam memória. Nenhuma senha é armazenada em texto aberto.
+- Senhas: scrypt com salt aleatório, `N=131072`, `r=8`, `p=1`. Novas senhas exigem de 9 a 128 caracteres e pelo menos um número; ponto (`.`), espaços e outros caracteres são permitidos. A regra é aplicada no cadastro confirmado e na recuperação; senhas já cadastradas continuam válidas no login. Uma operação por vez e fila limitada controlam memória. Nenhuma senha é armazenada em texto aberto.
 - Sessões: tokens aleatórios de 256 bits; somente SHA-256 no banco. Cookie `HttpOnly`, `Secure`, `SameSite=Lax`, prefixo `__Host-` em HTTPS e validade máxima de sete dias. Até cinco sessões por conta. Logout revoga a sessão; recuperação revoga todas as anteriores.
 - Confirmação/recuperação: links de uso único com validade de 30 minutos; token no fragmento da URL, removido pelo navegador. A conta e sua senha só são criadas após a pessoa abrir o link e escolher a senha. Abrir um link com GET não consome o token. Tokens nunca são retornados pela API pública.
 - Origem e CSRF são verificados inclusive antes do login. Todas as consultas de dados usam o dono autenticado; conhecer um ID de busca não permite abrir dados de outra conta. Diagnósticos ficam restritos aos administradores configurados.
