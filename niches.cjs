@@ -138,6 +138,7 @@ module.exports = {
     ],
     [
       "barber",
+      "barbearia",
       "barbershop",
       "barber shop",
       "mens haircut",

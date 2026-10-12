@@ -19,7 +19,14 @@ function place(name, osmId, bounds, osmType = "relation") {
     osm_type: osmType, osm_id: osmId, boundingbox: bounds.map(String) };
 }
 
-function harness({ locations, answers = [], failure, provider = "overpass", geoAnswers = [], geoFailure, locationIQ = false, geocodeStatus = 200 } = {}) {
+function harness({ locations, answers = [], failure, provider = "overpass", geoAnswers = [], geoFailure, qleverAnswer, qleverFailure, locationIQ = false, geocodeStatus = 200 } = {}) {
+  const qleverQueries = [];
+  const qleverQuery = async (place, config, options) => {
+    qleverQueries.push({place,config});
+    options.onTrace({endpoint:"https://qlever.dev/api/osm-planet",purpose:"businesses",outcome:qleverFailure ? qleverFailure.code : "success"});
+    if(qleverFailure) throw qleverFailure;
+    return qleverAnswer || {elements:[],truncated:false,warning:""};
+  };
   const geoQueries = [];
   const geoQuery = async (place, options) => {
     geoQueries.push({place, categories: options.categories});
@@ -45,7 +52,8 @@ function harness({ locations, answers = [], failure, provider = "overpass", geoA
   const context = {
     require: name => name === "node:fs" ? fixtureFS
       : name === "./overpass.cjs" ? { ...localRequire(name), query }
-      : name === "./geoapify.cjs" ? {...localRequire(name), discover:geoQuery} : localRequire(name),
+      : name === "./geoapify.cjs" ? {...localRequire(name), discover:geoQuery}
+      : name === "./qlever.cjs" ? {...localRequire(name), discover:qleverQuery} : localRequire(name),
     module: { exports: {} }, __dirname: root,
     process: { env: { APP_PASSWORD: "local-only-test-password", APP_ORIGIN: "http://127.0.0.1:3000", BUSINESS_PROVIDER:provider, GEOAPIFY_API_KEY:provider === "geoapify" ? "fixture-secret" : "", LOCATIONIQ_KEY:locationIQ ? "fixture-geocoder-key" : "" } },
     console: { log() {}, warn() {}, error() {} },
@@ -68,7 +76,7 @@ function harness({ locations, answers = [], failure, provider = "overpass", geoA
     module.exports = { discover, locate, businessMatch,
       handler: server.listeners("request")[0], resetGeocode: () => { lastGeocode = 0; } };
   `, context, { filename: path.join(root, "server.cjs") });
-  return { ...context.module.exports, queries, geocodes, geocodeRequests, geoQueries };
+  return { ...context.module.exports, queries, geocodes, geocodeRequests, geoQueries, qleverQueries };
 }
 
 async function callAPI(h, url, { body, authorized = true } = {}) {
@@ -473,4 +481,33 @@ test("menu de nichos inclui dez opções de alimentação e conserva as anterior
   assert.equal(values.length, 24);
   for (const name of ["Barber", "Auto Detailing", "Electrician", "Restaurantes", "Hamburguerias", "Sorveterias", "Pizzarias", "Padarias", "Confeitarias", "Cafeterias", "Lanchonetes", "Açaiterias", "Churrascarias"]) assert.ok(values.includes(name));
   assert.equal(h.geocodes.length, 0); assert.equal(h.queries.length, 0);
+});
+
+test("QLever integration keeps original contacts, niche filtering, country and records without point geometry",async()=>{
+ const p={...place("Uberlândia",314875,[-19.4,-18.6,-48.8,-47.9]),address:{country_code:"br"}};
+ const elements=[{type:"node",id:"10594432545",lat:-18.9,lon:-48.3,tags:{name:"Barbearia fictícia",shop:"hairdresser","contact:phone":"(34) 3238-1200","contact:website":"https://fixture.example"}},
+  {type:"way",id:"20",tags:{name:"Outra fictícia",shop:"barber","contact:whatsapp":"+55 34 99999 1234"}},
+  {type:"node",id:"21",tags:{name:"Fechada fictícia",shop:"barber",disused:"yes"}}];
+ const h=harness({locations:{City:[p]},provider:"qlever",qleverAnswer:{elements,truncated:true,warning:"Amostra de 500 registros."}});
+ const result=await h.discover("City","Barber");
+ assert.equal(h.queries.length,0);assert.equal(h.qleverQueries.length,1);assert.equal(h.qleverQueries[0].place.osm_id,314875);
+ assert.equal(result.rows.length,2);assert.equal(result.provider,"qlever");assert.equal(result.truncated,true);
+ assert.equal(result.rows[0].source,"OpenStreetMap via QLever");assert.equal(result.rows[0].countryCode,"BR");
+ assert.equal(result.rows[0].website,"https://fixture.example/");assert.equal(result.rows[0].status,"WEBSITE_LISTED");
+ assert.equal(result.rows[1].latitude,undefined);assert.equal(result.rows[1].whatsappPhone,"+55 34 99999 1234");
+ const again=await h.discover("City","Barber");assert.equal(h.qleverQueries.length,1);assert.equal(again.warning,result.warning);
+});
+test("Default discovery uses QLever; quota errors retain their cause without Overpass fallback or caching",async()=>{
+ const p=place("City",7,[1,2,3,4]);const failure=Object.assign(new Error("Quota"),{code:"qlever_http_429"});
+ const h=harness({locations:{City:[p]},provider:null,qleverFailure:failure});
+ await assert.rejects(h.discover("City","Barber"),{code:"qlever_http_429"});
+ await assert.rejects(h.discover("City","Barber"),{code:"qlever_http_429"});
+ assert.equal(h.qleverQueries.length,2);assert.equal(h.queries.length,0);
+});
+test("QLever cities without administrative relations preserve full existing bbox discovery",async()=>{
+ const p=place("Town",7,[1,2,3,4],"node");
+ const h=harness({locations:{Town:[p]},provider:"qlever",answers:[[{type:"node",id:1,lat:1.5,lon:3.5,tags:{name:"Fixture barber",shop:"barber"}}]]});
+ const result=await h.discover("Town","Barber");
+ assert.equal(h.qleverQueries.length,0);assert.equal(h.queries.length,1);assert.match(h.queries[0],/\(1,3,2,4\)/);
+ assert.equal(result.provider,"overpass");assert.equal(result.rows[0].source,"OpenStreetMap");
 });

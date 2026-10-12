@@ -16,13 +16,14 @@ const nicheMatching = require("./niche-matching.cjs");
 const agent = require("./agent.cjs");
 const overpass = require("./overpass.cjs");
 const geoapify = require("./geoapify.cjs");
+const qlever = require("./qlever.cjs");
 const locations = require("./locations.cjs");
 const geocoding = require("./geocoding.cjs");
 const contacts = require("./contacts.cjs");
 const websiteEvidence = require("./website-evidence.cjs");
 const GEOAPIFY_KEY = (process.env.GEOAPIFY_API_KEY || "").trim();
-const BUSINESS_PROVIDER = process.env.BUSINESS_PROVIDER || "overpass";
-if (!["overpass", "geoapify"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
+const BUSINESS_PROVIDER = process.env.BUSINESS_PROVIDER || "qlever";
+if (!["overpass", "geoapify", "qlever"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
 
 // Configuração local e hospedada.
 const hosting = require("./hosting.cjs").configuration(process.env);
@@ -499,10 +500,11 @@ function deduplicate(rows) {
 
 async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}, selection = null) {
   const constraint = selection ? `${selection.countryCode}:${selection.stateCode}:${normalizeLocation(selection.stateName)}` : "legacy";
-  const key = `discovery:v12:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
+  const key = `discovery:v13:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
   if (hit) {
-    onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope });
+    onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope,
+      provider:hit.provider, coverage:hit.coverage, truncated:hit.truncated, warning:hit.warning });
     // Reaproveita o ponto já geocodificado para a animação, sem nova consulta de rede.
     const cachedPlace = cached(`city:v7:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}`);
     if (cachedPlace) onDiagnostics({ geocode: { cacheHit: true, selected: locationSummary(cachedPlace) } });
@@ -578,8 +580,16 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
     return answer;
   }
 
+  // QLever uses the exact administrative relation selected by the geocoder.
+  // Localities without a relation retain the existing full bounding-box path.
+  const provider = BUSINESS_PROVIDER === "qlever" && !relation ? "overpass" : BUSINESS_PROVIDER;
   let discoveryMethod, data;
-  if (BUSINESS_PROVIDER === "geoapify") {
+  if (provider === "qlever") {
+    discoveryMethod = "Categorias cadastradas · OpenStreetMap via QLever";
+    onProgress("Consultando empresas no QLever…");
+    data = await qlever.discover(place, config, { userAgent: UA,
+      onTrace: trace => onDiagnostics({queryAttempt: {method:"categories_and_names", ...trace}}) });
+  } else if (provider === "geoapify") {
     discoveryMethod = "Índices comerciais do Geoapify · tags OSM originais";
     const hints = geoapify.CATEGORY_HINTS[niche];
     const fallbackCategories = config.food ? geoapify.FOOD_CATEGORIES : geoapify.CATEGORIES;
@@ -615,10 +625,10 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
     const latitude = element.lat ?? element.center?.lat;
     const longitude = element.lon ?? element.center?.lon;
 
-    if (
+    if (provider !== "qlever" && (
       !Number.isFinite(latitude) ||
       !Number.isFinite(longitude)
-    ) {
+    )) {
       continue;
     }
 
@@ -647,7 +657,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
       longitude,
       osmId: `${element.type}/${element.id}`,
       osmIds: [`${element.type}/${element.id}`],
-      source: BUSINESS_PROVIDER === "geoapify" ? "OpenStreetMap via Geoapify" : "OpenStreetMap",
+      source: provider === "geoapify" ? "OpenStreetMap via Geoapify" : provider === "qlever" ? "OpenStreetMap via QLever" : "OpenStreetMap",
       street: tags["addr:street"] || "",
       houseNumber: tags["addr:housenumber"] || "",
       chainSignal: Boolean(
@@ -669,8 +679,11 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
   const result = {
     place: place.display_name,
     discoveryMethod,
-    provider: BUSINESS_PROVIDER,
-    coverage: BUSINESS_PROVIDER === "geoapify" ? "Índices comerciais, serviços e escritórios do Geoapify; cobertura diferente do Overpass." : "Seletores OpenStreetMap",
+    provider,
+    coverage: provider === "geoapify" ? "Índices comerciais, serviços e escritórios do Geoapify; cobertura diferente do Overpass."
+      : provider === "qlever" ? "Snapshot público OpenStreetMap / QLever; até 500 candidatos. A cobertura e a atualização podem diferir do Overpass." : "Seletores OpenStreetMap",
+    truncated: Boolean(data.truncated),
+    warning: data.warning || "",
     geographicScope: relation
       ? "Limite administrativo"
       : "Retângulo geográfico da localidade",
@@ -678,7 +691,8 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
   };
 
   onDiagnostics({ outcome: result.rows.length ? "success" : "empty",
-    matchedCount: result.rows.length, discoveryMethod });
+    matchedCount: result.rows.length, discoveryMethod, provider, coverage:result.coverage,
+    truncated:result.truncated, warning:result.warning });
 
   saveCache(key, result);
   return structuredClone(result);
@@ -1065,6 +1079,10 @@ async function run(job, city, niche, limit, selection = null) {
 
     job.place = discovery.place;
     job.geographicScope = `${discovery.geographicScope} · ${discovery.discoveryMethod || "Consulta à fonte"}`;
+    job.discoveryProvider = discovery.provider;
+    job.coverage = discovery.coverage;
+    job.discoveryWarning = discovery.warning;
+    if (discovery.warning) job.geographicScope += ` · ${discovery.warning}`;
     job.totalDiscovered = discovery.rows.length;
 
     job.rows = discovery.rows
@@ -1104,6 +1122,7 @@ async function run(job, city, niche, limit, selection = null) {
     job.message = job.total
       ? "Pesquisa concluída."
       : "Nenhuma empresa correspondente encontrada nesta fonte.";
+    if (job.discoveryWarning) job.message += ` ${job.discoveryWarning}`;
   } catch (error) {
     job.state = "error";
     job.message = error.message;
@@ -1415,6 +1434,8 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       }
       return json(response, 200, {
         businessProvider: BUSINESS_PROVIDER,
+        qlever: {endpoint:qlever.ENDPOINT, maximumCandidates:qlever.MAX_BUSINESSES, requestMs:45000,
+          automaticRetries:0, coverage:"Snapshot público OSM; mesma relação administrativa. Sem chave de API."},
         geoapify: {authenticationConfigured: Boolean(GEOAPIFY_KEY), endpoint: geoapify.ENDPOINT, requestMs: 20000, maximumPages: 4, coverage: "POIs indexados; não é substituição equivalente da base Overpass."},
         endpoint: overpass.endpointLabel(OVERPASS),
         endpointSource: process.env.OVERPASS_URL ? "OVERPASS_URL" : "default",

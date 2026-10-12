@@ -29,4 +29,4 @@ function selectors(config, scope) {
   return result;
 }
 
-module.exports = { matchesTags, selectors, isFoodPlace };
+module.exports = { matchesTags, selectors, isFoodPlace, FOOD_AMENITIES, FOOD_SHOPS, FOOD_CRAFTS };

@@ -590,7 +590,7 @@ $("json").addEventListener("click", () => {
 
 async function initialize() {
   document.title = "Prospect AI";
-  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.6";
+  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.7";
   document.querySelector(".notice").textContent =
     "Dados públicos do OpenStreetMap. A ausência de website " +
     "cadastrado não significa ausência de site. Durante a busca, " +
@@ -605,6 +605,7 @@ async function initialize() {
     link("© OpenStreetMap contributors · ODbL", "https://www.openstreetmap.org/copyright"),
     node("span", "", " · "),
     link("Powered by Geoapify", "https://www.geoapify.com/"),
+    link("OSM via QLever", "https://qlever.dev/osm-planet"),
     node("span", "", " · "),
     link("Localidades: Countries States Cities Database · ODbL", "https://github.com/dr5hn/countries-states-cities-database"),
     node("span", "", " · "),
