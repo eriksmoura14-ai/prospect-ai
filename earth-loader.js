@@ -4,7 +4,7 @@
 // The complete scene, textures and selected location remain the same.
 (() => {
   const host = document.getElementById("earth-scene");
-  if (!host) return;
+  if (!host || host.closest("[hidden]")) return;
   let started = false;
   function start() {
     if (started || document.hidden) return;

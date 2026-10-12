@@ -20,6 +20,7 @@ const files = {
   "/location-map.css": ["location-map.css", "text/css; charset=utf-8"],
   "/account-ui.js": ["account-ui.js", "text/javascript; charset=utf-8"],
   "/account.css": ["account.css", "text/css; charset=utf-8"],
+  "/product.css": ["product.css", "text/css; charset=utf-8"],
   "/prospects-ui.js": ["prospects-ui.js", "text/javascript; charset=utf-8"],
   "/prospects.css": ["prospects.css", "text/css; charset=utf-8"],
   "/privacy.html": ["privacy.html", "text/html; charset=utf-8"],

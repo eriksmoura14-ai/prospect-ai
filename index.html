@@ -10,6 +10,7 @@
   >
 
   <title>Prospect AI</title>
+  <meta name="theme-color" content="#090611">
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/account.css">
 
@@ -627,6 +628,7 @@
   <link rel="stylesheet" href="/prospects.css">
   <link rel="stylesheet" href="/dashboard.css">
   <link rel="stylesheet" href="/location-map.css">
+  <link rel="stylesheet" href="/product.css">
   <script src="/earth-loader.js" defer></script>
   <script src="/location-picker.js" defer></script>
   <script src="/account-ui.js" defer></script>
@@ -684,10 +686,12 @@
   <header class="app-topbar">
     <div class="topbar-heading">
       <button id="menu-toggle" class="mobile-brand brand" type="button" aria-label="Prospect AI, abrir menu" aria-controls="app-sidebar" aria-expanded="false"><img class="logo" src="/assets/icon.svg" width="34" height="34" alt=""><span>Prospect AI</span></button>
-      <span class="breadcrumb">Workspace <span aria-hidden="true">/</span> <strong id="nav-current">Descobrir</strong></span>
+      <a href="/" class="public-brand brand"><img class="logo" src="/assets/icon.svg" width="34" height="34" alt="">Prospect <small>AI</small></a>
+      <span class="breadcrumb">Seu espaço <span aria-hidden="true">/</span> <strong id="nav-current">Descobrir</strong></span>
       <span class="version">Pesquisa de empresas · v0.7</span>
     </div>
     <div class="header-actions">
+      <span class="data-pill"><i aria-hidden="true"></i> Dados públicos</span>
       <span class="version">Pesquisa de empresas · v0.7</span>
       <details id="account-controls" hidden>
         <summary aria-label="Minha conta"><span id="topbar-avatar" class="profile-avatar" aria-hidden="true">P</span><span id="account-email">Minha conta</span></summary>
@@ -701,11 +705,11 @@
   <main id="main-content" tabindex="-1">
     <div id="explore-section" class="hero-copy">
       <div class="hero-text">
-        <div class="eyebrow">Prospecção inteligente</div>
-        <h1>Sua próxima oportunidade <span class="hero-accent">está aqui.</span></h1>
-        <p class="intro">Encontre empresas e avalie sua presença digital.</p>
+        <div class="eyebrow"><span>NOVO</span> Seu próximo cliente começa aqui</div>
+        <h1>Encontre novas<br><span class="hero-accent">oportunidades.</span></h1>
+        <p class="intro">Escolha onde encontrar clientes. Aborde com contexto.</p>
       </div>
-      <div class="hero-earth-slot">
+      <div class="hero-earth-slot" hidden>
         <div id="earth-scene" aria-hidden="true" data-earth-day="/assets/earth-day.jpg" data-earth-day-desktop="/assets/earth-day-desktop.jpg" data-earth-night="/assets/earth-night.jpg" data-earth-clouds="/assets/earth-clouds.webp" data-earth-clouds-desktop="/assets/earth-clouds-desktop.webp" data-earth-specular="/assets/earth-specular.jpg"></div>
         <button id="earth-motion" class="earth-motion" type="button" aria-pressed="false" hidden>Pausar animação</button>
       </div>
@@ -758,7 +762,9 @@
 
     <div id="workspace" hidden>
     <div class="search-stage">
+    <div class="search-config">
     <form id="search" class="panel" aria-label="Descobrir empresas">
+      <div class="search-heading"><span class="section-kicker">SUA PRÓXIMA BUSCA</span><h2>Onde estão seus clientes?</h2><p>Defina o local e o tipo de empresa.</p></div>
       <label for="country" class="country-field">País
         <span class="country-select-wrap"><span id="country-flag" class="country-flag" aria-hidden="true">🌐</span>
         <select id="country" name="country" required disabled aria-describedby="location-status">
@@ -795,7 +801,7 @@
       </p>
 
       <label for="niche" class="niche-field">
-        Nicho
+        Tipo de empresa
 
         <select
           id="niche"
@@ -807,7 +813,7 @@
         </select>
       </label>
 
-      <details class="search-options"><summary>Opções da busca</summary>
+      <details class="search-options"><summary>Opções da busca <svg class="ui-icon" aria-hidden="true"><use href="#icon-arrow"/></svg></summary>
       <label for="quantity" class="quantity-field">
         Limite de empresas
 
@@ -841,6 +847,20 @@
       </span>
 
     </p>
+    </div>
+    <aside class="search-guide" aria-labelledby="guide-title">
+      <span class="mini-pill"><svg class="ui-icon" aria-hidden="true"><use href="#icon-agent"/></svg> PROSPECT AI</span>
+      <h2 id="guide-title">Do contato à<br>oportunidade.</h2>
+      <p>Entenda cada negócio e prepare uma abordagem que faça sentido.</p>
+      <div class="guide-flow">
+        <div class="guide-flow-heading"><svg class="ui-icon" aria-hidden="true"><use href="#icon-search"/></svg> Seu fluxo de prospecção <span aria-hidden="true">↗</span></div>
+        <div class="guide-step"><span class="guide-step-icon purple"><svg class="ui-icon" aria-hidden="true"><use href="#icon-search"/></svg></span><div><strong>Encontre empresas</strong><small>Por cidade e tipo de negócio</small></div><span class="step-number">01</span></div>
+        <div class="guide-step"><span class="guide-step-icon green"><svg class="ui-icon" aria-hidden="true"><use href="#icon-globe"/></svg></span><div><strong>Confira as evidências</strong><small>Site, contato e indicação da fonte</small></div><span class="step-number">02</span></div>
+        <div class="guide-step"><span class="guide-step-icon blue"><svg class="ui-icon" aria-hidden="true"><use href="#icon-agent"/></svg></span><div><strong>Prepare sua abordagem</strong><small>Rascunhos com o assistente de IA</small></div><span class="step-number">03</span></div>
+        <p>Salve empresas nas suas listas e acompanhe cada conversa.</p>
+      </div>
+      <div class="guide-footnote"><i aria-hidden="true"></i> Uma oportunidade. Uma conversa de cada vez.</div>
+    </aside>
     </div>
 
     <div class="results-layout">

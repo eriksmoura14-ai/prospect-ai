@@ -64,14 +64,10 @@ function uiIcon(name) {
   return icon;
 }
 
-function businessIcon(category = "") {
-  const niche = String(category).toLocaleLowerCase("pt-BR");
-  const illustration = /barber|cabeleire|barbear/.test(niche) ? "barber"
-    : /café|cafe|coffee|cafeter/.test(niche) ? "coffee"
-    : /restaur|hamb|pizza|lanch|churras|food/.test(niche) ? "food" : "shop";
-  const mark = node("span", "business-icon category-illustration category-" + illustration);
-  mark.setAttribute("aria-label", "Ilustração do nicho; não é uma foto da empresa");
-  mark.append(node("span", "illustration-caption", "Ilustração"));
+function businessIcon(category = "", name = "") {
+  const initials = String(name).trim().split(/\s+/u).slice(0, 2).map(word => [...word][0] || "").join("").toLocaleUpperCase("pt-BR");
+  const mark = node("span", "business-icon", initials || "P");
+  mark.setAttribute("aria-hidden", "true");
   return mark;
 }
 
@@ -151,7 +147,7 @@ function makeCard(row) {
   businessStatus.append(websiteStatus, contactStatus);
   identity.append(businessStatus);
   if (row.whatsappUrl || row.whatsappSuggestedUrl) identity.append(node("p", "contact-disclaimer", "Conta WhatsApp não verificada"));
-  heading.append(businessIcon(row.category), identity);
+  heading.append(businessIcon(row.category, row.name), identity);
   business.append(heading);
 
   const contact = node("div", "contact");
@@ -184,13 +180,14 @@ function makeCard(row) {
       `https://www.openstreetmap.org/${row.osmId}`));
   }
   const tools = node("div", "card-tools");
-  const aiButton = node("button", "card-agent", "Assistente de IA");
+  const aiButton = node("button", "card-agent", "Analisar com IA");
   aiButton.setAttribute("aria-label", "Abrir assistente de IA");
   aiButton.type = "button";
   aiButton.disabled = !lastJob?.id || lastJob.state === "running";
   aiButton.title = aiButton.disabled ? "Aguarde a pesquisa terminar." : "Revisar empresa e preparar mensagens";
   aiButton.addEventListener("click", () => openAIPanel(row, lastJob.id));
-  tools.append(aiButton);
+  aiButton.prepend(uiIcon("agent"));
+  actions.append(aiButton);
   const saveButton = prospectLists.button(row, lastJob);
   if (saveButton) {
     saveButton.textContent = "";
