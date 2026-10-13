@@ -1,0 +1,48 @@
+/* Shared visual layer: liquid ribbons, neural particles, and the agent sphere. */
+body::before { background:#090611; }
+.motion-scene { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; background:radial-gradient(ellipse at 0% 10%,#6d28ae2b,transparent 55%),radial-gradient(ellipse at 100% 85%,#7329b42e,transparent 55%); }
+.app-content { position:relative; z-index:1; }
+.motion-wave { position:absolute; inset:-12% -22%; width:144%; height:124%; transform-origin:center; animation:liquid-drift 12s ease-in-out infinite alternate; }
+.motion-wave svg { width:100%; height:100%; overflow:visible; }
+.motion-wave--second { transform:rotate(180deg); animation:liquid-counter 16s ease-in-out infinite alternate; opacity:.75; }
+.motion-wave .wave-fill { fill:#7f34bc18; stroke:none; }
+.motion-wave .wave-glow { fill:none; stroke:#b667ed; stroke-width:24; opacity:.07; }
+.motion-wave .wave-line { fill:none; stroke:url(#motion-ribbon-gradient); stroke-width:2.6; opacity:.72; }
+.motion-wave .wave-thread { fill:none; stroke:#c68afa; stroke-width:1; opacity:.3; }
+body.motion-bright .motion-wave .wave-line { stroke-width:3.4; opacity:1; }
+body.motion-bright .motion-wave .wave-glow { opacity:.15; }
+.motion-network { position:absolute; inset:0; width:100%; height:100%; opacity:.85; }
+@keyframes liquid-drift { 0% { transform:translate3d(-5%,8%,0) rotate(-9deg) scale(.94); } 50% { transform:translate3d(5%,-6%,0) rotate(6deg) scale(1.06); } 100% { transform:translate3d(-3%,-13%,0) rotate(-2deg) scale(1.14); } }
+@keyframes liquid-counter { 0% { transform:translate3d(7%,-8%,0) rotate(174deg) scale(1.08); } 100% { transform:translate3d(-7%,10%,0) rotate(190deg) scale(.95); } }
+.energy-orb { --orb-size:128px; position:relative; display:block; flex:0 0 var(--orb-size); width:var(--orb-size); height:var(--orb-size); margin:0 auto 22px; perspective:400px; isolation:isolate; }
+.energy-halo { position:absolute; inset:-25%; border-radius:50%; background:radial-gradient(circle,#ac52f545,transparent 68%); animation:energy-breathe 4s ease-in-out infinite; }
+.energy-core { position:absolute; inset:28%; border-radius:50%; background:radial-gradient(circle at 29% 24%,#fff6ff 0,#e0b0ff 10%,#b066f7 30%,#7138d6 57%,#250d52 85%); box-shadow:0 0 18px #b469ff7a,inset -5px -6px 13px #210039; animation:energy-float 4s ease-in-out infinite; }
+.energy-core::after { content:""; position:absolute; inset:12%; border-radius:50%; border-top:2px solid #fff9; border-right:2px solid #d68dff8c; transform:rotate(-35deg); box-shadow:0 -2px 9px #e6bdff55; }
+.energy-ring { position:absolute; inset:13%; border:1.5px solid #bc7cff99; border-radius:50%; box-shadow:0 0 7px #a468ee55,inset 0 0 6px #a468ee22; transform-style:preserve-3d; animation:orbit-a 8s linear infinite; }
+.energy-ring::after { content:""; position:absolute; top:8%; left:15%; width:6%; height:6%; min-width:3px; min-height:3px; border-radius:50%; background:#eddaff; box-shadow:0 0 8px #e2b4ff; }
+.energy-ring--b { inset:9%; border-color:#b583fb77; animation:orbit-b 11s linear infinite reverse; }
+.energy-ring--c { inset:5%; border-color:#799afa70; animation:orbit-c 14s linear infinite; }
+@keyframes orbit-a { from { transform:rotateZ(0deg) rotateX(65deg) rotateY(18deg); } to { transform:rotateZ(360deg) rotateX(65deg) rotateY(18deg); } }
+@keyframes orbit-b { from { transform:rotateZ(70deg) rotateY(66deg) rotateX(-20deg); } to { transform:rotateZ(430deg) rotateY(66deg) rotateX(-20deg); } }
+@keyframes orbit-c { from { transform:rotateZ(-25deg) rotateX(25deg) rotateY(65deg); } to { transform:rotateZ(335deg) rotateX(25deg) rotateY(65deg); } }
+@keyframes energy-breathe { 0%,100% { opacity:.65; transform:scale(.92); } 50% { opacity:1; transform:scale(1.13); } }
+@keyframes energy-float { 0%,100% { transform:translateY(-2px) scale(.96); } 50% { transform:translateY(2px) scale(1.05); } }
+.chat-branding { display:flex; align-items:center; gap:13px; min-width:0; }
+.chat-composer-bottom button { flex-shrink:0; white-space:nowrap; }
+.energy-orb--mini { --orb-size:43px; margin:0; }
+.energy-orb--mini .energy-ring { border-width:1px; }
+.energy-orb--mini .energy-core { box-shadow:0 0 9px #b469ff66,inset -2px -2px 5px #210039; }
+body.agent-thinking .energy-orb .energy-ring { animation-duration:2.3s; border-color:#e7baff; box-shadow:0 0 12px #b16dff88; }
+body.agent-thinking .energy-orb .energy-ring--b { animation-duration:3.2s; }
+body.agent-thinking .energy-orb .energy-ring--c { animation-duration:4.5s; }
+body.agent-thinking .energy-orb .energy-core { animation-duration:1.5s; box-shadow:0 0 25px #cb86ffb0,inset -5px -6px 13px #210039; }
+body.agent-thinking .energy-orb .energy-halo { animation-duration:1.5s; background:radial-gradient(circle,#bf72ff77,transparent 68%); }
+#motion-toggle { flex:0 0 36px; width:36px; min-height:36px; height:36px; padding:5px; color:#ceb0e4; background:#a354e312; border:1px solid #9661b52b; border-radius:10px; font-size:16px; line-height:1; }
+#motion-toggle[aria-pressed="true"] { color:#a890bc; background:#ffffff04; }
+.motion-paused .motion-wave,.motion-paused .energy-orb>*,.motion-suspended .motion-wave,.motion-suspended .energy-orb>* { animation-play-state:paused!important; }
+#motion-demo-thinking { padding:7px 11px; color:#e0c0f4; border:1px solid #af7ade55; border-radius:9px; background:#712cb52b; font-size:11px; cursor:pointer; }
+#motion-demo-thinking[aria-pressed="true"] { color:white; background:#893ada; }
+.motion-demo .aurora { display:none; }.motion-demo .chat-hello .energy-orb { --orb-size:145px; }
+@media(max-width:600px) { .energy-orb { --orb-size:98px; margin-bottom:16px; }.energy-orb--mini { --orb-size:36px; margin:0; }.chat-branding { gap:9px; }.chat-welcome { padding-top:15px; }.motion-wave { inset:-8% -45%; width:190%; height:116%; }.motion-demo .chat-hello .energy-orb { --orb-size:120px; } }
+@media(max-width:380px) { .chat-top { flex-wrap:wrap; }.chat-top .chat-tools { margin-left:auto; } }
+@media(prefers-reduced-motion:reduce) { .motion-wave,.energy-orb>* { animation-play-state:paused!important; } }

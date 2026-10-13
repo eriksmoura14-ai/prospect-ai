@@ -629,6 +629,7 @@
   <link rel="stylesheet" href="/dashboard.css">
   <link rel="stylesheet" href="/location-map.css">
   <link rel="stylesheet" href="/product.css">
+  <link rel="stylesheet" href="/motion.css">
   <script src="/earth-loader.js" defer></script>
   <script src="/location-picker.js" defer></script>
   <script src="/account-ui.js" defer></script>
@@ -637,6 +638,7 @@
   <script src="/agent-chat.js" defer></script>
   <script src="/dashboard.js" defer></script>
   <script src="/location-map.js" defer></script>
+  <script src="/motion.js" defer></script>
 </head>
 
 <body>
@@ -692,6 +694,7 @@
       <span class="version">Pesquisa de empresas · v0.7</span>
     </div>
     <div class="header-actions">
+      <button id="motion-toggle" type="button" aria-label="Pausar animações" aria-pressed="false" title="Pausar animações">Ⅱ</button>
       <span class="data-pill"><i aria-hidden="true"></i> Dados públicos</span>
       <span class="version">Pesquisa de empresas · v0.7</span>
       <details id="account-controls" hidden>
@@ -937,10 +940,10 @@
       <div id="history-list"></div>
     </section>
     <section id="agent-section" class="workspace-page chat-page" aria-labelledby="chat-title">
-      <div class="chat-top"><div><span class="section-kicker">SEU ASSISTENTE DE PROSPECÇÃO</span><h1 id="chat-title">Agente IA</h1></div><div class="chat-tools"><button id="chat-preferences" type="button">Preferências</button><button id="chat-new" type="button">Nova conversa</button></div></div>
+      <div class="chat-top"><div class="chat-branding"><span class="energy-orb energy-orb--mini" aria-hidden="true"><span class="energy-halo"></span><span class="energy-core"></span><span class="energy-ring"></span><span class="energy-ring energy-ring--b"></span><span class="energy-ring energy-ring--c"></span></span><div><span class="section-kicker">SEU ASSISTENTE DE PROSPECÇÃO</span><h1 id="chat-title">Agente IA</h1></div></div><div class="chat-tools"><button id="chat-preferences" type="button">Preferências</button><button id="chat-new" type="button">Nova conversa</button></div></div>
       <div id="chat-context" class="chat-context" hidden><span id="chat-company"></span><button id="chat-context-clear" type="button">Remover empresa</button></div>
       <div id="chat-messages" class="chat-messages" role="log" aria-label="Conversa com o Agente IA" aria-live="polite" aria-relevant="additions text">
-        <div id="chat-welcome" class="chat-welcome"><span class="chat-mark" aria-hidden="true">✦</span><h2>Como posso ajudar na sua prospecção?</h2><p>Prepare abordagens, tire dúvidas e planeje seus próximos contatos.</p><div class="chat-suggestions"><button type="button" data-chat-prompt="Me ajude a preparar uma primeira abordagem para um possível cliente.">Preparar uma abordagem <span aria-hidden="true">↗</span></button><button type="button" data-chat-prompt="Como posso responder a um cliente que achou minha proposta cara?">Responder a uma objeção <span aria-hidden="true">↗</span></button><button type="button" data-chat-prompt="Me ajude a organizar um plano de prospecção para esta semana.">Planejar minha prospecção <span aria-hidden="true">↗</span></button></div></div>
+        <div id="chat-welcome" class="chat-welcome"><span class="energy-orb" aria-hidden="true"><span class="energy-halo"></span><span class="energy-core"></span><span class="energy-ring"></span><span class="energy-ring energy-ring--b"></span><span class="energy-ring energy-ring--c"></span></span><h2>Como posso ajudar na sua prospecção?</h2><p>Prepare abordagens, tire dúvidas e planeje seus próximos contatos.</p><div class="chat-suggestions"><button type="button" data-chat-prompt="Me ajude a preparar uma primeira abordagem para um possível cliente.">Preparar uma abordagem <span aria-hidden="true">↗</span></button><button type="button" data-chat-prompt="Como posso responder a um cliente que achou minha proposta cara?">Responder a uma objeção <span aria-hidden="true">↗</span></button><button type="button" data-chat-prompt="Me ajude a organizar um plano de prospecção para esta semana.">Planejar minha prospecção <span aria-hidden="true">↗</span></button></div></div>
       </div>
       <form id="chat-form" class="chat-composer"><label class="sr-only" for="chat-input">Mensagem para o Agente IA</label><textarea id="chat-input" rows="2" maxlength="2000" placeholder="Converse com seu agente…" required></textarea><div class="chat-composer-bottom"><span>Enter para enviar · Shift + Enter para nova linha</span><button id="chat-send" class="primary" type="submit" aria-label="Enviar mensagem">Enviar <span aria-hidden="true">↑</span></button></div></form>
       <p id="chat-status" class="chat-status" role="status" aria-live="polite"></p><p class="chat-note">A IA pode cometer erros. Revise as respostas. Esta conversa fica disponível nesta aba enquanto ela estiver aberta.</p>

@@ -46,6 +46,7 @@
 
   function setPending(value) {
     pending = value;
+    window.dispatchEvent(new CustomEvent("prospect:agent-activity", { detail: value }));
     input.disabled = send.disabled = fresh.disabled = clear.disabled = value;
     send.textContent = value ? "Respondendo…" : "Enviar ↑";
     form.setAttribute("aria-busy", String(value));
