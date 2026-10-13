@@ -5,6 +5,10 @@
   "buildCommand": "npm run build:frontend",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/descobrir", "destination": "/index.html" },
+    { "source": "/listas", "destination": "/index.html" },
+    { "source": "/historico", "destination": "/index.html" },
+    { "source": "/agente", "destination": "/index.html" },
     {
       "source": "/api/:path*",
       "destination": "https://prospect-ai-a90q.onrender.com/api/:path*"

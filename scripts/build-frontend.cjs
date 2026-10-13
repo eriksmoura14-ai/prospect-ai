@@ -9,7 +9,7 @@ async function build(root = path.resolve(__dirname, "..")) {
   await fs.rm(output, { recursive: true, force: true });
   // Share the backend's explicit public allowlist. Never copy the repository.
   for (const [route, [file]] of Object.entries(publicFiles)) {
-    if (route === "/") continue;
+    if (file === "index.html" && route !== "/index.html") continue;
     const target = path.join(output, route.slice(1));
     await fs.mkdir(path.dirname(target), { recursive: true });
     const content = await fs.readFile(path.join(root, file));

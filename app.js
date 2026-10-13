@@ -185,7 +185,7 @@ function makeCard(row) {
   aiButton.type = "button";
   aiButton.disabled = !lastJob?.id || lastJob.state === "running";
   aiButton.title = aiButton.disabled ? "Aguarde a pesquisa terminar." : "Revisar empresa e preparar mensagens";
-  aiButton.addEventListener("click", () => openAIPanel(row, lastJob.id));
+  aiButton.addEventListener("click", () => window.dispatchEvent(new CustomEvent("prospect:chat-company", { detail: { row, jobId: lastJob.id } })));
   aiButton.prepend(uiIcon("agent"));
   actions.append(aiButton);
   const saveButton = prospectLists.button(row, lastJob);
@@ -387,7 +387,7 @@ async function api(url, options = {}) {
 }
 
 const locationPicker = new LocationPicker({ api, isLocked: () => busy || !ready,
-  menus: [["country", "País"], ["region", "Estado / província"], ["city", "Cidade"]]
+  menus: [["country", "País"], ["region", "Estado / província"], ["city", "Cidade"], ["niche", "Tipo de empresa"]]
     .map(([id, name]) => new LocationMenu($(id), name)),
   canResume: () => Boolean(storedJob()) });
 

@@ -1464,13 +1464,14 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       const input = await readBody(request, 32768);
       try { agent.validate(input); }
       catch (error) { return json(response, error.status || 400, { error: error.message }); }
-      if (typeof input.jobId !== "string" || typeof input.osmId !== "string") {
+      const companyRequested = input.jobId != null || input.osmId != null;
+      if ((input.action !== "chat" || companyRequested) && (typeof input.jobId !== "string" || typeof input.osmId !== "string")) {
         return json(response, 400, { error: "Selecione uma empresa da pesquisa." });
       }
-      const job = await ownedJob(input.jobId, ownerId);
+      const job = companyRequested ? await ownedJob(input.jobId, ownerId) : null;
       const row = job?.rows.find(item => item.osmId === input.osmId);
-      if (!row) return json(response, 404, { error: "A pesquisa expirou no servidor. Faça a busca novamente." });
-      if (job.state === "running") {
+      if ((input.action !== "chat" || companyRequested) && !row) return json(response, 404, { error: "A pesquisa expirou no servidor. Faça a busca novamente." });
+      if (job?.state === "running") {
         return json(response, 409, { error: "Aguarde a pesquisa terminar antes de usar a IA." });
       }
       if (aiBusy || Date.now() - lastAI < 3000) {
@@ -1482,7 +1483,7 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       aiBusy = true;
       lastAI = Date.now();
       try {
-        const evidence = await collectAIEvidence(row);
+        const evidence = row ? await collectAIEvidence(row) : null;
         const result = await agent.generate(input, evidence);
         return json(response, 200, result);
       } catch (error) {

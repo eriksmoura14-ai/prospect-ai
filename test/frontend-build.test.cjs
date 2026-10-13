@@ -12,7 +12,7 @@ test("build publica apenas recursos da interface e preserva atribuições e impo
   const output = await build();
   const actual = (await fs.readdir(output, { recursive: true, withFileTypes: true }))
     .filter(entry => entry.isFile()).map(entry => path.relative(output, path.join(entry.parentPath, entry.name))).sort();
-  const expected = Object.keys(publicFiles).filter(route => route !== "/").map(route => route.slice(1)).sort();
+  const expected = Object.keys(publicFiles).filter(route => publicFiles[route][0] !== "index.html" || route === "/index.html").map(route => route.slice(1)).sort();
   assert.deepEqual(actual, expected);
   for (const privateFile of ["server.cjs", "agent.cjs", "accounts.cjs", "auth.cjs", "db/schema.sql", "package.json", ".env", "vercel.json", "netlify.toml", "netlify/functions/render-api.mjs"]) {
     await assert.rejects(fs.access(path.join(output, privateFile)));
@@ -33,8 +33,11 @@ test("Vercel encaminha API, logout e health ao Render e proíbe cache de dados p
   assert.equal(config.framework, null);
   assert.equal(config.outputDirectory, "dist");
   assert.equal(config.buildCommand, "npm run build:frontend");
-  assert.deepEqual(config.rewrites.map(route => route.source), ["/api/:path*", "/auth/logout", "/health"]);
-  for (const route of config.rewrites) assert.equal(new URL(route.destination).origin, "https://prospect-ai-a90q.onrender.com");
+  assert.deepEqual(config.rewrites.map(route => route.source), ["/descobrir", "/listas", "/historico", "/agente", "/api/:path*", "/auth/logout", "/health"]);
+  for (const route of config.rewrites) {
+    if (route.source.startsWith("/api/") || ["/auth/logout", "/health"].includes(route.source)) assert.equal(new URL(route.destination).origin, "https://prospect-ai-a90q.onrender.com");
+    else assert.equal(route.destination, "/index.html");
+  }
   for (const route of ["/api/:path*", "/auth/logout", "/health"]) {
     const headers = Object.fromEntries(config.headers.find(item => item.source === route).headers.map(item => [item.key.toLowerCase(), item.value]));
     assert.match(headers["cache-control"], /no-store/);

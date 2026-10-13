@@ -17,6 +17,13 @@
   const navigationRoots = [sidebar, bottomNavigation].filter(Boolean);
   let discovery = null;
   let overviewExpanded = false;
+  const pages = {
+    "explore-section": { path: "/descobrir", page: "discover-page", label: "Descobrir" },
+    "lists-section": { path: "/listas", page: "lists-section", label: "Minhas listas" },
+    "account-history": { path: "/historico", page: "account-history", label: "Histórico" },
+    "agent-section": { path: "/agente", page: "agent-section", label: "Agente IA" }
+  };
+  const routeSection = () => Object.keys(pages).find(id => pages[id].path === location.pathname.replace(/\/$/, "")) || "explore-section";
 
   function navigationButtons(selector) {
     return navigationRoots.flatMap(root => [...root.querySelectorAll(selector)]);
@@ -56,25 +63,43 @@
       else button.removeAttribute("aria-current");
     }
     document.getElementById("nav-current").textContent = label;
+    for (const button of navigationButtons("[data-nav-action='agent'], #nav-agent")) {
+      if (id === "agent-section") button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    }
   }
 
-  function goTo(id, label) {
-    const target = document.getElementById(id);
-    if (!target || target.hidden || (workspace.hidden && id !== "explore-section")) return;
+  function showPage(id, focus = false) {
+    const route = pages[id] || pages["explore-section"];
+    for (const page of workspace.querySelectorAll(".workspace-page")) page.classList.toggle("is-current", page.id === route.page);
+    document.body.dataset.page = workspace.hidden ? "discover-page" : route.page;
+    activeSection(id, route.label);
+    document.title = `${route.label} · Prospect AI`;
+    if (focus) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+      const target = document.getElementById(route.page);
+      const heading = target.querySelector("h1, h2") || target;
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+    window.dispatchEvent(new CustomEvent("prospect:page", { detail: id }));
+  }
+
+  function goTo(id) {
+    const section = id === "results-section" ? "explore-section" : id;
+    const route = pages[section];
+    if (!route || (workspace.hidden && section !== "explore-section")) return;
     closeMenu();
-    if (target instanceof HTMLDetailsElement) target.open = true;
-    activeSection(id === "results-section" ? "explore-section" : id, label);
-    target.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
-    const heading = target.querySelector("summary, h2, h1") || target;
-    if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
-    heading.focus({ preventScroll: true });
+    if (location.pathname !== route.path) history.pushState(null, "", route.path + location.search);
+    showPage(section, true);
+    if (section === "account-history") void accountUI.refreshHistory();
+    if (id === "results-section") document.getElementById(id).scrollIntoView({ block: "start" });
   }
 
   function syncNavigation() {
     const enabled = !workspace.hidden;
     for (const button of navigationButtons("[data-workspace-nav]")) {
-      const target = button.dataset.navTarget && document.getElementById(button.dataset.navTarget);
-      button.disabled = !enabled || Boolean(target?.hidden) ||
+      button.disabled = !enabled ||
         (button.id === "nav-settings" && document.getElementById("account-controls").hidden);
       button.title = button.disabled ? "Entre na sua conta para acessar." : "";
     }
@@ -88,6 +113,7 @@
       closeMenu();
       syncOverview();
     }
+    showPage(enabled ? routeSection() : "explore-section");
   }
 
   function selectedLabel(id) {
@@ -183,9 +209,7 @@
   const agentButtons = navigationButtons("[data-nav-action='agent'], #nav-agent");
   for (const button of agentButtons) button.addEventListener("click", () => {
     if (workspace.hidden || button.disabled) return;
-    const returnFocus = mobile.matches && sidebar.contains(button) ? toggle : button;
-    closeMenu();
-    window.dispatchEvent(new CustomEvent("prospect:agent-settings", { detail: { trigger: button, returnFocus } }));
+    goTo("agent-section");
   });
   document.getElementById("nav-settings").addEventListener("click", () => {
     closeMenu();
@@ -195,6 +219,8 @@
     controls.querySelector("summary").focus();
   });
   window.addEventListener("prospect:history", () => goTo("results-section", "Descobrir"));
+  window.addEventListener("prospect:navigate", event => goTo(event.detail));
+  window.addEventListener("popstate", () => { closeMenu(); showPage(workspace.hidden ? "explore-section" : routeSection(), true); });
   overviewToggle?.addEventListener("click", () => {
     overviewExpanded = !overviewExpanded;
     syncOverviewVisibility();
