@@ -4,6 +4,17 @@ html { scroll-padding-top:92px; scrollbar-color:#69488d #100a1c; }
 body { background:var(--bg); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:14px; line-height:1.6; }
 body::before { background:radial-gradient(ellipse 780px 680px at 60% 220px,#613c9d30,transparent 75%),var(--bg); }
 button,input,select,textarea { min-width:0; font:inherit; }
+.location-menu-button { display:flex; align-items:center; width:100%; min-height:46px; margin-top:8px; padding:11px 13px; text-align:left; color:#bca5cc; background:#0f091b; border:1px solid #3c294d; border-radius:11px; font-size:13px; font-weight:400; box-shadow:none; }
+.location-menu-button::after { content:"⌄"; margin-left:auto; padding-left:8px; }
+.location-menu-button.has-value { color:var(--text); }
+.country-select-wrap .location-menu-button { padding-left:40px; }
+.location-menu { position:fixed; z-index:90; padding:10px; color:var(--text); background:#140c22; border:1px solid #63417d; border-radius:13px; box-shadow:0 15px 45px #0009; overscroll-behavior:contain; }
+.location-menu input { margin:0 0 8px; min-height:40px; padding:9px 11px; font-size:16px; }
+.location-menu-options { position:relative; max-height:280px; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; scrollbar-width:thin; scrollbar-color:#9960e8 #140c22; }
+.location-menu-options [role="option"] { padding:11px 10px; border-radius:8px; cursor:pointer; font-size:13px; line-height:1.4; }
+.location-menu-options [role="option"]:hover,.location-menu-options .is-active { background:#9b54ec24; }
+.location-menu-options [aria-selected="true"] { color:#d2b3ff; font-weight:600; }
+.location-menu-empty { margin:0; padding:12px 10px; color:#bca5cc; font-size:13px; }
 button,a,summary { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
 button { min-height:44px; padding:10px 14px; background:#21142f; color:#e2d2f1; border:1px solid #4b325c; border-radius:11px; box-shadow:none; font-size:13px; }
 button:hover:not(:disabled) { border-color:#8d5dc1; background:#2c193f; }

@@ -1,8 +1,164 @@
 "use strict";
 
+// Keep the original selects as the data/form contract, with a scrollable UI menu.
+class LocationMenu {
+  constructor(select, name) {
+    this.select = select;
+    this.name = name;
+    this.button = document.createElement("button");
+    this.button.type = "button";
+    this.button.id = `${select.id}-menu-button`;
+    this.button.className = "location-menu-button";
+    this.button.setAttribute("aria-label", name);
+    this.button.setAttribute("aria-haspopup", "dialog");
+    this.button.setAttribute("aria-expanded", "false");
+    this.button.setAttribute("aria-describedby", "location-status");
+    select.before(this.button);
+    select.hidden = true;
+    select.closest("label").htmlFor = this.button.id;
+
+    this.popup = document.createElement("div");
+    this.popup.id = `${select.id}-menu`;
+    this.popup.className = "location-menu";
+    this.popup.hidden = true;
+    this.popup.setAttribute("role", "dialog");
+    this.popup.setAttribute("aria-label", `Selecionar ${name.toLocaleLowerCase("pt-BR")}`);
+    this.button.setAttribute("aria-controls", this.popup.id);
+    this.query = document.createElement("input");
+    this.query.type = "search";
+    this.query.placeholder = `Buscar ${name.toLocaleLowerCase("pt-BR")}…`;
+    this.query.setAttribute("aria-label", this.query.placeholder);
+    this.query.setAttribute("role", "combobox");
+    this.query.setAttribute("aria-autocomplete", "list");
+    this.query.setAttribute("aria-expanded", "true");
+    this.list = document.createElement("div");
+    this.list.id = `${select.id}-menu-options`;
+    this.list.className = "location-menu-options";
+    this.list.setAttribute("role", "listbox");
+    this.list.setAttribute("aria-label", name);
+    this.query.setAttribute("aria-controls", this.list.id);
+    this.popup.append(this.query, this.list);
+    document.body.append(this.popup);
+    this.button.addEventListener("click", () => this.popup.hidden ? this.open() : this.close());
+    this.button.addEventListener("keydown", event => {
+      if (["ArrowDown", "ArrowUp"].includes(event.key)) { event.preventDefault(); this.open(); }
+    });
+    this.query.addEventListener("input", () => this.render());
+    this.query.addEventListener("keydown", event => {
+      if (event.key === "Escape") { event.preventDefault(); this.close(true); }
+      else if (event.key === "Tab") this.close(true);
+      else if (event.key === "Enter") { event.preventDefault(); this.choose(this.items[this.active]); }
+      else if (["ArrowDown", "ArrowUp"].includes(event.key) && this.items.length) {
+        event.preventDefault();
+        this.highlight(Math.max(0, Math.min(this.items.length - 1, this.active + (event.key === "ArrowDown" ? 1 : -1))));
+      }
+    });
+    this.list.addEventListener("click", event => {
+      const option = event.target.closest('[role="option"]');
+      if (option) this.choose(this.items[Number(option.dataset.index)]);
+    });
+    // Even at either end of the list, wheel events must not scroll the page.
+    this.popup.addEventListener("wheel", event => {
+      if (event.ctrlKey || !event.deltaY) return;
+      event.preventDefault();
+      const unit = event.deltaMode === 1 ? 36 : event.deltaMode === 2 ? this.list.clientHeight : 1;
+      this.list.scrollTop += event.deltaY * unit;
+    }, { passive: false });
+    document.addEventListener("pointerdown", event => {
+      if (!this.popup.contains(event.target) && !this.button.contains(event.target)) this.close();
+    });
+    document.addEventListener("focusin", event => {
+      if (!this.popup.contains(event.target) && event.target !== this.button) this.close();
+    });
+    window.addEventListener("resize", () => this.close());
+    document.addEventListener("scroll", event => {
+      if (!this.popup.contains(event.target)) this.close();
+    }, true);
+    select.addEventListener("invalid", event => { event.preventDefault(); this.open(); });
+    this.sync();
+  }
+
+  sync() {
+    this.button.disabled = this.select.disabled;
+    this.button.textContent = this.select.selectedOptions[0]?.textContent || `Selecione ${this.name.toLocaleLowerCase("pt-BR")}`;
+    this.button.classList.toggle("has-value", Boolean(this.select.value));
+    if (this.select.disabled) this.close();
+  }
+
+  open() {
+    if (this.select.disabled) return;
+    const rect = this.button.getBoundingClientRect();
+    const width = Math.min(Math.max(rect.width, 260), window.innerWidth - 24);
+    const above = rect.top - 12;
+    const below = window.innerHeight - rect.bottom - 12;
+    const upwards = below < 240 && above > below;
+    const space = upwards ? above : below;
+    this.list.style.maxHeight = `${Math.max(60, Math.min(280, space - 66))}px`;
+    this.popup.style.width = `${width}px`;
+    this.popup.style.left = `${Math.max(12, Math.min(rect.left, window.innerWidth - width - 12))}px`;
+    this.popup.style.top = upwards ? "auto" : `${rect.bottom + 6}px`;
+    this.popup.style.bottom = upwards ? `${window.innerHeight - rect.top + 6}px` : "auto";
+    this.popup.hidden = false;
+    this.button.setAttribute("aria-expanded", "true");
+    this.query.value = "";
+    this.render();
+    this.query.focus({ preventScroll: true });
+  }
+
+  render() {
+    const fold = text => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+    const query = fold(this.query.value.trim());
+    this.items = Array.from(this.select.options).filter(option => option.value && !option.disabled && fold(option.textContent).includes(query));
+    this.list.replaceChildren(...this.items.map((option, index) => {
+      const item = document.createElement("div");
+      item.id = `${this.select.id}-menu-option-${index}`;
+      item.dataset.index = String(index);
+      item.setAttribute("role", "option");
+      item.setAttribute("aria-selected", String(option.value === this.select.value));
+      item.textContent = option.textContent;
+      return item;
+    }));
+    this.list.scrollTop = 0;
+    if (!this.items.length) {
+      const empty = document.createElement("p");
+      empty.className = "location-menu-empty";
+      empty.setAttribute("role", "status");
+      empty.textContent = "Nenhuma opção encontrada.";
+      this.list.append(empty);
+    }
+    this.highlight(Math.max(0, this.items.findIndex(option => option.value === this.select.value)));
+  }
+
+  highlight(index) {
+    this.active = index;
+    Array.from(this.list.children).forEach((item, i) => item.classList.toggle("is-active", i === index && this.items.length > 0));
+    const item = this.items.length && this.list.children[index];
+    if (!item) { this.query.removeAttribute("aria-activedescendant"); return; }
+    this.query.setAttribute("aria-activedescendant", item.id);
+    if (item.offsetTop < this.list.scrollTop) this.list.scrollTop = item.offsetTop;
+    else if (item.offsetTop + item.offsetHeight > this.list.scrollTop + this.list.clientHeight)
+      this.list.scrollTop = item.offsetTop + item.offsetHeight - this.list.clientHeight;
+  }
+
+  choose(option) {
+    if (!option || this.select.disabled) return;
+    this.select.value = option.value;
+    this.close(true);
+    this.select.dispatchEvent(new Event("input", { bubbles: true }));
+    this.select.dispatchEvent(new Event("change", { bubbles: true }));
+    this.sync();
+  }
+
+  close(focus = false) {
+    this.popup.hidden = true;
+    this.button.setAttribute("aria-expanded", "false");
+    if (focus) this.button.focus({ preventScroll: true });
+  }
+}
+
 // As listas vêm do backend local. Trocar uma seleção sempre limpa seus dependentes.
 class LocationPicker {
-  constructor({ api, isLocked, canResume = () => false }) {
+  constructor({ api, isLocked, canResume = () => false, menus = [] }) {
     this.api = api;
     this.isLocked = isLocked;
     this.canResume = canResume;
@@ -20,6 +176,7 @@ class LocationPicker {
     this.loading = "countries";
     this.failed = "";
     this.generation = 0;
+    this.menus = menus;
     this.country.addEventListener("change", () => { void this.loadStates(); });
     this.region.addEventListener("change", () => { void this.loadCities(); });
     this.city.addEventListener("change", () => this.sync());
@@ -186,6 +343,7 @@ class LocationPicker {
     this.country.disabled = locked || !this.countries.length || this.loading === "countries";
     this.region.disabled = locked || !this.country.value || ["countries", "states"].includes(this.loading) || this.failed === "states";
     this.city.disabled = locked || !this.region.value || Boolean(this.loading);
+    this.menus.forEach(menu => menu.sync());
     document.getElementById("manual-region-label").hidden = !manualRegion;
     document.getElementById("manual-city-label").hidden = !manualCity;
     this.manualRegion.required = manualRegion;

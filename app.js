@@ -387,6 +387,8 @@ async function api(url, options = {}) {
 }
 
 const locationPicker = new LocationPicker({ api, isLocked: () => busy || !ready,
+  menus: [["country", "País"], ["region", "Estado / província"], ["city", "Cidade"]]
+    .map(([id, name]) => new LocationMenu($(id), name)),
   canResume: () => Boolean(storedJob()) });
 
 function setBusy(value) {
