@@ -60,3 +60,10 @@
 @media(min-width:1200px) { .search-stage { grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); max-width:1040px; }.search-guide { padding:36px; }.cards { gap:20px; } }
 @media(max-width:600px) { .hero-text .intro { font-size:14px; }.cards .card { padding:19px; border-radius:18px; }.cards .business h3 { font-size:18px; }.discovery-toolbar { gap:14px; }.discovery-toolbar .safe-contact-filter { font-size:12px; }#search .selling-field { padding:13px; }#selling-service,.discovery-toolbar input { font-size:16px; }.pipeline-overview { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }.pipeline-metric { padding:14px; }.pipeline-metric strong { font-size:25px; }.pipeline-column { flex-basis:285px; }.strategy-header { padding:20px; }#strategy-content { padding:0 20px; }.strategy-footer { padding:0 20px 20px; }.chat-quick-actions { flex-wrap:nowrap; overflow-x:auto; flex:0 0 auto; padding-bottom:4px; }.chat-quick-actions button { white-space:nowrap; flex:0 0 auto; } }
 @media(prefers-reduced-motion:reduce) { #strategy-dialog::backdrop { backdrop-filter:none; } }
+.cards .card { gap:14px; }
+.opportunity-summary { margin:4px 0 0; }
+.approach-preview { margin:0; }
+.card .actions .whatsapp-contact,.card .copy-phone { grid-column:1/-1; }
+.card .card-analysis { margin-top:4px; }
+.pipeline-column .prospect-edit-form textarea,.pipeline-column .prospect-edit-form select { width:100%; }
+@media(max-width:600px) { .cards .card { gap:14px; }.pipeline-column .prospect-edit-form select,.pipeline-column .prospect-edit-form textarea { font-size:16px; } }

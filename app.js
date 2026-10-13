@@ -189,7 +189,7 @@ function makeCard(row) {
   aiButton.type = "button";
   aiButton.disabled = !lastJob?.id || lastJob.state === "running";
   aiButton.title = aiButton.disabled ? "Aguarde a pesquisa terminar." : "Revisar empresa e preparar mensagens";
-  aiButton.addEventListener("click", () => window.dispatchEvent(new CustomEvent("prospect:chat-company", { detail: { row, jobId: lastJob.id } })));
+  aiButton.addEventListener("click", () => window.dispatchEvent(new CustomEvent("prospect:chat-company", { detail: { row, jobId: lastJob.id, prompt: ProspectOpportunities.analyze(row, $("selling-service").value, readOfferSettings()).prompt } })));
   aiButton.prepend(uiIcon("agent"));
   actions.append(aiButton);
   const saveButton = prospectLists.button(row, lastJob);
@@ -316,7 +316,7 @@ function render() {
       description = searchError;
     } else if (rows.length > 0) {
       title = "Nenhuma empresa corresponde aos filtros";
-      description = "Selecione Todos nos filtros de site e telefone para ver as empresas encontradas.";
+      description = "Limpe o campo de busca, desmarque o filtro de contato ou selecione Todas nos filtros para ampliar os resultados.";
     } else if (busy) {
       title = searched ? "Consultando empresas…" : "Conectando ao servidor…";
       description = "A quantidade será exibida quando os resultados chegarem.";
