@@ -116,11 +116,15 @@ function visibleRows() {
     const phoneOK = phoneFilter === "all" ||
       (phoneFilter === "yes" && Boolean(row.phone)) ||
       (phoneFilter === "no" && !row.phone);
-    return statusOK && phoneOK;
+    const query = ProspectOpportunities.normalize($("result-search").value.trim());
+    const queryOK = !query || ProspectOpportunities.normalize([row.name, row.city, row.address, row.category].join(" ")).includes(query);
+    const contactOK = !$("safe-contact").checked || (Boolean(row.phone) && row.phoneVerification !== "conflict");
+    return statusOK && phoneOK && queryOK && contactOK;
   }).sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name, "pt-BR");
     if (sort === "confidence") return b.confidence - a.confidence;
-    return b.prospectScore - a.prospectScore;
+    const selected = $("selling-service").value;
+    return ProspectOpportunities.analyze(b, selected).priority - ProspectOpportunities.analyze(a, selected).priority || b.prospectScore - a.prospectScore;
   });
 }
 
@@ -252,7 +256,22 @@ function makeCard(row) {
     detailsButton.addEventListener("click", () => { analysis.open = true; analysisHeading.focus(); });
     actions.prepend(detailsButton);
   }
-  card.append(business, actions, analysis);
+  const plan = ProspectOpportunities.analyze(row, $("selling-service").value, readOfferSettings());
+  const opportunity = node("div", "opportunity-summary");
+  opportunity.append(node("span", "opportunity-label", plan.label), node("h4", "", plan.title), node("p", "", plan.evidence));
+  const feedback = node("p", "card-feedback"); feedback.setAttribute("role", "status");
+  const preview = node("details", "approach-preview");
+  preview.append(node("summary", "", "Abordagem sugerida"), node("p", "approach-text", plan.draft));
+  const copy = node("button", "", "Copiar abordagem"); copy.type = "button";
+  copy.addEventListener("click", () => void window.prospectCopy(plan.draft, feedback)); preview.append(copy);
+  const strategy = node("button", "strategy-button", "Ver estratégia ↗"); strategy.type = "button";
+  strategy.addEventListener("click", () => window.prospectStrategy(row, lastJob?.state === "done" ? lastJob.id : null, $("selling-service").value, readOfferSettings()));
+  actions.prepend(strategy);
+  if (row.phone) {
+    const copyPhone = node("button", "copy-phone", "Copiar telefone"); copyPhone.type = "button";
+    copyPhone.addEventListener("click", () => void window.prospectCopy(row.phone, feedback)); actions.append(copyPhone);
+  }
+  card.append(business, opportunity, preview, actions, feedback, analysis);
   return card;
 }
 
@@ -270,6 +289,7 @@ function render() {
   $("phones").textContent = awaitingResults ? "—" :
     rows.filter(row => Boolean(row.phone)).length;
 
+  $("service-summary").textContent = "Abordagens para " + ProspectOpportunities.services[ProspectOpportunities.service($("selling-service").value)].toLocaleLowerCase("pt-BR");
   const visible = visibleRows();
   const existing = new Set(rows.map(row => row.osmId));
   for (const [key, cached] of resultCards) {
@@ -321,12 +341,12 @@ function render() {
   // This also preserves keyboard focus and expanded verification details.
   let cursor = $("cards").firstChild;
   for (const row of visible) {
-    const signature = JSON.stringify([row, lastJob?.id, lastJob?.state === "running"]);
+    const signature = JSON.stringify([row, lastJob?.id, lastJob?.state === "running", $("selling-service").value, readOfferSettings()]);
     let cached = resultCards.get(row.osmId);
     if (!cached || cached.signature !== signature) {
-      const wasOpen = cached?.card.querySelector("details")?.open;
+      const wasOpen = cached?.card.querySelector(".card-analysis")?.open;
       const card = makeCard(row);
-      if (wasOpen && card.querySelector("details")) card.querySelector("details").open = true;
+      if (wasOpen) card.querySelector(".card-analysis").open = true;
       if (cached?.card.parentNode === $("cards")) {
         if (cursor === cached.card) cursor = card;
         cached.card.replaceWith(card);
@@ -551,6 +571,9 @@ document.querySelectorAll("[data-filter]").forEach(button => {
 });
 $("phone-filter").addEventListener("change", render);
 $("sort").addEventListener("change", render);
+$("result-search").addEventListener("input", render);
+$("safe-contact").addEventListener("change", render);
+$("selling-service").addEventListener("change", render);
 
 function download(content, type, extension) {
   const blob = new Blob([content], { type });
@@ -589,7 +612,7 @@ $("json").addEventListener("click", () => {
 
 async function initialize() {
   document.title = "Prospect AI";
-  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.7";
+  document.querySelector(".version").textContent = "Pesquisa de empresas · v0.8";
   document.querySelector(".notice").textContent =
     "Dados públicos do OpenStreetMap. A ausência de website " +
     "cadastrado não significa ausência de site. Durante a busca, " +
@@ -688,6 +711,7 @@ function saveOfferSettings(settings) {
 
 window.addEventListener("prospect:session-expired", () => {
   rows = []; lastJob = null; ready = false; searched = false; searchError = "";
+  $("result-search").value = ""; $("safe-contact").checked = false; $("selling-service").value = "website";
   publishDiscovery(null);
   aiCompanyStates.clear();
   if (aiPanel) { aiPanel.dialog.close(); aiPanel.dialog.remove(); aiPanel = null; }

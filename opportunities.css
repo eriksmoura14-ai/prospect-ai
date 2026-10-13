@@ -1,0 +1,62 @@
+/* Service-led discovery and a compact sales workspace. */
+:root { --opportunity-green:#86e4bd; }
+.hero-text .intro { max-width:540px; font-size:15px; color:#c2b0d3; }
+.search-heading h2 { letter-spacing:-.8px; }
+#search .selling-field { grid-column:1/-1; padding:16px; border:1px solid #aa71eb42; border-radius:14px; background:linear-gradient(125deg,#a45eee16,#714ee609); }
+.selling-field small { display:block; margin-top:8px; color:#bba5cf; font-size:12px; font-weight:400; line-height:1.6; }
+#selling-service { min-height:46px; width:100%; }
+.discovery-toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; padding:16px 0 20px; border-bottom:1px solid #ffffff10; margin-bottom:22px; }
+.discovery-toolbar label { flex:1 1 220px; margin:0; }
+.discovery-toolbar input { width:100%; margin-top:5px; min-height:44px; }
+.discovery-toolbar .safe-contact-filter { display:flex; gap:9px; align-items:center; flex:0 1 auto; font-size:13px; cursor:pointer; }
+.discovery-toolbar input[type=checkbox] { width:17px; min-height:17px; margin:0; accent-color:#b478f4; }
+.service-summary { display:flex; align-items:center; gap:8px; color:#cfb6ed; font-size:12px; margin:10px 0 0; }
+.cards .card { padding:24px; border-radius:20px; background:linear-gradient(145deg,#241532d9,#130d20f5); border-color:#7150874d; box-shadow:0 6px 24px #0002; }
+.cards .business h3 { font-size:19px; line-height:1.4; letter-spacing:-.25px; }
+.cards .business .meta { font-size:12px; line-height:1.6; }
+.cards .business-icon { width:46px; height:46px; border-radius:14px; background:linear-gradient(140deg,#b175ec2b,#7144bf25); color:#e3c6ff; font-size:16px; }
+.opportunity-summary { margin:20px 0 16px; padding:16px; border:1px solid #9d6bcb32; background:#a35ef10a; border-radius:13px; }
+.opportunity-summary .opportunity-label { display:block; font-size:10px; font-weight:700; letter-spacing:1.1px; color:#c698f1; text-transform:uppercase; }
+.opportunity-summary h4 { margin:7px 0; font-size:15px; font-weight:600; }
+.opportunity-summary p { margin:0; color:#bdaace; font-size:12px; line-height:1.7; }
+.approach-preview { margin:0 0 18px; border:1px solid #ffffff12; border-radius:13px; padding:14px; background:#0d091633; }
+.approach-preview summary { display:flex; justify-content:space-between; align-items:center; gap:8px; cursor:pointer; color:#dac6ee; font-size:13px; font-weight:600; list-style:none; }
+.approach-preview summary::after { content:"+"; color:#be8fed; font-size:20px; font-weight:400; }
+.approach-preview[open] summary::after { content:"−"; }
+.approach-text { margin:14px 0; font-size:13px; line-height:1.8; color:#e6d8f3; white-space:pre-wrap; overflow-wrap:anywhere; }
+.approach-preview button,.card .strategy-button { min-height:42px; font-size:12px; }
+.card .actions { gap:8px; }
+.card .actions button,.card .actions a { flex:1 1 145px; }
+.card .strategy-button { background:linear-gradient(120deg,#7540b7,#8f52c7); color:#fff; border-color:#b684e84d; }
+.card .copy-phone { background:#ffffff04; }
+.card-feedback { margin:8px 0 0; font-size:12px; color:var(--opportunity-green); }
+.card-feedback:empty { display:none; }
+.card .card-analysis { margin-top:18px; border-top:1px solid #ffffff12; padding-top:14px; }
+#strategy-dialog { width:min(650px,calc(100% - 24px)); max-height:88svh; padding:0; border:1px solid #8556b277; background:#160f23; color:#f7f0ff; border-radius:22px; box-shadow:0 24px 120px #000a; }
+#strategy-dialog::backdrop { background:#080511bc; backdrop-filter:blur(6px); }
+.strategy-header { display:flex; justify-content:space-between; gap:14px; padding:24px; border-bottom:1px solid #ffffff10; }
+.strategy-header h2 { font-size:22px; line-height:1.4; margin:6px 0; overflow-wrap:anywhere; }
+.strategy-header p { margin:0; color:#bda4d3; font-size:13px; }
+#strategy-close { flex:0 0 40px; width:40px; height:40px; padding:0; }
+#strategy-content { padding:0 24px; }
+.strategy-block { padding:23px 0; border-bottom:1px solid #ffffff10; }
+.strategy-block h3 { font-size:17px; margin:9px 0; }
+.strategy-block p,.strategy-block li { font-size:14px; line-height:1.8; }
+.strategy-block p:not(.approach-text),.strategy-block li { color:#c3b1d4; }
+.strategy-block ol { padding-left:20px; margin-bottom:0; }.strategy-block li+li { margin-top:8px; }
+.strategy-price { color:#b29bc8; font-size:12px; line-height:1.7; margin:20px 0; }
+.strategy-footer { padding:0 24px 24px; }.strategy-footer button { width:100%; min-height:46px; }.strategy-footer p { font-size:12px; color:var(--opportunity-green); }
+.pipeline-overview { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:22px 0; }
+.pipeline-metric { padding:18px; background:#21142e; border:1px solid #6b43864d; border-radius:14px; }.pipeline-metric span { color:#bfa8d1; font-size:12px; }.pipeline-metric strong { display:block; font-size:28px; margin-top:4px; font-weight:600; }
+.list-view-switch { display:flex; gap:6px; margin:18px 0; }.list-view-switch button { min-height:40px; font-size:13px; padding:9px 16px; }.list-view-switch [aria-pressed=true] { color:#eddcff; border-color:#a36edf; background:#70409840; }
+#list-companies.pipeline-board { display:flex; gap:14px; align-items:flex-start; overflow-x:auto; padding:0 2px 18px; overscroll-behavior-x:contain; scroll-snap-type:x proximity; scrollbar-color:#8152a8 #160e20; }
+.pipeline-column { flex:0 0 300px; scroll-snap-align:start; background:#1d1328; border:1px solid #ffffff0c; padding:13px; border-radius:16px; }
+.pipeline-column h3 { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; margin:2px 0 15px; }.pipeline-column h3 span { color:#ccabeb; background:#7d49a02b; border-radius:8px; padding:2px 8px; }
+.pipeline-column .prospect-card { margin-bottom:12px; padding:16px; background:#130d1e; }.pipeline-column .prospect-heading { align-items:flex-start; }.pipeline-column .prospect-heading h3 { font-size:15px; margin:0; }.pipeline-column .prospect-contact-status { font-size:10px; }
+.pipeline-column .prospect-links .contact-information { display:none; }.pipeline-column .prospect-edit-form { display:block; }.pipeline-column .prospect-edit-form label { display:block; margin-bottom:12px; }.pipeline-column .prospect-buttons { display:flex; flex-wrap:wrap; gap:8px; }.pipeline-column .prospect-buttons button { font-size:11px; padding:9px; }
+.pipeline-empty { font-size:12px; color:#a68bbd; margin:10px 0; padding:20px 10px; text-align:center; border:1px dashed #80529640; border-radius:10px; }
+.prospect-contact-status.won { color:#8ce4b8; background:#2f74552e; }.prospect-contact-status.lost { color:#c5b7d1; }.prospect-contact-status.proposal,.prospect-contact-status.replied { color:#d3b6f6; background:#8156b52b; }
+.chat-quick-actions { display:flex; flex-wrap:wrap; gap:7px; margin:12px 0 0; }.chat-quick-actions button { background:#a15adf0b; border-color:#8a52b42e; padding:8px 12px; font-size:12px; color:#cfb3e5; min-height:36px; }
+@media(min-width:1200px) { .search-stage { grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); max-width:1040px; }.search-guide { padding:36px; }.cards { gap:20px; } }
+@media(max-width:600px) { .hero-text .intro { font-size:14px; }.cards .card { padding:19px; border-radius:18px; }.cards .business h3 { font-size:18px; }.discovery-toolbar { gap:14px; }.discovery-toolbar .safe-contact-filter { font-size:12px; }#search .selling-field { padding:13px; }#selling-service,.discovery-toolbar input { font-size:16px; }.pipeline-overview { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }.pipeline-metric { padding:14px; }.pipeline-metric strong { font-size:25px; }.pipeline-column { flex-basis:285px; }.strategy-header { padding:20px; }#strategy-content { padding:0 20px; }.strategy-footer { padding:0 20px 20px; }.chat-quick-actions { flex-wrap:nowrap; overflow-x:auto; flex:0 0 auto; padding-bottom:4px; }.chat-quick-actions button { white-space:nowrap; flex:0 0 auto; } }
+@media(prefers-reduced-motion:reduce) { #strategy-dialog::backdrop { backdrop-filter:none; } }

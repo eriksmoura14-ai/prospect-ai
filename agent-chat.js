@@ -109,7 +109,7 @@
     window.dispatchEvent(new CustomEvent("prospect:navigate", { detail: "agent-section" }));
     if (pending) { status.textContent = "Aguarde a resposta atual antes de trocar de empresa."; return; }
     if (company?.jobId !== event.detail.jobId || company?.row.osmId !== event.detail.row.osmId) reset(event.detail);
-    input.value = "Revise as evidências desta empresa e me ajude a preparar uma abordagem.";
+    input.value = event.detail.prompt || "Revise as evidências desta empresa e me ajude a preparar uma abordagem.";
     input.focus({ preventScroll: true });
   });
   window.addEventListener("prospect:session-expired", () => { reset(); setPending(false); });

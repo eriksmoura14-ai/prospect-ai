@@ -7,7 +7,8 @@ const prospectLists = (() => {
     if (text !== undefined) item.textContent = text;
     return item;
   };
-  const labels = { new: "Novo", contacted: "Contatado", interested: "Interessado" };
+  const labels = ProspectOpportunities.stages;
+  let board = false;
   const websiteLabels = { WEBSITE_LISTED: "Site na fonte", WEBSITE_FOUND: "Site compatível", LIKELY_NO_WEBSITE: "Site não identificado", UNCERTAIN: "Site não confirmado" };
   let enabled = false, lists = [], companies = [], selected = "", epoch = 0, listRead = 0, companyRead = 0;
   let saving = null, naming = null;
@@ -106,6 +107,9 @@ const prospectLists = (() => {
     $("lists-section").hidden = true; $("list-companies").replaceChildren(); $("list-select").replaceChildren();
     $("list-save-select").replaceChildren(); $("list-name").value = ""; $("list-save-name").value = "";
     $("list-search").value = ""; $("list-save-title").textContent = "Salvar empresa";
+    board = false; $("pipeline-overview").replaceChildren();
+    $("list-view-cards").setAttribute("aria-pressed", "true"); $("list-view-board").setAttribute("aria-pressed", "false");
+    $("list-companies").classList.remove("pipeline-board");
     $("list-summary").textContent = ""; $("lists-count").textContent = "";
     $("list-status-filter").value = "all"; $("lists-section").open = false;
     $("list-save-status").textContent = ""; $("list-name-status").textContent = "";
@@ -212,8 +216,28 @@ const prospectLists = (() => {
     const query = $("list-search").value.trim().toLocaleLowerCase(), filter = $("list-status-filter").value;
     const visible = companies.filter(item => (filter === "all" || item.status === filter) &&
       [item.company.name, item.company.city, item.company.phone, item.note].some(value => String(value).toLocaleLowerCase().includes(query)));
-    $("list-companies").replaceChildren(...visible.map(card));
-    $("list-summary").textContent = selected ? `${visible.length} de ${companies.length} empresas · Novo: ${companies.filter(x => x.status === "new").length} · Contatado: ${companies.filter(x => x.status === "contacted").length} · Interessado: ${companies.filter(x => x.status === "interested").length}` : "";
+    const container = $("list-companies");
+    container.classList.toggle("pipeline-board", board);
+    container.replaceChildren();
+    if (board && selected && companies.length) {
+      for (const [stage, label] of Object.entries(labels)) {
+        const column = node("section", undefined, "pipeline-column"); column.setAttribute("aria-label", label);
+        const matches = visible.filter(item => item.status === stage);
+        const heading = node("h3", label); heading.append(node("span", String(matches.length)));
+        column.append(heading, ...matches.map(card));
+        if (!matches.length) column.append(node("p", "Nenhuma empresa nesta etapa.", "pipeline-empty"));
+        container.append(column);
+      }
+    } else container.append(...visible.map(card));
+    const counts = [
+      ["Empresas salvas", companies.length],
+      ["Em conversa", companies.filter(x => ["contacted", "replied", "interested"].includes(x.status)).length],
+      ["Propostas", companies.filter(x => x.status === "proposal").length],
+      ["Fechados", companies.filter(x => x.status === "won").length]
+    ];
+    $("pipeline-overview").replaceChildren(...counts.map(([label, count]) => { const metric = node("div", undefined, "pipeline-metric"); metric.append(node("span", label), node("strong", loadState === "loading" ? "—" : String(count))); return metric; }));
+    $("pipeline-overview").hidden = !selected;
+    $("list-summary").textContent = selected ? `${visible.length} de ${companies.length} empresas · Atualize a etapa e as notas em cada cartão.` : "";
     if (selected && !visible.length) $("list-companies").append(node("p", loadState === "loading" ? "Carregando empresas salvas…" : loadState === "error" ? "Use Atualizar para tentar carregar a lista novamente." : companies.length ? "Nenhuma empresa corresponde aos filtros." : "Salve empresas dos seus resultados para preencher esta lista.", "meta"));
   }
   function nameDialog(action) {
@@ -289,6 +313,9 @@ const prospectLists = (() => {
   });
   $("list-select").addEventListener("change", () => { selected = $("list-select").value; void loadCompanies(); });
   $("lists-refresh").addEventListener("click", () => { void refresh(); });
+  for (const [id, value] of [["list-view-cards", false], ["list-view-board", true]]) $(id).addEventListener("click", () => {
+    board = value; $("list-view-cards").setAttribute("aria-pressed", String(!board)); $("list-view-board").setAttribute("aria-pressed", String(board)); render();
+  });
   $("list-search").addEventListener("input", render); $("list-status-filter").addEventListener("change", render);
   window.addEventListener("prospect:session-expired", clear);
   window.addEventListener("hashchange", () => { if ($("workspace").hidden) clear(); });

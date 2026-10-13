@@ -3,7 +3,7 @@
 const crypto = require("node:crypto");
 const contacts = require("./contacts.cjs");
 const LIMITS = Object.freeze({ lists: 20, companiesPerList: 250, companiesPerAccount: 1000, note: 3000 });
-const STATUSES = Object.freeze(["new", "contacted", "interested"]);
+const STATUSES = Object.freeze(Object.keys(require("./opportunity-model.js").stages));
 const fail = (status, message) => { throw Object.assign(new Error(message), { status }); };
 function listName(value) {
   if (typeof value !== "string") fail(400, "Informe um nome para a lista.");

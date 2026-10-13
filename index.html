@@ -630,11 +630,14 @@
   <link rel="stylesheet" href="/location-map.css">
   <link rel="stylesheet" href="/product.css">
   <link rel="stylesheet" href="/motion.css">
+  <link rel="stylesheet" href="/opportunities.css">
   <script src="/earth-loader.js" defer></script>
   <script src="/location-picker.js" defer></script>
   <script src="/account-ui.js" defer></script>
+  <script src="/opportunity-model.js" defer></script>
   <script src="/prospects-ui.js" defer></script>
   <script src="/app.js" defer></script>
+  <script src="/opportunities.js" defer></script>
   <script src="/agent-chat.js" defer></script>
   <script src="/dashboard.js" defer></script>
   <script src="/location-map.js" defer></script>
@@ -691,12 +694,12 @@
       <button id="menu-toggle" class="mobile-brand brand" type="button" aria-label="Prospect AI, abrir menu" aria-controls="app-sidebar" aria-expanded="false"><img class="logo" src="/assets/icon.svg?v=purple-1" width="34" height="34" alt=""><span>Prospect AI</span></button>
       <a href="/" class="public-brand brand"><img class="logo" src="/assets/icon.svg?v=purple-1" width="34" height="34" alt="">Prospect <small>AI</small></a>
       <span class="breadcrumb">Seu espaço <span aria-hidden="true">/</span> <strong id="nav-current">Descobrir</strong></span>
-      <span class="version">Pesquisa de empresas · v0.7</span>
+      <span class="version">Pesquisa de empresas · v0.8</span>
     </div>
     <div class="header-actions">
       <button id="motion-toggle" type="button" aria-label="Pausar animações" aria-pressed="false" title="Pausar animações">Ⅱ</button>
       <span class="data-pill"><i aria-hidden="true"></i> Dados públicos</span>
-      <span class="version">Pesquisa de empresas · v0.7</span>
+      <span class="version">Pesquisa de empresas · v0.8</span>
       <details id="account-controls" hidden>
         <summary aria-label="Minha conta"><span id="topbar-avatar" class="profile-avatar" aria-hidden="true">P</span><span id="account-email">Minha conta</span></summary>
         <button id="account-logout" type="button">Sair</button>
@@ -711,7 +714,7 @@
       <div class="hero-text">
         <div class="eyebrow"><span>NOVO</span> Seu próximo cliente começa aqui</div>
         <h1>Encontre novas<br><span class="hero-accent">oportunidades.</span></h1>
-        <p class="intro">Escolha onde encontrar clientes. Aborde com contexto.</p>
+        <p class="intro">Encontre empresas, descubra oportunidades e transforme contatos em conversas.</p>
       </div>
       <div class="hero-earth-slot" hidden>
         <div id="earth-scene" aria-hidden="true" data-earth-day="/assets/earth-day.jpg" data-earth-day-desktop="/assets/earth-day-desktop.jpg" data-earth-night="/assets/earth-night.jpg" data-earth-clouds="/assets/earth-clouds.webp" data-earth-clouds-desktop="/assets/earth-clouds-desktop.webp" data-earth-specular="/assets/earth-specular.jpg"></div>
@@ -769,7 +772,7 @@
     <div class="search-stage">
     <div class="search-config">
     <form id="search" class="panel" aria-label="Descobrir empresas">
-      <div class="search-heading"><span class="section-kicker">SUA PRÓXIMA BUSCA</span><h2>Onde estão seus clientes?</h2><p>Defina o local e o tipo de empresa.</p></div>
+      <div class="search-heading"><span class="section-kicker">SUA PRÓXIMA BUSCA</span><h2>Onde estão seus clientes?</h2><p>Escolha quem você quer alcançar e o serviço que oferece.</p></div>
       <label for="country" class="country-field">País
         <span class="country-select-wrap"><span id="country-flag" class="country-flag" aria-hidden="true">🌐</span>
         <select id="country" name="country" required disabled aria-describedby="location-status">
@@ -818,6 +821,10 @@
         </select>
       </label>
 
+      <label for="selling-service" class="selling-field">O que você quer vender?
+        <select id="selling-service"><option value="website">Sites e landing pages</option><option value="social">Gestão de redes sociais</option><option value="design">Design e identidade visual</option><option value="ads">Tráfego pago</option><option value="automation">Automação e atendimento</option></select>
+        <small>Use o serviço para orientar a prioridade e a abordagem. A necessidade será confirmada na conversa.</small>
+      </label>
       <details class="search-options"><summary>Opções da busca <svg class="ui-icon" aria-hidden="true"><use href="#icon-arrow"/></svg></summary>
       <label for="quantity" class="quantity-field">
         Limite de empresas
@@ -896,6 +903,8 @@
     </div>
     <div class="exports"><button id="csv" type="button" title="Exportar os resultados que correspondem aos filtros" disabled>Exportar CSV</button><button id="json" type="button" title="Exportar os resultados e evidências disponíveis" disabled>Exportar JSON</button></div>
     </details>
+    <p id="service-summary" class="service-summary"></p>
+    <div class="discovery-toolbar"><label for="result-search">Buscar nos resultados<input id="result-search" type="search" maxlength="200" placeholder="Nome, cidade ou endereço"></label><label class="safe-contact-filter" for="safe-contact"><input id="safe-contact" type="checkbox">Telefone informado, sem divergência</label></div>
     <div id="cards" class="cards"><div class="panel empty"><h3>Sua pesquisa começa aqui</h3><p>Escolha um local e um nicho para encontrar empresas com informações comerciais públicas.</p></div></div>
     <div class="notice">Cadastros públicos podem estar incompletos ou desatualizados. Telefone ou site não informado não significa inexistente. Confira as fontes e eventuais divergências antes de entrar em contato.</div>
     </section>
@@ -916,7 +925,8 @@
     </section>
     <section id="lists-section" class="panel workspace-section workspace-page" hidden aria-labelledby="lists-title">
       <div class="page-heading"><span class="section-kicker">SEUS CONTATOS</span><h1 id="lists-title">Minhas listas</h1><span id="lists-count"></span></div>
-      <p class="lists-intro">Salve empresas, organize seus contatos e retome suas notas em qualquer dispositivo.</p>
+      <p class="lists-intro">Seu funil de vendas, do primeiro contato à proposta. Salve empresas e acompanhe cada conversa em qualquer dispositivo.</p>
+      <div id="pipeline-overview" class="pipeline-overview" aria-label="Resumo da lista"></div>
       <div class="lists-toolbar">
         <label for="list-select">Lista<select id="list-select" disabled></select></label>
         <button id="list-create" type="button">Criar lista</button>
@@ -927,10 +937,11 @@
       <p id="list-empty" class="meta">Crie uma lista ou use “Salvar na lista” nos resultados de uma pesquisa.</p>
       <div class="lists-filters">
         <label for="list-search">Pesquisar na lista<input id="list-search" type="search" maxlength="200" placeholder="Empresa, cidade, telefone ou nota"></label>
-        <label for="list-status-filter">Status do contato<select id="list-status-filter"><option value="all">Todos</option><option value="new">Novo</option><option value="contacted">Contatado</option><option value="interested">Interessado</option></select></label>
+        <label for="list-status-filter">Status do contato<select id="list-status-filter"><option value="all">Todos</option><option value="new">Novo</option><option value="contacted">Contatado</option><option value="replied">Respondeu</option><option value="interested">Interessado</option><option value="proposal">Proposta enviada</option><option value="won">Fechado</option><option value="lost">Sem interesse</option></select></label>
       </div>
       <p id="lists-status" role="status" aria-live="polite"></p>
       <p id="list-summary" aria-live="polite"></p>
+      <div class="list-view-switch" role="group" aria-label="Visualização da lista"><button id="list-view-cards" type="button" aria-pressed="true">Lista</button><button id="list-view-board" type="button" aria-pressed="false">Funil de vendas</button></div>
       <div id="list-companies"></div>
       <p class="lists-intro">Até 20 listas, 250 empresas por lista e 1.000 empresas salvas por conta. As listas ficam salvas até você removê-las ou excluir sua conta.</p>
     </section>
@@ -945,11 +956,13 @@
       <div id="chat-messages" class="chat-messages" role="log" aria-label="Conversa com o Agente IA" aria-live="polite" aria-relevant="additions text">
         <div id="chat-welcome" class="chat-welcome"><span class="energy-orb" aria-hidden="true"><span class="energy-halo"></span><span class="energy-core"></span><span class="energy-ring"></span><span class="energy-ring energy-ring--b"></span><span class="energy-ring energy-ring--c"></span></span><h2>Como posso ajudar na sua prospecção?</h2><p>Prepare abordagens, tire dúvidas e planeje seus próximos contatos.</p><div class="chat-suggestions"><button type="button" data-chat-prompt="Me ajude a preparar uma primeira abordagem para um possível cliente.">Preparar uma abordagem <span aria-hidden="true">↗</span></button><button type="button" data-chat-prompt="Como posso responder a um cliente que achou minha proposta cara?">Responder a uma objeção <span aria-hidden="true">↗</span></button><button type="button" data-chat-prompt="Me ajude a organizar um plano de prospecção para esta semana.">Planejar minha prospecção <span aria-hidden="true">↗</span></button></div></div>
       </div>
+      <div class="chat-quick-actions" role="group" aria-label="Atalhos de vendas"><button type="button" data-chat-prompt="Prepare uma primeira abordagem curta, com uma pergunta de diagnóstico e sem promessas de resultado.">Primeira abordagem</button><button type="button" data-chat-prompt="O cliente respondeu: está caro. Ajude a responder sem inventar descontos, resultados ou condições.">Está caro</button><button type="button" data-chat-prompt="O cliente respondeu: vou pensar. Prepare uma resposta respeitosa e proponha combinar um próximo contato, sem pressionar.">Vou pensar</button><button type="button" data-chat-prompt="Ajude a montar uma proposta. Primeiro me pergunte o escopo, o prazo e o preço; não invente essas informações.">Montar proposta</button></div>
       <form id="chat-form" class="chat-composer"><label class="sr-only" for="chat-input">Mensagem para o Agente IA</label><textarea id="chat-input" rows="2" maxlength="2000" placeholder="Converse com seu agente…" required></textarea><div class="chat-composer-bottom"><span>Enter para enviar · Shift + Enter para nova linha</span><button id="chat-send" class="primary" type="submit" aria-label="Enviar mensagem">Enviar <span aria-hidden="true">↑</span></button></div></form>
       <p id="chat-status" class="chat-status" role="status" aria-live="polite"></p><p class="chat-note">A IA pode cometer erros. Revise as respostas. Esta conversa fica disponível nesta aba enquanto ela estiver aberta.</p>
     </section>
     </div>
 
+    <dialog id="strategy-dialog" aria-labelledby="strategy-title" aria-describedby="strategy-subtitle"><div class="strategy-header"><div><span class="section-kicker">PLANO DE ABORDAGEM</span><h2 id="strategy-title"></h2><p id="strategy-subtitle"></p></div><button id="strategy-close" type="button" aria-label="Fechar estratégia">×</button></div><div id="strategy-content"></div><div class="strategy-footer"><p id="strategy-status" role="status" aria-live="polite"></p><button id="strategy-ai" type="button" class="primary">Aprofundar com o Agente IA ↗</button></div></dialog>
     <footer>
       Confidence e Prospect Score são heurísticas,
       não probabilidades calibradas nem garantias comerciais.
