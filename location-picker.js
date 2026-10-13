@@ -21,6 +21,7 @@ class LocationMenu {
     this.popup.id = `${select.id}-menu`;
     this.popup.className = "location-menu";
     this.popup.hidden = true;
+    this.popup.tabIndex = -1;
     this.popup.setAttribute("role", "dialog");
     this.popup.setAttribute("aria-label", `Selecionar ${name.toLocaleLowerCase("pt-BR")}`);
     this.button.setAttribute("aria-controls", this.popup.id);
@@ -44,7 +45,7 @@ class LocationMenu {
       if (["ArrowDown", "ArrowUp"].includes(event.key)) { event.preventDefault(); this.open(); }
     });
     this.query.addEventListener("input", () => this.render());
-    this.query.addEventListener("keydown", event => {
+    this.popup.addEventListener("keydown", event => {
       if (event.key === "Escape") { event.preventDefault(); this.close(true); }
       else if (event.key === "Tab") this.close(true);
       else if (event.key === "Enter") { event.preventDefault(); this.choose(this.items[this.active]); }
@@ -70,9 +71,11 @@ class LocationMenu {
     document.addEventListener("focusin", event => {
       if (!this.popup.contains(event.target) && event.target !== this.button) this.close();
     });
-    window.addEventListener("resize", () => this.close());
+    window.addEventListener("resize", () => this.position());
+    window.visualViewport?.addEventListener("resize", () => this.position());
+    window.visualViewport?.addEventListener("scroll", () => this.position());
     document.addEventListener("scroll", event => {
-      if (!this.popup.contains(event.target)) this.close();
+      if (!this.popup.contains(event.target)) this.position();
     }, true);
     select.addEventListener("invalid", event => { event.preventDefault(); this.open(); });
     this.sync();
@@ -87,22 +90,37 @@ class LocationMenu {
 
   open() {
     if (this.select.disabled) return;
-    const rect = this.button.getBoundingClientRect();
-    const width = Math.min(Math.max(rect.width, 260), window.innerWidth - 24);
-    const above = rect.top - 12;
-    const below = window.innerHeight - rect.bottom - 12;
-    const upwards = below < 240 && above > below;
-    const space = upwards ? above : below;
-    this.list.style.maxHeight = `${Math.max(60, Math.min(280, space - 66))}px`;
-    this.popup.style.width = `${width}px`;
-    this.popup.style.left = `${Math.max(12, Math.min(rect.left, window.innerWidth - width - 12))}px`;
-    this.popup.style.top = upwards ? "auto" : `${rect.bottom + 6}px`;
-    this.popup.style.bottom = upwards ? `${window.innerHeight - rect.top + 6}px` : "auto";
     this.popup.hidden = false;
     this.button.setAttribute("aria-expanded", "true");
     this.query.value = "";
+    this.position();
     this.render();
-    this.query.focus({ preventScroll: true });
+    // Touch users choose from the list first; searching explicitly opens the keyboard.
+    const touch = window.matchMedia("(pointer: coarse)").matches;
+    (touch ? this.popup : this.query).focus({ preventScroll: true });
+  }
+
+  position() {
+    if (this.popup.hidden) return;
+    const rect = this.button.getBoundingClientRect();
+    if (!this.button.getClientRects().length) { this.close(); return; }
+    const viewport = window.visualViewport;
+    const viewportTop = viewport?.offsetTop || 0;
+    const viewportLeft = viewport?.offsetLeft || 0;
+    const viewportWidth = viewport?.width || window.innerWidth;
+    const viewportHeight = viewport?.height || window.innerHeight;
+    const width = Math.min(Math.max(rect.width, 260), viewportWidth - 24);
+    const above = rect.top - viewportTop - 18;
+    const below = viewportTop + viewportHeight - rect.bottom - 18;
+    const upwards = below < 240 && above > below;
+    const space = upwards ? above : below;
+    const listHeight = Math.max(48, Math.min(280, space - 70, viewportHeight - 94));
+    this.list.style.maxHeight = `${listHeight}px`;
+    this.popup.style.width = `${width}px`;
+    this.popup.style.left = `${Math.max(viewportLeft + 12, Math.min(rect.left, viewportLeft + viewportWidth - width - 12))}px`;
+    const desiredTop = upwards ? rect.top - listHeight - 76 : rect.bottom + 6;
+    this.popup.style.top = `${Math.max(viewportTop + 12, Math.min(desiredTop, viewportTop + viewportHeight - listHeight - 82))}px`;
+    this.popup.style.bottom = "auto";
   }
 
   render() {
