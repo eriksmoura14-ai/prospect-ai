@@ -213,9 +213,9 @@ const prospectLists = (() => {
     return article;
   }
   function render() {
-    const query = $("list-search").value.trim().toLocaleLowerCase(), filter = $("list-status-filter").value;
+    const query = ProspectOpportunities.normalize($("list-search").value.trim()), filter = $("list-status-filter").value;
     const visible = companies.filter(item => (filter === "all" || item.status === filter) &&
-      [item.company.name, item.company.city, item.company.phone, item.note].some(value => String(value).toLocaleLowerCase().includes(query)));
+      [item.company.name, item.company.city, item.company.phone, item.note].some(value => ProspectOpportunities.normalize(value).includes(query)));
     const container = $("list-companies");
     container.classList.toggle("pipeline-board", board);
     container.replaceChildren();
