@@ -15,6 +15,7 @@ const files = {
   "/index.html": ["index.html", "text/html; charset=utf-8"],
   "/app.js": ["app.js", "text/javascript; charset=utf-8"],
   "/agent-chat.js": ["agent-chat.js", "text/javascript; charset=utf-8"],
+  "/demo-aurora.html": ["demo-aurora.html", "text/html; charset=utf-8"],
   "/descobrir": ["index.html", "text/html; charset=utf-8"],
   "/listas": ["index.html", "text/html; charset=utf-8"],
   "/historico": ["index.html", "text/html; charset=utf-8"],
