@@ -15,21 +15,34 @@
   scene.append(canvas);
   document.body.prepend(scene);
   const ctx = canvas.getContext("2d");
-  let width = 0, height = 0, nodes = [], trails = [], frame = 0, last = 0, time = 0, painted = 0;
+  let width = 0, height = 0, pixelRatio = 0, nodes = [], trails = [], frame = 0, last = 0, time = 0, painted = 0, layouts = 0;
   const pointer = { x: 0, y: 0, active: false, expires: 0 };
   const checkbox = document.getElementById("pause");
   const toggle = document.getElementById("motion-toggle");
 
   function resize() {
-    width = window.innerWidth; height = window.innerHeight;
+    // The CSS scene uses the large viewport: mobile browser bars and keyboards
+    // do not change its geometry. Do not clear/reseed the canvas on those events.
+    const nextWidth = Math.round(scene.clientWidth || window.innerWidth);
+    const nextHeight = Math.round(scene.clientHeight || window.innerHeight);
     const scale = Math.min(window.devicePixelRatio || 1, 1.5);
+    if (nextWidth === width && nextHeight === height && scale === pixelRatio) return;
+    const previousWidth = width, previousHeight = height;
+    width = nextWidth; height = nextHeight; pixelRatio = scale;
     canvas.width = Math.round(width * scale); canvas.height = Math.round(height * scale);
     ctx?.setTransform(scale, 0, 0, scale, 0, 0);
     const count = Math.min(74, Math.max(28, Math.round(width * height / 19000)));
-    nodes = Array.from({ length: count }, () => ({ x: Math.random() * width, y: Math.random() * height,
-      vx: (Math.random() - .5) * .75, vy: (Math.random() - .5) * .75, dx: 0, dy: 0, radius: 1.1 + Math.random() * 1.1 }));
+    if (previousWidth && previousHeight) {
+      for (const node of nodes) { node.x *= width / previousWidth; node.y *= height / previousHeight; }
+      for (const trail of trails) { trail.x *= width / previousWidth; trail.y *= height / previousHeight; }
+      pointer.x *= width / previousWidth; pointer.y *= height / previousHeight;
+    }
+    while (nodes.length < count) nodes.push({ x: Math.random() * width, y: Math.random() * height,
+      vx: (Math.random() - .5) * .75, vy: (Math.random() - .5) * .75, dx: 0, dy: 0, radius: 1.1 + Math.random() * 1.1 });
+    if (nodes.length > count) nodes.length = count;
     scene.dataset.nodeCount = String(count);
     scene.dataset.pixelRatio = String(scale);
+    scene.dataset.layoutRevision = String(++layouts);
     if (ctx) paint(0);
   }
 

@@ -1,6 +1,6 @@
 /* Shared visual layer: liquid ribbons, neural particles, and the agent sphere. */
 body::before { background:#090611; }
-.motion-scene { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; background:radial-gradient(ellipse at 0% 10%,#6d28ae2b,transparent 55%),radial-gradient(ellipse at 100% 85%,#7329b42e,transparent 55%); }
+.motion-scene { position:fixed; inset:0 0 auto; width:100%; height:100vh; height:100lvh; z-index:0; overflow:hidden; pointer-events:none; background:radial-gradient(ellipse at 0% 10%,#6d28ae2b,transparent 55%),radial-gradient(ellipse at 100% 85%,#7329b42e,transparent 55%); }
 .app-content { position:relative; z-index:1; }
 .motion-wave { position:absolute; inset:-12% -22%; width:144%; height:124%; transform-origin:center; animation:liquid-drift 12s ease-in-out infinite alternate; }
 .motion-wave svg { width:100%; height:100%; overflow:visible; }
