@@ -92,8 +92,8 @@ function createService(config, { store, mailer } = {}) {
       const email = gmail(input.email);
       await rate(request, purpose === "activate" ? "activate-mail" : "reset-mail", email);
       const value = token();
-      await store.issueEmailToken(purpose, email, value);
-      try { await mailer({ email, purpose, link: `${config.origin}/#${purpose}=${value}` }); }
+      const deliveryPurpose = await store.issueEmailToken(purpose, email, value);
+      try { await mailer({ email, purpose: deliveryPurpose, link: `${config.origin}/#${deliveryPurpose}=${value}` }); }
       catch { throw Object.assign(new Error("Não foi possível enviar o e-mail agora. Tente novamente mais tarde."), { status: 503 }); }
       return { message: "Confira sua caixa de entrada e a pasta de spam. Se o endereço puder concluir esta solicitação, o link chegará em instantes." };
     },

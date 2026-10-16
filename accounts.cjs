@@ -123,9 +123,15 @@ function createStore({ databaseUrl, encryptionKey, local = false }) {
         const owner = emailHash(email);
         await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [owner]);
         const account = (await client.query("SELECT id FROM prospect_accounts WHERE email_hash=$1", [owner])).rows[0];
-        await client.query("DELETE FROM prospect_email_tokens WHERE email_hash=$1 AND purpose=$2", [owner, purpose]);
+        // Existing accounts recover access instead of receiving an activation
+        // token that cannot create a second account for the same Gmail.
+        const deliveryPurpose = purpose === "activate" && account ? "reset" : purpose;
+        // Emails can arrive out of order. Keep unexpired links until one is
+        // completed; consumeEmailToken then revokes every other pending link.
+        await client.query("DELETE FROM prospect_email_tokens WHERE email_hash=$1 AND expires_at<=now()", [owner]);
         await client.query("INSERT INTO prospect_email_tokens(token_hash,purpose,email_hash,account_id,payload_encrypted,expires_at) VALUES($1,$2,$3,$4,$5,now()+interval '30 minutes')",
-          [hash(token), purpose, owner, account?.id || null, cipher.encrypt({ email }, `email:${hash(token)}`)]);
+          [hash(token), deliveryPurpose, owner, account?.id || null, cipher.encrypt({ email }, `email:${hash(token)}`)]);
+        return deliveryPurpose;
       });
     },
     async validEmailToken(purpose, token) {
