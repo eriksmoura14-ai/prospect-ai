@@ -33,11 +33,16 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
     module.exports = {handler:server.listeners("request")[0],jobs, activateJob:job=>{activeJob=job.id;jobs.set(job.id,job);}};
   `, context, {filename:path.join(root,"server.cjs")});
   const backend = context.module.exports;
-  function browser() {
+  function browser({ paceAuth = false } = {}) {
     const jar = new Map(); let csrf;
     return {
       jar,
       async call(method, url, input, headers = {}) {
+        // Keep the production request gate enabled while exercising the
+        // extra multi-email flows at a realistic pace.
+        if (paceAuth && method === "POST" && url.startsWith("/api/auth/")) {
+          await new Promise(resolve => setTimeout(resolve, 550));
+        }
         const request = Readable.from(input === undefined ? [] : [Buffer.from(JSON.stringify(input))]);
         request.method=method; request.url=url;
         request.headers={host:"127.0.0.1:3042",origin:config.origin,"sec-fetch-site":"same-origin","content-type":"application/json",
@@ -117,6 +122,62 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       await client.refresh();
       assert.equal((await client.call("POST","/api/auth/reset",{token:reset,password:"Next.5678"})).status,400);
       await store.deleteAccount(profile.user.id,(await store.credentials(email)).password_hash);
+    });
+    await t.test("reenviar confirmação preserva os links válidos até a primeira conclusão",async()=>{
+      const client=browser({paceAuth:true}),email=`resend${suffix}@gmail.com`,links=[];
+      let id;
+      try {
+        await client.refresh();
+        for(let i=0;i<3;i++) {
+          const result=await client.call("POST","/api/auth/register",{email});
+          assert.equal(result.status,202);
+          links.push(new URL(messages.at(-1).link).hash.split("=")[1]);
+          for(const value of links) assert.equal(await store.validEmailToken("activate",value),true);
+        }
+        assert.equal((await client.call("POST","/api/auth/activate",{token:links[0],password:"Abcd.1234"})).status,200);
+        id=(await client.refresh()).data.user.id;
+        for(const value of links) {
+          assert.equal(await store.validEmailToken("activate",value),false);
+          assert.equal((await client.call("POST","/api/auth/activate",{token:value,password:"Abcd.1234"})).status,400);
+        }
+      } finally { if(id) await store.deleteAccount(id,(await store.credentials(email)).password_hash); }
+    });
+    await t.test("cadastro de Gmail já confirmado envia recuperação sem revelar a conta na resposta",async()=>{
+      const client=browser({paceAuth:true}),email=`existing${suffix}@gmail.com`;
+      let id;
+      try {
+        await client.refresh();
+        const first=await client.call("POST","/api/auth/register",{email});
+        assert.equal(first.status,202);
+        const activation=new URL(messages.at(-1).link).hash.split("=")[1];
+        assert.equal((await client.call("POST","/api/auth/activate",{token:activation,password:"Abcd.1234"})).status,200);
+        id=(await client.refresh()).data.user.id;
+        const oldSession=client.jar.get(service.sessionName);
+        const again=await client.call("POST","/api/auth/register",{email});
+        assert.equal(again.status,202);assert.deepEqual(again.data,first.data);
+        const message=messages.at(-1),link=new URL(message.link);
+        assert.equal(message.purpose,"reset");assert.match(link.hash,/^#reset=/);
+        const value=link.hash.split("=")[1];
+        assert.equal((await client.call("POST","/api/auth/forgot",{email})).status,202);
+        const later=new URL(messages.at(-1).link).hash.split("=")[1];
+        assert.equal(await store.validEmailToken("reset",later),true);
+        assert.equal(await store.validEmailToken("activate",value),false);
+        assert.equal(await store.validEmailToken("reset",value),true);
+        assert.equal((await client.call("POST","/api/auth/activate",{token:value,password:"Next.5678"})).status,400);
+        assert.equal((await client.call("POST","/api/auth/reset",{token:value,password:"Next.5678"})).status,200);
+        assert.equal(await store.validEmailToken("reset",later),false);
+        assert.equal(await store.session(oldSession),null);
+        assert.equal((await client.refresh()).data.user.id,id);
+        assert.equal((await client.call("POST","/api/auth/login",{email,password:"Abcd.1234"})).status,401);
+        assert.equal((await client.call("POST","/api/auth/login",{email,password:"Next.5678"})).status,200);
+      } finally { if(id) await store.deleteAccount(id,(await store.credentials(email)).password_hash); }
+    });
+    await t.test("falha de envio não invalida uma confirmação anterior ainda válida",async()=>{
+      const email=`mailfailure${suffix}@gmail.com`,value=random();
+      await store.issueEmailToken("activate",email,value);
+      const failing=auth.createService(config,{store,mailer:async()=>{throw new Error("Local delivery fixture failure");}});
+      await assert.rejects(failing.requestEmail({headers:{},socket:{remoteAddress:"127.0.0.1"}},{email},"activate"),{status:503});
+      assert.equal(await store.validEmailToken("activate",value),true);
     });
     await t.test("sessões têm hash no banco; perfis e links não ficam em texto aberto",async()=>{
       const {rows}=await sql.query("SELECT * FROM prospect_accounts WHERE id=ANY($1::uuid[])",[[userA.id,userB.id]]);

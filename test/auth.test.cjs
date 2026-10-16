@@ -74,7 +74,7 @@ test("interface Vercel mantém CSRF e cookies protegidos, links usam origem conf
   const config = auth.configuration({ ...env(), DATABASE_URL: "postgres://fixture:fixture@db.example/app" }, hosting);
   const box = vault(config.encryptionKey), messages = [];
   const service = auth.createService(config, { store: { csrf: value => box.mac("csrf", value), allow: async () => true,
-    issueEmailToken: async () => {} }, mailer: async value => { messages.push(value); } });
+    issueEmailToken: async purpose => purpose }, mailer: async value => { messages.push(value); } });
   const account = service.account({ headers: {} }, null);
   const headers = { origin: hosting.frontendOrigin, cookie: account.cookies[0].split(";")[0],
     "x-csrf-token": account.data.csrfToken, "sec-fetch-site": "same-origin" };
