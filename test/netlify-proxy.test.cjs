@@ -17,7 +17,7 @@ test("Netlify proxy preserves query, method, CSRF and individual cookies without
     headers: { "content-type": "application/json", origin: site.site.url, cookie: "sid=fixture", "x-csrf-token": "fixture-csrf",
       "sec-fetch-site": "same-origin", "x-forwarded-host": "evil.example", "x-forwarded-for": "8.8.8.8" } });
   const response = await proxy(input, site);
-  assert.equal(sent.url.href, "https://prospect-ai-a90q.onrender.com/api/account/preferences?name=a&name=b");
+  assert.equal(sent.url.href, "https://prospect-ai-maps-test-erik.onrender.com/api/account/preferences?name=a&name=b");
   assert.equal(sent.options.method, "PATCH"); assert.equal(sent.options.body.toString(), '{"seller":"example"}');
   for (const header of ["origin", "cookie", "x-csrf-token", "sec-fetch-site"]) assert.equal(sent.options.headers.get(header), input.headers.get(header));
   assert.equal(sent.options.headers.get("x-forwarded-host"), null); assert.equal(sent.options.headers.get("x-forwarded-for"), null);

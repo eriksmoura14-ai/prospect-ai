@@ -17,13 +17,17 @@ const agent = require("./agent.cjs");
 const overpass = require("./overpass.cjs");
 const geoapify = require("./geoapify.cjs");
 const qlever = require("./qlever.cjs");
+const googleMaps = require("./google-maps.cjs");
+const mapsConfig = googleMaps.configuration(process.env);
+const mapsClient = googleMaps.createClient();
+const SEARCH_COOLDOWN_MS = mapsConfig.enabled ? 60000 : 3000;
 const locations = require("./locations.cjs");
 const geocoding = require("./geocoding.cjs");
 const contacts = require("./contacts.cjs");
 const websiteEvidence = require("./website-evidence.cjs");
 const GEOAPIFY_KEY = (process.env.GEOAPIFY_API_KEY || "").trim();
 const BUSINESS_PROVIDER = process.env.BUSINESS_PROVIDER || "qlever";
-if (!["overpass", "geoapify", "qlever"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
+if (!["overpass", "geoapify", "qlever", "google-maps"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
 
 // Configuração local e hospedada.
 const hosting = require("./hosting.cjs").configuration(process.env);
@@ -515,7 +519,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
   const geocodeStarted = Date.now();
   const place = await locate(city, geocode => onDiagnostics({ geocode }), selection);
   onDiagnostics({ geocodeMs: Date.now() - geocodeStarted, place: place.display_name });
-  onProgress("Cidade localizada. Consultando empresas no OpenStreetMap…");
+  onProgress(mapsConfig.enabled ? "Cidade localizada. Preparando Google Maps…" : "Cidade localizada. Consultando empresas no OpenStreetMap…");
   const [south, north, west, east] =
     place.boundingbox.map(Number);
 
@@ -527,6 +531,24 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
     throw new Error(
       "Região muito ampla. Informe uma cidade específica."
     );
+  }
+
+  if (mapsConfig.enabled) {
+    const answer = await mapsClient.discover(place, niche, city, { onProgress,
+      onTrace: trace => onDiagnostics({ queryAttempt: { method: "maps_search", ...trace } }) });
+    const result = {
+      place: place.display_name, provider: "google-maps",
+      discoveryMethod: "Busca por relevância · Google Maps",
+      geographicScope: "Retângulo geográfico da localidade; sem confirmação do limite administrativo",
+      coverage: "Uma consulta de profundidade 3; até 20 empresas selecionadas. Categoria retornada pelo Google Maps exige revisão.",
+      warning: answer.warning, truncated: true,
+      rows: answer.rows.map(row => ({ ...row, prospectScore: prospectScore(row) }))
+    };
+    onDiagnostics({ outcome: result.rows.length ? "success" : "empty", provider: result.provider,
+      matchedCount: result.rows.length, geographicScope: result.geographicScope,
+      coverage: result.coverage, warning: result.warning, truncated: true });
+    saveCache(key, result, 5 * 60000);
+    return structuredClone(result);
   }
 
   const relation =
@@ -1196,13 +1218,13 @@ async function collectAIEvidence(row) {
       phone: row.phone, address: row.address, website: row.website,
       status: row.status
     },
-    source: `https://www.openstreetmap.org/${row.osmId}`,
+    source: row.sourceUrl || `https://www.openstreetmap.org/${row.osmId}`,
     contactStatus: row.phoneVerification === "conflict"
       ? "Telefone da fonte diverge do telefone publicado no cadastro da mesma empresa no site. Revise antes de entrar em contato."
       : row.phoneVerification === "website_published"
         ? "Telefone publicado em página pública com identidade compatível. Titularidade, atualização e conta WhatsApp não confirmadas."
         : "Telefone e endereço informados na fonte; titularidade, atualização e conta WhatsApp não confirmadas.",
-    contactSource: row.phoneSource || "OpenStreetMap",
+    contactSource: row.phoneSource || row.source || "OpenStreetMap",
     websiteCheck: { state: "not_identified", note: "Site não identificado. Isso não comprova ausência de site." },
     previousVerification: row.verification ? {
       checkedAt: row.verification.checkedAt,
@@ -1396,6 +1418,11 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       }
     }
 
+    if (request.method === "GET" && url.pathname === "/api/runtime") {
+      return json(response, 200, { testMode: mapsConfig.testMode, businessProvider: BUSINESS_PROVIDER,
+        quantities: mapsConfig.enabled ? [10, 20] : [10, 20, 30, 50], cooldownMs: SEARCH_COOLDOWN_MS });
+    }
+
     if (request.method === "GET" && url.pathname === "/api/diagnostics/overpass") {
       if (accountService && !accountService.isAdmin(identity.user)) return json(response, 404, { error: "Rota não encontrada." });
       // Protegido pela mesma autenticação da aplicação. Sem chave do LocationIQ.
@@ -1531,9 +1558,9 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
         return json(response, 409, conflict(ownerId));
       }
 
-      if (Date.now() - lastSearch < 3000) {
+      if (Date.now() - lastSearch < SEARCH_COOLDOWN_MS) {
         return json(response, 429, {
-          error: "Aguarde alguns segundos entre pesquisas."
+          error: mapsConfig.enabled ? "Aguarde um minuto entre pesquisas Google Maps." : "Aguarde alguns segundos entre pesquisas."
         });
       }
 
@@ -1556,7 +1583,7 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
         city.length > (selection ? 600 : 100) ||
         typeof niche !== "string" ||
         !Object.hasOwn(niches, niche) ||
-        ![10, 20, 30, 50].includes(limit)
+        !(mapsConfig.enabled ? [10, 20] : [10, 20, 30, 50]).includes(limit)
       ) {
         return json(response, 400, {
           error: "Cidade, nicho ou quantidade inválidos."
@@ -1568,8 +1595,8 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       if (activeJob) {
         return json(response, 409, conflict(ownerId));
       }
-      if (Date.now() - lastSearch < 3000) {
-        return json(response, 429, { error: "Aguarde alguns segundos entre pesquisas." });
+      if (Date.now() - lastSearch < SEARCH_COOLDOWN_MS) {
+        return json(response, 429, { error: mapsConfig.enabled ? "Aguarde um minuto entre pesquisas Google Maps." : "Aguarde alguns segundos entre pesquisas." });
       }
 
       while (jobs.size >= 20) {

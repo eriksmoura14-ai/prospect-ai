@@ -18,7 +18,8 @@ const fields = [
   "name", "category", "city", "address", "phone", "website",
   "status", "confidence", "prospectScore", "latitude", "longitude",
   "osmId", "source", "phoneSource", "phoneVerification", "sitePhone",
-  "websiteSource", "websiteVerification", "websiteCheckedAt"
+  "websiteSource", "websiteVerification", "websiteCheckedAt",
+  "sourceUrl", "placeId", "sourceCategory", "rating", "reviewCount"
 ];
 
 const states = {
@@ -138,8 +139,13 @@ function makeCard(row) {
   const identity = node("div");
   identity.append(
     node("h3", "", row.name),
-    node("p", "meta", `${row.category} · ${row.city} · OpenStreetMap`)
+    node("p", "meta", `${row.category} · ${row.city} · ${row.source || "OpenStreetMap"}`)
   );
+  if (row.source === "Google Maps") {
+    identity.append(node("p", "meta", [row.sourceCategory,
+      Number.isFinite(row.rating) ? `${row.rating.toLocaleString("pt-BR")} / 5 · ${row.reviewCount ?? 0} avaliações` : ""
+    ].filter(Boolean).join(" · ")));
+  }
   const businessStatus = node("div", "business-status");
   const websiteStatus = node("span", `website-status ${state.className}`, state.label);
   websiteStatus.prepend(uiIcon("globe"));
@@ -179,6 +185,9 @@ function makeCard(row) {
   evidenceLinks.append(link("Pesquisar manualmente",
     "https://www.google.com/search?q=" +
     encodeURIComponent(`${row.name} ${row.city} website`)));
+  if (row.source === "Google Maps" && safeWebsite(row.sourceUrl)) {
+    evidenceLinks.append(link("Ver no Google Maps", safeWebsite(row.sourceUrl)));
+  }
   if (/^(node|way|relation)\/\d+$/.test(row.osmId)) {
     evidenceLinks.append(link("Ver fonte",
       `https://www.openstreetmap.org/${row.osmId}`));
@@ -187,8 +196,8 @@ function makeCard(row) {
   const aiButton = node("button", "card-agent", "Analisar com IA");
   aiButton.setAttribute("aria-label", "Abrir assistente de IA");
   aiButton.type = "button";
-  aiButton.disabled = !lastJob?.id || lastJob.state === "running";
-  aiButton.title = aiButton.disabled ? "Aguarde a pesquisa terminar." : "Revisar empresa e preparar mensagens";
+  aiButton.disabled = row.source === "Google Maps" || !lastJob?.id || lastJob.state === "running";
+  aiButton.title = row.source === "Google Maps" ? "IA desativada neste teste isolado." : aiButton.disabled ? "Aguarde a pesquisa terminar." : "Revisar empresa e preparar mensagens";
   aiButton.addEventListener("click", () => window.dispatchEvent(new CustomEvent("prospect:chat-company", { detail: { row, jobId: lastJob.id, prompt: ProspectOpportunities.analyze(row, $("selling-service").value, readOfferSettings()).prompt } })));
   aiButton.prepend(uiIcon("agent"));
   actions.append(aiButton);
@@ -604,8 +613,8 @@ $("json").addEventListener("click", () => {
   download(JSON.stringify({
     exportedAt: new Date().toISOString(),
     partial: lastJob?.state !== "done",
-    attribution: "© OpenStreetMap contributors",
-    license: "https://www.openstreetmap.org/copyright",
+    attribution: rows.some(row => row.source === "Google Maps") ? "Fonte: Google Maps · teste limitado" : "© OpenStreetMap contributors",
+    license: rows.some(row => row.source === "Google Maps") ? null : "https://www.openstreetmap.org/copyright",
     results: visibleRows()
   }, null, 2), "application/json;charset=utf-8", "json");
 });
@@ -653,6 +662,22 @@ async function initialize() {
     $("workspace").hidden = false;
     prospectLists.initialize();
     void locationPicker.initialize();
+    const runtime = await api("/api/runtime");
+    if (runtime.testMode) {
+      document.title = "Prospect AI · TESTE";
+      document.querySelector(".version").textContent = "TESTE ISOLADO · Google Maps";
+      document.querySelector(".notice").textContent =
+        "Ambiente de testes com login próprio. Google Maps: uma busca por vez, até 20 empresas; aguarde um minuto entre buscas. Site não informado não comprova ausência de site.";
+      document.querySelector(".form-note").replaceChildren(
+        node("span", "", "Google Maps pode retornar empresas de ramos próximos. Revise a categoria de cada resultado."),
+        node("span", "", "Resultados filtrados pelo retângulo geográfico da cidade, sem garantia de cobertura completa.")
+      );
+      document.querySelector("footer").prepend(node("span", "", "Resultados comerciais: Google Maps · ambiente experimental. "));
+      for (const option of [...$("quantity").options]) {
+        if (!runtime.quantities.includes(Number(option.value))) option.remove();
+      }
+      if (!runtime.quantities.includes(Number($("quantity").value))) $("quantity").value = String(runtime.quantities[0]);
+    }
     const names = await api("/api/niches");
     $("niche").replaceChildren();
     for (const name of names) {
@@ -924,7 +949,7 @@ function showAISources(panel, evidence) {
   panel.sourceBody.replaceChildren();
   if (!evidence) return;
   const source = safeWebsite(evidence.source);
-  if (source) panel.sourceBody.append(link("Cadastro no OpenStreetMap", source));
+  if (source) panel.sourceBody.append(link("Cadastro na fonte", source));
   panel.sourceBody.append(node("p", "", evidence.contactStatus || ""));
   const website = evidence.websiteCheck || {};
   const url = safeWebsite(website.source);

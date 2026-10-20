@@ -1,0 +1,15 @@
+.git
+.github
+.env
+.env.*
+*.key
+*.pem
+*.log
+node_modules
+.cache
+.artifacts
+.vercel
+.netlify
+dist
+__pycache__
+*.pyc

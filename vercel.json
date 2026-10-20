@@ -11,15 +11,15 @@
     { "source": "/agente", "destination": "/index.html" },
     {
       "source": "/api/:path*",
-      "destination": "https://prospect-ai-a90q.onrender.com/api/:path*"
+      "destination": "https://prospect-ai-maps-test-erik.onrender.com/api/:path*"
     },
     {
       "source": "/auth/logout",
-      "destination": "https://prospect-ai-a90q.onrender.com/auth/logout"
+      "destination": "https://prospect-ai-maps-test-erik.onrender.com/auth/logout"
     },
     {
       "source": "/health",
-      "destination": "https://prospect-ai-a90q.onrender.com/health"
+      "destination": "https://prospect-ai-maps-test-erik.onrender.com/health"
     }
   ],
   "headers": [

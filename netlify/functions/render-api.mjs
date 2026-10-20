@@ -1,7 +1,7 @@
 import security from "../../request-security.cjs";
 
 export const LIMITS = Object.freeze({ requestMs: 55000, requestBytes: 32768 });
-const BACKEND = "https://prospect-ai-a90q.onrender.com";
+const BACKEND = "https://prospect-ai-maps-test-erik.onrender.com";
 const forwarded = ["accept", "authorization", "content-type", "cookie", "origin", "sec-fetch-site", "x-csrf-token"];
 
 function protectedHeaders(secure) {

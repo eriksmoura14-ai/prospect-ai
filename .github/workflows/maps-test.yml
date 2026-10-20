@@ -1,0 +1,57 @@
+name: Isolated Google Maps test build
+on:
+  push:
+    branches: [test/google-maps-scraper]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build isolated image and run regression tests
+        run: docker build --file Dockerfile.maps-test --tag prospect-maps-test .
+      - name: Verify startup, own login and runtime configuration (no live scraping)
+        shell: bash
+        run: |
+          set -euo pipefail
+          TEST_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$TEST_PASSWORD"
+          export TEST_PASSWORD
+          docker run --detach --name maps-test --publish 127.0.0.1:3197:3000 \
+            --env APP_HOSTED=true --env APP_ORIGIN=http://127.0.0.1:3197 \
+            --env APP_USER=ci-test --env APP_PASSWORD="$TEST_PASSWORD" \
+            prospect-maps-test
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const origin = 'http://127.0.0.1:3197';
+          let healthy = false;
+          for (let attempt = 0; attempt < 60; attempt++) {
+            try { healthy = (await fetch(origin + '/health', {signal:AbortSignal.timeout(2000)})).ok; }
+            catch {}
+            if (healthy) break;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          assert.ok(healthy, 'Combined image did not become healthy');
+          assert.equal((await fetch(origin + '/api/runtime')).status, 401);
+          const headers = {Authorization:'Basic ' + Buffer.from('ci-test:' + process.env.TEST_PASSWORD).toString('base64')};
+          const response = await fetch(origin + '/api/runtime', {headers});
+          assert.equal(response.status, 200);
+          const runtime = await response.json();
+          assert.equal(runtime.businessProvider, 'google-maps');
+          assert.equal(runtime.testMode, true);
+          assert.deepEqual(runtime.quantities, [10,20]);
+          assert.equal((await fetch(origin + '/api/v1/jobs', {headers})).status, 404);
+          assert.equal((await fetch(origin + '/', {headers})).status, 200);
+          console.log('Container startup and isolated login passed; no live Google Maps job was created.');
+          JS
+      - name: Container diagnostics
+        if: failure()
+        run: docker logs maps-test 2>/dev/null || true
+      - name: Stop test container
+        if: always()
+        run: docker rm --force maps-test 2>/dev/null || true

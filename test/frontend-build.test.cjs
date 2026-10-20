@@ -35,7 +35,7 @@ test("Vercel encaminha API, logout e health ao Render e proíbe cache de dados p
   assert.equal(config.buildCommand, "npm run build:frontend");
   assert.deepEqual(config.rewrites.map(route => route.source), ["/descobrir", "/listas", "/historico", "/agente", "/api/:path*", "/auth/logout", "/health"]);
   for (const route of config.rewrites) {
-    if (route.source.startsWith("/api/") || ["/auth/logout", "/health"].includes(route.source)) assert.equal(new URL(route.destination).origin, "https://prospect-ai-a90q.onrender.com");
+    if (route.source.startsWith("/api/") || ["/auth/logout", "/health"].includes(route.source)) assert.equal(new URL(route.destination).origin, "https://prospect-ai-maps-test-erik.onrender.com");
     else assert.equal(route.destination, "/index.html");
   }
   for (const route of ["/api/:path*", "/auth/logout", "/health"]) {
