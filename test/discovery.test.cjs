@@ -504,10 +504,20 @@ test("Default discovery uses QLever; quota errors retain their cause without Ove
  await assert.rejects(h.discover("City","Barber"),{code:"qlever_http_429"});
  assert.equal(h.qleverQueries.length,2);assert.equal(h.queries.length,0);
 });
-test("QLever cities without administrative relations preserve full existing bbox discovery",async()=>{
+test("QLever cities without relations keep their full rectangle without the unavailable Overpass path",async()=>{
  const p=place("Town",7,[1,2,3,4],"node");
- const h=harness({locations:{Town:[p]},provider:"qlever",answers:[[{type:"node",id:1,lat:1.5,lon:3.5,tags:{name:"Fixture barber",shop:"barber"}}]]});
+ const h=harness({locations:{Town:[p]},provider:"qlever",qleverAnswer:{elements:[{type:"node",id:1,lat:1.5,lon:3.5,tags:{name:"Fixture barber",shop:"barber"}}]}});
  const result=await h.discover("Town","Barber");
- assert.equal(h.qleverQueries.length,0);assert.equal(h.queries.length,1);assert.match(h.queries[0],/\(1,3,2,4\)/);
- assert.equal(result.provider,"overpass");assert.equal(result.rows[0].source,"OpenStreetMap");
+ assert.equal(h.qleverQueries.length,1);assert.equal(h.queries.length,0);
+ assert.deepEqual(Array.from(h.qleverQueries[0].place.boundingbox),['1','2','3','4']);
+ assert.equal(result.provider,"qlever");assert.equal(result.rows[0].source,"OpenStreetMap via QLever");
+ assert.equal(result.geographicScope,"Retângulo geográfico da localidade");
+});
+test("Non-administrative city relations keep their own complete shape and are not labeled administrative",async()=>{
+ const p=place("Sydney",5750005,[-34.2598367,-33.3641864,150.260825,151.3431756]);
+ const h=harness({locations:{Sydney:[p]},provider:"qlever"});
+ const result=await h.discover("Sydney","Barber");
+ assert.equal(h.queries.length,0);assert.equal(h.qleverQueries.length,1);
+ assert.equal(h.qleverQueries[0].place.osm_id,5750005);
+ assert.equal(result.geographicScope,"Limite geográfico da localidade");
 });

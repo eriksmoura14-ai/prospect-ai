@@ -500,7 +500,7 @@ function deduplicate(rows) {
 
 async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}, selection = null) {
   const constraint = selection ? `${selection.countryCode}:${selection.stateCode}:${normalizeLocation(selection.stateName)}` : "legacy";
-  const key = `discovery:v13:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
+  const key = `discovery:v14:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
   if (hit) {
     onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope,
@@ -541,7 +541,8 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
     ? "(area.searchArea)"
     : `(${south},${west},${north},${east})`;
 
-  onDiagnostics({ geographicScope: relation ? "Limite administrativo" : "Retângulo geográfico da localidade",
+  const geographicScope = relation ? (place.type === "administrative" ? "Limite administrativo" : "Limite geográfico da localidade") : "Retângulo geográfico da localidade";
+  onDiagnostics({ geographicScope,
     areaId, scope, boundingbox: [south, north, west, east] });
 
   const config = niches[niche];
@@ -580,9 +581,9 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
     return answer;
   }
 
-  // QLever uses the exact administrative relation selected by the geocoder.
-  // Localities without a relation retain the existing full bounding-box path.
-  const provider = BUSINESS_PROVIDER === "qlever" && !relation ? "overpass" : BUSINESS_PROVIDER;
+  // QLever supports the selected relation and the full rectangle of localities
+  // represented by nodes/ways. Do not send these cities to the old provider.
+  const provider = BUSINESS_PROVIDER;
   let discoveryMethod, data;
   if (provider === "qlever") {
     discoveryMethod = "Categorias cadastradas · OpenStreetMap via QLever";
@@ -684,9 +685,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
       : provider === "qlever" ? "Snapshot público OpenStreetMap / QLever; até 500 candidatos. A cobertura e a atualização podem diferir do Overpass." : "Seletores OpenStreetMap",
     truncated: Boolean(data.truncated),
     warning: data.warning || "",
-    geographicScope: relation
-      ? "Limite administrativo"
-      : "Retângulo geográfico da localidade",
+    geographicScope,
     rows: deduplicate(rows)
   };
 
@@ -1128,6 +1127,12 @@ async function run(job, city, niche, limit, selection = null) {
     job.message = error.message;
     job.errorCode = error.code || "discovery_error";
     job.discoveryDiagnostics.outcome = job.errorCode;
+    console.error("BUSINESS_DISCOVERY_ERROR", JSON.stringify({
+      provider: BUSINESS_PROVIDER, code: job.errorCode,
+      geographicScope: job.discoveryDiagnostics.geographicScope,
+      attempts: job.discoveryDiagnostics.queries.map(({ purpose, phase, outcome, httpStatus, bytes, elapsedMs }) =>
+        ({ purpose, phase, outcome, httpStatus, bytes, elapsedMs }))
+    }));
   } finally {
     if (job.timings.discoveryMs == null && discoveryStarted != null) {
       job.timings.discoveryMs = Date.now() - discoveryStarted;
@@ -1668,6 +1673,16 @@ server.listen(
           planned: report.planned, completed: report.completed, passed: report.passed,
           scope: report.scope, automaticChecksOnly: true }));
       })().catch(() => console.log("AGENT_EVALUATION", JSON.stringify({ run: evaluationRun, outcome: "unavailable" })));
+    }
+    const discoveryCheckRun = process.env.DISCOVERY_CHECK_RUN || "";
+    if (HOSTED && accountService && /^[a-zA-Z0-9-]{8,80}$/.test(discoveryCheckRun)) {
+      (async () => {
+        await accountService.ready();
+        if (!await accountService.store.allow([{key:`discovery-check:${discoveryCheckRun}`,limit:1,seconds:86400}])) return;
+        const report = await require("./discovery-check.cjs").run({discover, locations,
+          onCase: item => console.log("DISCOVERY_CHECK", JSON.stringify({run:discoveryCheckRun,...item}))});
+        console.log("DISCOVERY_CHECK", JSON.stringify({run:discoveryCheckRun,...report}));
+      })().catch(() => console.log("DISCOVERY_CHECK", JSON.stringify({run:discoveryCheckRun,outcome:"check_unavailable"})));
     }
     if (HOSTED && accountService) {
       void require("./email.cjs").probeConfiguration(authConfig.email)
