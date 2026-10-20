@@ -17,14 +17,36 @@ const escapeRegex = value => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 function failure(code, message) { return Object.assign(new Error(message), { code }); }
 
 function regionURI(place) {
-  if (place?.osm_type !== "relation" || !/^[1-9]\d{0,15}$/.test(String(place.osm_id))) {
-    throw failure("qlever_region_unsupported", "Esta localidade não possui um limite administrativo compatível com o QLever.");
+  if (!["node", "way", "relation"].includes(place?.osm_type) || !/^[1-9]\d{0,15}$/.test(String(place.osm_id))) {
+    throw failure("qlever_region_unsupported", "Esta localidade não possui uma identidade OpenStreetMap válida.");
   }
-  return `https://www.openstreetmap.org/relation/${place.osm_id}`;
+  return `https://www.openstreetmap.org/${place.osm_type}/${place.osm_id}`;
+}
+
+function geographicPattern(place, region) {
+  // A constant inside OPTIONAL prevents a global spatial join before the
+  // outer VALUES is applied. Keep the complete relation, including place=city.
+  if (place.osm_type === "relation") return `<${region}> ogc:sfContains ?poi .`;
+  const bounds = place.boundingbox;
+  if (!Array.isArray(bounds) || bounds.length !== 4 || bounds.some(value =>
+      !["string", "number"].includes(typeof value) || String(value).trim() === "")) {
+    throw failure("qlever_region_unsupported", "Esta localidade não possui limites geográficos válidos.");
+  }
+  const [south, north, west, east] = bounds.map(Number);
+  if (![south, north, west, east].every(Number.isFinite) || south >= north || west >= east ||
+      south < -90 || north > 90 || west < -180 || east > 180 || north - south > 2 || east - west > 3) {
+    throw failure("qlever_region_unsupported", "Esta localidade não possui limites geográficos válidos.");
+  }
+  // Keep the full geocoder rectangle previously sent to Overpass: no radius,
+  // alternative city, or switch to another source after a failure.
+  const wkt = `POLYGON((${west} ${south},${east} ${south},${east} ${north},${west} ${north},${west} ${south}))`;
+  return `?poi geo:hasGeometry/geo:asWKT ?searchGeometry .
+    FILTER(geof:sfIntersects(?searchGeometry, ${literal(wkt)}^^geo:wktLiteral))`;
 }
 
 function buildQuery(place, config, mode = "categories") {
   const region = regionURI(place);
+  const geography = geographicPattern(place, region);
   const food = [["amenity", matching.FOOD_AMENITIES], ["shop", matching.FOOD_SHOPS], ["craft", matching.FOOD_CRAFTS]];
   const foodPattern = food.map(([key, values]) => `{ ?poi ${predicate(key)} ?foodType . VALUES ?foodType { ${values.map(literal).join(" ")} } }`).join(" UNION ");
   const branches = config.tags.map(([key, value]) => `{ ?poi ${predicate(key)} ${literal(value)} . }`);
@@ -46,11 +68,13 @@ function buildQuery(place, config, mode = "categories") {
   }
   if (!branches.length) throw failure("qlever_niche_invalid", "Nicho sem critérios de pesquisa.");
   return `PREFIX ogc: <http://www.opengis.net/rdf#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 SELECT DISTINCT ?region ?poi ?name WHERE {
  VALUES ?region { <${region}> }
- ?region ${predicate("boundary")} "administrative" .
+ ?region ${predicate("name")} ?regionName .
  OPTIONAL {
-    ?region ogc:sfContains ?poi .
+    ${geography}
     ?poi ${predicate("name")} ?name .
     { ${branches.join(" UNION ")} }
  }
@@ -87,7 +111,7 @@ function extract(data, place) {
   }
   const expected = regionURI(place);
   if (!bindings.some(row => row.region?.type === "uri" && row.region.value === expected)) {
-    throw failure("qlever_region_missing", "O limite administrativo desta cidade não foi encontrado na base QLever. Não foi usada uma região diferente.");
+    throw failure("qlever_region_missing", "Esta localidade não foi encontrada na base QLever. Não foi usada uma região diferente.");
   }
   const records = new Map();
   for (const row of bindings) {
@@ -134,6 +158,7 @@ async function request(query, { fetchImpl, userAgent, onTrace, purpose, deadline
   url.searchParams.set("query", query);
   const started = Date.now();
   let outcome = "success";
+  let phase = "awaiting_response", httpStatus, bytes = 0;
   try {
     const usePost = url.href.length > 6000;
     const response = await fetchImpl(usePost ? ENDPOINT : url.href, {
@@ -141,6 +166,8 @@ async function request(query, { fetchImpl, userAgent, onTrace, purpose, deadline
       headers: { Accept: "application/sparql-results+json", "User-Agent": userAgent,
         ...(usePost ? {"Content-Type":"application/x-www-form-urlencoded"} : {}) },
       redirect: "error", signal: AbortSignal.timeout(Math.max(1, deadline - Date.now())) });
+    httpStatus = response.status;
+    phase = "reading_response";
     if (!response.ok) {
       await response.body?.cancel();
       throw failure(`qlever_http_${response.status}`, response.status === 429
@@ -148,7 +175,7 @@ async function request(query, { fetchImpl, userAgent, onTrace, purpose, deadline
         : "A fonte QLever está indisponível temporariamente. Tente novamente mais tarde.");
     }
     const reader = response.body.getReader();
-    const chunks = []; let bytes = 0;
+    const chunks = [];
     try {
       while (true) {
         const { done, value } = await reader.read();
@@ -162,6 +189,7 @@ async function request(query, { fetchImpl, userAgent, onTrace, purpose, deadline
     try { data = JSON.parse(Buffer.concat(chunks).toString("utf8")); }
     catch { throw failure("qlever_invalid_response", "A fonte QLever retornou uma resposta inválida."); }
     if (data?.exception || data?.status === "ERROR" || !Array.isArray(data?.results?.bindings)) throw failure("qlever_invalid_response", "A fonte QLever retornou uma resposta inválida ou incompleta.");
+    phase = "complete";
     return data;
   } catch (error) {
     outcome = ["TimeoutError", "AbortError"].includes(error.name) ? "qlever_timeout"
@@ -169,7 +197,7 @@ async function request(query, { fetchImpl, userAgent, onTrace, purpose, deadline
     if (typeof error.code === "string" && error.code.startsWith("qlever_")) throw error;
     throw failure(outcome, outcome === "qlever_timeout" ? "A consulta QLever demorou a responder. Tente novamente mais tarde."
       : "Não foi possível conectar à fonte QLever. Tente novamente mais tarde.");
-  } finally { onTrace({ endpoint: ENDPOINT, purpose, phase: "complete", outcome, elapsedMs: Date.now() - started }); }
+  } finally { onTrace({ endpoint: ENDPOINT, purpose, phase, outcome, httpStatus, bytes, elapsedMs: Date.now() - started }); }
 }
 
 async function discover(place, config, { fetchImpl = fetch, userAgent = "ProspectAI/0.7", onTrace = () => {} } = {}) {

@@ -17,12 +17,51 @@ test("QLever preserves exact administrative relations for Brazil and internation
   for (const id of [314875, 1720290]) {
     const query = qlever.buildQuery({...place,osm_id:id}, niches.Barber);
     assert.ok(query.includes(`VALUES ?region { <https://www.openstreetmap.org/relation/${id}> }`));
-    assert.ok(query.includes('?region ogc:sfContains ?poi'));
+    assert.ok(query.includes(`<https://www.openstreetmap.org/relation/${id}> ogc:sfContains ?poi`));
+    assert.ok(!query.includes('?region ogc:sfContains ?poi'));
     assert.ok(query.includes('LIMIT 501'));
     assert.ok(!query.includes("IBGE") && !query.includes("radius"));
   }
   assert.throws(() => qlever.buildQuery({osm_type:"node",osm_id:2},niches.Barber), {code:"qlever_region_unsupported"});
   assert.throws(() => qlever.buildQuery({...place,osm_id:'1> . ?x ?y ?z'},niches.Barber), {code:"qlever_region_unsupported"});
+});
+test("City relations do not require an administrative tag; all world catalogue geometries stay bounded", () => {
+  const fixtures = require('./fixtures/geocoding-world.json');
+  for (const item of fixtures.queries.filter(item => item.data.length)) {
+    const selected = item.data[0];
+    for (const mode of ['categories', 'names']) {
+      const query = qlever.buildQuery(selected, niches.Barber, mode);
+      assert.ok(query.includes(`VALUES ?region { <https://www.openstreetmap.org/${selected.osm_type}/${selected.osm_id}> }`), item.name);
+      assert.ok(!query.includes('Key:boundary> "administrative"'), item.name);
+      const optional = query.slice(query.indexOf('OPTIONAL {'));
+      if (selected.osm_type === 'relation') {
+        assert.ok(optional.includes(`<https://www.openstreetmap.org/relation/${selected.osm_id}> ogc:sfContains ?poi`), item.name);
+        assert.ok(!optional.includes('?region ogc:sfContains'), item.name);
+      } else {
+        const [s,n,w,e] = selected.boundingbox.map(Number);
+        assert.ok(optional.includes(`POLYGON((${w} ${s},${e} ${s},${e} ${n},${w} ${n},${w} ${s}))`), item.name);
+        assert.ok(optional.includes('geof:sfIntersects(?searchGeometry,'), item.name);
+        assert.ok(!query.includes('ogc:sfContains ?poi'), item.name);
+      }
+    }
+  }
+});
+test("Node and way localities retain identity for both results and a genuine empty response", () => {
+  for (const type of ['node','way']) {
+    const town = {osm_type:type,osm_id:42,boundingbox:['1','2','3','4']};
+    const binding = {...row(),region:uri(`https://www.openstreetmap.org/${type}/42`)};
+    assert.equal(qlever.extract(data([binding]),town).elements.length,1);
+    assert.equal(qlever.extract(data([{region:binding.region}]),town).elements.length,0);
+    assert.throws(()=>qlever.extract(data([row()]),town),{code:'qlever_region_missing'});
+    assert.ok(qlever.buildQuery(town,niches.Barber).includes('POLYGON((3 1,4 1,4 2,3 2,3 1))'));
+  }
+});
+test("Invalid or oversized locality rectangles are rejected before making a request", async () => {
+  for (const boundingbox of [null,[],[1,2,3,'4)> . ?x ?y ?z'],['',2,3,4],[2,1,3,4],[1,2,4,3],[1,4,3,4],[-91,-90,3,4],[1,2,179,181]]) {
+    let calls=0;
+    await assert.rejects(qlever.discover({osm_type:'node',osm_id:42,boundingbox},niches.Barber,{fetchImpl:async()=>{calls++;}}),{code:'qlever_region_unsupported'});
+    assert.equal(calls,0);
+  }
 });
 test("QLever covers original niche categories, cuisine and restricted food name matching", () => {
   for (const config of Object.values(niches)) assert.ok(qlever.buildQuery(place,config).includes("SELECT DISTINCT ?region ?poi ?name"));
@@ -71,6 +110,7 @@ test("Request uses public endpoint and two bounded stages for the selected subje
     return new Response(JSON.stringify(data([row()])));
   }});
   assert.equal(calls,2);assert.equal(result.elements.length,1);assert.equal(traces[0].outcome,"success");
+  assert.equal(traces[0].httpStatus,200);assert.ok(traces[0].bytes>0);assert.equal(traces[0].phase,"complete");
   assert.equal(traces[1].purpose,"details");
 });
 test("Details preserve only selected OSM subjects and fail on incomplete enrichment",()=>{

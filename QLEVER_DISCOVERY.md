@@ -12,10 +12,14 @@ Para ativar o QLever em um serviço já configurado, altere somente
 `BUSINESS_PROVIDER` para `qlever` no backend Render e publique esta revisão.
 Não mova chaves, banco ou sessões para o frontend Vercel.
 
-A mesma relação administrativa selecionada e validada pelo geocodificador é
-consultada pelo QLever. Não usa raio, outra cidade ou apenas centro urbano.
-Localidades sem relação mantêm a busca anterior no retângulo integral via
-Overpass. Relação ausente no snapshot, erro de rede ou HTTP 429 são falhas
+A mesma relação selecionada e validada pelo geocodificador é consultada pelo
+QLever, inclusive relações `place=city` sem `boundary=administrative`. A consulta
+fixa a identidade OSM dentro do bloco de descoberta para evitar um join espacial
+mundial antes de aplicar a cidade. Não usa raio, outra cidade ou apenas centro urbano.
+Localidades representadas por nós ou ways consultam o mesmo retângulo integral
+do geocodificador via GeoSPARQL no QLever, sem retornar ao Overpass indisponível.
+O retângulo pode incluir áreas vizinhas e continua identificado como retângulo,
+não como limite municipal. Localidade ausente no snapshot, erro de rede ou HTTP 429 são falhas
 explícitas, sem troca automática de provedor para contornar erro ou cota.
 
 Os 24 nichos existentes são mantidos. Categorias, culinária e nomes passam
@@ -41,7 +45,33 @@ A falta de site cadastrado não prova ausência de site próprio.
 - A chave Groq ainda é necessária para usar a IA existente.
 
 Referências oficiais: https://qlever.dev/osm-planet,
+https://docs.qlever.dev/geosparql/,
 https://github.com/ad-freiburg/osm2rdf e https://www.openstreetmap.org/copyright.
+
+## Verificação de publicação
+
+`DISCOVERY_CHECK_RUN` pode receber um identificador novo de 8 a 80 caracteres
+(letras ASCII, números e hífen). No backend hospedado com contas habilitadas,
+executa uma rodada delimitada de descoberta em Araguari/BR, Sydney/AU e Mumbai/IN,
+com a mesma validação de país/estado/cidade da interface. Não envia e-mails, não
+cria contas e não verifica sites. Registra apenas contagens, códigos, tempos e
+escopo em `DISCOVERY_CHECK`; para imediatamente em erro de autenticação ou cota.
+O banco impede repetir a rodada com o mesmo identificador durante 24 horas.
+Deixe a variável vazia para desabilitar após validar o deploy.
+
+Erros das buscas normais registram `BUSINESS_DISCOVERY_ERROR` sem telefones,
+e-mails, credenciais ou texto das consultas. O health check continua independente
+da disponibilidade temporária dos provedores públicos.
+
+Em 20/10/2026, consultas reais ao QLever retornaram candidatos em Araguari,
+New York City, Paris, Sydney, Mumbai, Glasgow e Tokyo, em sete países. Usaram
+identidades e áreas de respostas reais do Nominatim já registradas nas fixtures;
+não representam uma nova validação ao vivo dos geocodificadores. Descoberta e
+detalhes levaram entre 1,5 e 9,3 segundos nessa rodada local. New York City,
+Paris, Glasgow e Tokyo alcançaram a amostra de 500 e foram marcadas como parciais.
+São medições pontuais, sem garantia de disponibilidade. A comparação de duas
+consultas equivalentes em Araguari preservou os 11 candidatos e passou de
+21,1 segundos para 0,7 segundo; cache e carga da fonte podem afetar a comparação.
 
 ## Verificação
 
