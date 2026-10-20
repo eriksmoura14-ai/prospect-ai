@@ -1,6 +1,6 @@
 /* Service-led discovery and a compact sales workspace. */
 :root { --opportunity-green:#86e4bd; }
-.hero-text .intro { max-width:540px; font-size:15px; color:#c2b0d3; }
+.hero-text .intro { max-width:540px; margin-inline:auto; font-size:15px; color:#c2b0d3; }
 .search-heading h2 { letter-spacing:-.8px; }
 #search .selling-field { grid-column:1/-1; padding:16px; border:1px solid #aa71eb42; border-radius:14px; background:linear-gradient(125deg,#a45eee16,#714ee609); }
 .selling-field small { display:block; margin-top:8px; color:#bba5cf; font-size:12px; font-weight:400; line-height:1.6; }
