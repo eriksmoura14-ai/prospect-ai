@@ -73,6 +73,15 @@ São medições pontuais, sem garantia de disponibilidade. A comparação de dua
 consultas equivalentes em Araguari preservou os 11 candidatos e passou de
 21,1 segundos para 0,7 segundo; cache e carga da fonte podem afetar a comparação.
 
+Os ramos `UNION` de categorias, culinária e comércio por nome repetem o filtro
+geográfico dentro de cada ramo. O otimizador pode executar um ramo isoladamente;
+aplicar a cidade somente fora dele permitia varrer tags/nomes do planeta antes
+da junção. A regressão Pressure Washing/Uberlândia excedeu 45 segundos na consulta
+antiga; com os ramos delimitados, a descoberta completa terminou em 6,0 segundos
+com resultado vazio válido. Outros cinco pares de cidade/nicho terminaram em
+0,3–2,6 segundos na mesma rodada, preservando as áreas e os limites de candidatos.
+Cache e carga da fonte influenciam essas medições; elas não são garantia de SLA.
+
 ## Verificação
 
 `npm test` cobre transporte RDF, fronteiras, limites, erros, contatos, classificação,

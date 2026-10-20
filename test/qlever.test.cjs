@@ -73,6 +73,25 @@ test("QLever covers original niche categories, cuisine and restricted food name 
   assert.ok(!pizza.includes('Key:office> ?commercialType'));
   assert.ok(qlever.buildQuery(place,niches.Barber,"names").includes("barbearia"));
 });
+test("Every UNION category and name branch applies geography before global tag or regex matching", () => {
+  const places = [place, {osm_type:"node",osm_id:42,boundingbox:[1,2,3,4]}];
+  for (const selected of places) {
+    for (const config of Object.values(niches)) {
+      for (const mode of ["categories", "names"]) {
+        const query = qlever.buildQuery(selected, config, mode);
+        // A tag branch beginning directly with ?poi can run across the entire
+        // snapshot before its sibling city pattern is joined by the optimizer.
+        assert.doesNotMatch(query, /\{\s*\?poi <https:\/\/www\.openstreetmap\.org\/wiki\/Key:/);
+        const branches = query.split(" UNION ");
+        for (const branch of branches) {
+          assert.ok(selected.osm_type === "relation"
+            ? branch.includes(`<https://www.openstreetmap.org/relation/${selected.osm_id}> ogc:sfContains ?poi`)
+            : branch.includes('POLYGON((3 1,4 1,4 2,3 2,3 1))'));
+        }
+      }
+    }
+  }
+});
 test("RDF rows preserve IDs, public tags, exact coordinates and missing coordinates", () => {
   const a = row(), b = row(undefined,"contact:phone","+55 34 3238 1200"), c = row("22","contact:whatsapp","+55 34 99999 1234");
   c.poi=uri("https://www.openstreetmap.org/way/22");c.wkt=literal("POLYGON((-48 -18,-47 -18,-48 -18))");

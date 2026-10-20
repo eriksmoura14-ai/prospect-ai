@@ -47,23 +47,26 @@ function geographicPattern(place, region) {
 function buildQuery(place, config, mode = "categories") {
   const region = regionURI(place);
   const geography = geographicPattern(place, region);
+  // UNION branches are planned independently by QLever. Pin the locality
+  // inside every branch so name/cuisine filters cannot scan the planet first.
+  const scoped = pattern => `{ ${geography} ${pattern} }`;
   const food = [["amenity", matching.FOOD_AMENITIES], ["shop", matching.FOOD_SHOPS], ["craft", matching.FOOD_CRAFTS]];
-  const foodPattern = food.map(([key, values]) => `{ ?poi ${predicate(key)} ?foodType . VALUES ?foodType { ${values.map(literal).join(" ")} } }`).join(" UNION ");
-  const branches = config.tags.map(([key, value]) => `{ ?poi ${predicate(key)} ${literal(value)} . }`);
+  const foodPattern = food.map(([key, values]) => scoped(`?poi ${predicate(key)} ?foodType . VALUES ?foodType { ${values.map(literal).join(" ")} }`)).join(" UNION ");
+  const branches = config.tags.map(([key, value]) => scoped(`?poi ${predicate(key)} ${literal(value)} .`));
   // Many barbers publish shop=hairdresser rather than hairdresser=barber.
   // The existing local classifier still distinguishes barbers from salons.
   if (config.tags.some(([key, value]) => key === "hairdresser" && value === "barber")) {
-    branches.push(`{ ?poi ${predicate("shop")} "hairdresser" . }`);
+    branches.push(scoped(`?poi ${predicate("shop")} "hairdresser" .`));
   }
   if (config.cuisines?.length) {
     const pattern = "(^|;)\\s*(" + config.cuisines.map(escapeRegex).join("|") + ")\\s*(;|$)";
-    branches.push(`{ ?poi ${predicate("cuisine")} ?cuisine . FILTER(REGEX(STR(?cuisine), ${literal(pattern)}, "i")) }`);
+    branches.push(scoped(`?poi ${predicate("cuisine")} ?cuisine . FILTER(REGEX(STR(?cuisine), ${literal(pattern)}, "i"))`));
   }
   if ((mode === "names" || !branches.length) && config.terms.length) {
     branches.length = 0;
     const pattern = config.terms.map(escapeRegex).join("|");
     const commercial = ["shop", "craft", "office", "amenity", "service"].map(key =>
-      `{ ?poi ${predicate(key)} ?commercialType . FILTER(STR(?commercialType) != "no") }`).join(" UNION ");
+      scoped(`?poi ${predicate(key)} ?commercialType . FILTER(STR(?commercialType) != "no")`)).join(" UNION ");
     branches.push(`{ { ${config.food ? foodPattern : commercial} } FILTER(REGEX(STR(?name), ${literal(pattern)}, "i")) }`);
   }
   if (!branches.length) throw failure("qlever_niche_invalid", "Nicho sem critérios de pesquisa.");
