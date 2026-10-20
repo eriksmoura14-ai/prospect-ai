@@ -53,12 +53,23 @@ test("missing website and unsafe URLs never become proof of no website or clicka
   assert.match(row.reason, /não comprova/); assert.ok(!row.sourceUrl.includes("evil.example"));
 });
 
+test("native fast-mode CSV permits absent place ID and category while retaining listed contacts", () => {
+  const csv = 'title,place_id,category,phone,website,latitude,longitude\n' +
+    'Empresa sintética do modo leve,,,+5534991234567,https://example.test,-18.92,-48.28\n';
+  const row = maps.normalizeRows(maps.parseCSV(csv),place,"Barber","Uberlândia")[0];
+  assert.match(row.osmId,/^google:[a-f0-9]{64}$/);
+  assert.equal(row.placeId,"");assert.equal(row.sourceCategory,"");
+  assert.equal(row.phone,"+5534991234567");assert.equal(row.website,"https://example.test/");
+  assert.equal(row.matchMethod,"search");assert.equal(row.status,"WEBSITE_LISTED");
+  assert.equal(new URL(row.sourceUrl).searchParams.has("query_place_id"),false);
+});
+
 test("Maps client creates one bounded task, polls capitalized engine states, downloads then removes it", async () => {
   const { api, calls } = client();
   const answer = await api.discover(place, "Barber", "Uberlândia, Brazil");
   assert.equal(answer.rows.length, 1);
   const body = JSON.parse(calls[0].body);
-  assert.equal(body.depth, 3); assert.equal(body.max_time, 180); assert.equal(body.email, false);
+  assert.equal(body.fast_mode, true); assert.equal(body.depth, 3); assert.equal(body.max_time, 180); assert.equal(body.email, false);
   assert.equal(body.extra_reviews, false); assert.deepEqual(body.proxies, []);
   assert.equal(body.lang, "pt"); assert.match(body.keywords[0], /barbearia/);
   assert.equal(body.lat, "-18.92");

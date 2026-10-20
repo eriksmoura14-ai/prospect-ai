@@ -540,7 +540,7 @@ async function discover(city, niche, onProgress = () => {}, onDiagnostics = () =
       place: place.display_name, provider: "google-maps",
       discoveryMethod: "Busca por relevância · Google Maps",
       geographicScope: "Retângulo geográfico da localidade; sem confirmação do limite administrativo",
-      coverage: "Uma consulta de profundidade 3; até 20 empresas selecionadas. Categoria retornada pelo Google Maps exige revisão.",
+      coverage: "Uma consulta leve por relevância; até 20 empresas selecionadas. Campos e categoria retornados pelo Google Maps exigem revisão.",
       warning: answer.warning, truncated: true,
       rows: answer.rows.map(row => ({ ...row, prospectScore: prospectScore(row) }))
     };

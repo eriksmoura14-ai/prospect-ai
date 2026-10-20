@@ -153,7 +153,7 @@ function createClient({ fetcher = fetch, sleep = ms => new Promise(resolve => se
         const started = await request("/api/v1/jobs", { method: "POST", deadline, body: {
           name: "Prospect AI · teste isolado", keywords: [`${keyword} in ${city}`],
           lang: country === "BR" ? "pt" : "en", zoom: 14, lat: String(latitude), lon: String(longitude),
-          fast_mode: false, radius: 10000, depth: limits.depth, max_time: limits.maxTime,
+          fast_mode: true, radius: 10000, depth: limits.depth, max_time: limits.maxTime,
           email: false, extra_reviews: false, proxies: []
         } });
         // The engine returns lowercase id on creation and capitalized Job fields when polling.

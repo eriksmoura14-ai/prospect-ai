@@ -21,7 +21,10 @@ cadastro OSM nem fornecer um link OSM para ele.
 
 Limites do experimento:
 
-- Uma tarefa por vez, profundidade 3 e espera de 60 segundos entre buscas.
+- Uma tarefa por vez e espera de 60 segundos entre buscas.
+- Modo leve nativo (`fast_mode=true`): consulta HTTP, sem abrir Chromium.
+  O parâmetro de profundidade continua 3 por contrato da API, mas não amplia
+  a cobertura neste modo; a resposta reduzida pode omitir campos.
 - Uma única palavra-chave por busca, sem grade de cidades nem proxies.
 - Até 20 empresas selecionadas; a coleta do motor pode retornar mais linhas.
 - Motor configurado com `max_time=180` segundos; acompanhamento até 205 segundos.

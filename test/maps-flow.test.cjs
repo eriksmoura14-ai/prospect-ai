@@ -18,7 +18,7 @@ test("isolated Maps flow: auth → valid location → engine task → CSV → ve
     if (request.method === "POST") {
       const chunks=[]; for await (const chunk of request) chunks.push(chunk);
       const input=JSON.parse(Buffer.concat(chunks));
-      assert.equal(input.email,false); assert.equal(input.depth,3);
+      assert.equal(input.email,false); assert.equal(input.fast_mode,true); assert.equal(input.depth,3);
       assert.match(input.keywords[0],/Uberlândia, Minas Gerais, Brazil/);
       response.writeHead(201);return response.end(JSON.stringify({id:engineId}));
     }
