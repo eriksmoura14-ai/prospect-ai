@@ -1,5 +1,22 @@
 # Segurança do Prospect AI
 
+## Auditoria automatizada de autenticação — 2026-10-22
+
+A [ferramenta de auditoria](tools/security-audit/README.md) utiliza uma cópia
+corrigida da skill comunitária indicada, com licença e atribuição preservadas.
+Os controles diferenciam respostas públicas, falhas de pré-requisitos e falhas
+confirmadas; o teste de logout reapresenta o cookie original após a revogação.
+
+O workflow `Authentication security regression` executa `npm test` com PostgreSQL
+descartável e `npm run audit:auth`, cobrindo acesso anônimo, CSRF, isolamento entre
+contas e sessões. O banco da auditoria deve ser local e exclusivo, chamado
+`prospect_audit_*`. Os testes não usam o Neon, enviam e-mail ou consultam empresas.
+Relatórios ficam em `.artifacts/security-audit`, fora dos arquivos públicos.
+
+Esta publicação adiciona verificações de regressão ao desenvolvimento; não altera
+as regras de autenticação do site nem demonstra ausência de vulnerabilidades.
+As proteções existentes estão descritas abaixo.
+
 Revisão de 2026-10-05. As alterações não exigem plano pago, novas variáveis de ambiente ou migração do banco.
 
 ## Problemas reproduzidos e correções
