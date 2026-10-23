@@ -1,7 +1,7 @@
 {
   "date": "2026-10-23",
   "baselineCommit": "f876edde5df0c178245411f48ed3a7c94953b641",
-  "scope": "Seven requested cities, Restaurants only; initial live collection and current-code replay of persisted public records; no website/WhatsApp verification",
+  "scope": "Seven requested cities, Restaurants only; initial live collection, current-code local replay and full final-code online repeat; no website/WhatsApp verification",
   "sourceVersions": {
     "Overture": "2026-10-21.0",
     "OSM": "public QLever snapshot observed at request time"
@@ -669,7 +669,7 @@
     ]
   },
   "limits": [
-    "Initial live round preceded later optional geometry-center parsing, metadata caching and 1000-row Overture default. Those later changes were unit/integration tested, but the complete live matrix could not be rerun after the environment HTTP bridge began returning 503.",
+    "Initial live round preceded optional geometry-center parsing, metadata caching and 1000-row Overture default. The complete final-code live repeat was attempted in a fresh database: Berlin returned 473 records; the other six cities failed HTTP 503 at both sources. The environment HTTP bridge had also returned 503 for STAC and GitHub. There is no successful full final-code online matrix; network-path and operator causes cannot be separated.",
     "Baseline does not expose pre-dedup candidate counts; those values are null, not reconstructed.",
     "An online initial failure in Lunenburg is not evidence that it has no businesses.",
     "Counts are algorithmically deduplicated source records, not a manual census of active businesses."
@@ -677,7 +677,322 @@
   "artifactSha256": {
     "geocodes.json": "c562c5cae5c65939135eec798533284fcf297216c9cc7ddf7ea97b9c1a6a2f60",
     "baseline.json": "f51d6eca21b90d42ba6215891f6adcf128300237cf7ffb0e2a3068beb9464d34",
-    "new.json": "c16d580fad2f3eead427a01333dfec69fe1796896d3a3acbbc86e01e34d4f48b",
+    "new-initial.json": "c16d580fad2f3eead427a01333dfec69fe1796896d3a3acbbc86e01e34d4f48b",
+    "new.json": "f420273accbd1bedffdb5fff459b179ff0f08200a716f386952302c16cf41630",
     "warm-catalog.json": "ae521f516ba9644c6e06d3f1158d41755b5fdf9f7d8eed3f88e14226a58916a1"
+  },
+  "finalLiveEngine": {
+    "mode": "new",
+    "baselineCommit": "f876edde5df0c178245411f48ed3a7c94953b641",
+    "niche": "Restaurantes",
+    "scope": "Discovery only; no website verification, accounts, WhatsApp lookups or production writes",
+    "samples": [
+      {
+        "city": "Berlin",
+        "country": "DE",
+        "elapsedMs": 41069,
+        "status": "success",
+        "unique": 473,
+        "withPhone": 220,
+        "withWebsite": 258,
+        "withAddress": 347,
+        "validLocation": 473,
+        "raw": 473,
+        "truncated": true,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 104490,
+            "elapsedMs": 12476
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 239279,
+            "elapsedMs": 1315
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 500,
+            "count": 473,
+            "elapsedMs": 14258,
+            "metrics": {
+              "raw": 500,
+              "valid": 473,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 26689,
+            "httpStatus": 503,
+            "reason": "BudgetError",
+            "detail": "range_http_503"
+          }
+        ],
+        "selectedOsmId": 62422
+      },
+      {
+        "city": "Monschau",
+        "country": "DE",
+        "elapsedMs": 1159,
+        "status": "error",
+        "errorCode": "discovery_sources_unavailable",
+        "error": "As fontes não concluíram a consulta. Isso não significa ausência de empresas.",
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "reading_response",
+            "outcome": "qlever_http_503",
+            "httpStatus": 503,
+            "bytes": 0,
+            "elapsedMs": 456
+          },
+          {
+            "source": "qlever",
+            "outcome": "qlever_http_503",
+            "elapsedMs": 458,
+            "httpStatus": 503
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 687,
+            "httpStatus": 503,
+            "reason": "BudgetError",
+            "detail": "range_http_503"
+          }
+        ],
+        "unique": null,
+        "withPhone": null,
+        "withWebsite": null,
+        "withAddress": null,
+        "validLocation": null
+      },
+      {
+        "city": "Cochem",
+        "country": "DE",
+        "elapsedMs": 910,
+        "status": "error",
+        "errorCode": "discovery_sources_unavailable",
+        "error": "As fontes não concluíram a consulta. Isso não significa ausência de empresas.",
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "reading_response",
+            "outcome": "qlever_http_503",
+            "httpStatus": 503,
+            "bytes": 0,
+            "elapsedMs": 198
+          },
+          {
+            "source": "qlever",
+            "outcome": "qlever_http_503",
+            "elapsedMs": 199,
+            "httpStatus": 503
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 703,
+            "httpStatus": 503,
+            "reason": "BudgetError",
+            "detail": "range_http_503"
+          }
+        ],
+        "unique": null,
+        "withPhone": null,
+        "withWebsite": null,
+        "withAddress": null,
+        "validLocation": null
+      },
+      {
+        "city": "Uberlândia",
+        "country": "BR",
+        "elapsedMs": 759,
+        "status": "error",
+        "errorCode": "discovery_sources_unavailable",
+        "error": "As fontes não concluíram a consulta. Isso não significa ausência de empresas.",
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "reading_response",
+            "outcome": "qlever_http_503",
+            "httpStatus": 503,
+            "bytes": 0,
+            "elapsedMs": 22
+          },
+          {
+            "source": "qlever",
+            "outcome": "qlever_http_503",
+            "elapsedMs": 23,
+            "httpStatus": 503
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 680,
+            "httpStatus": 503,
+            "reason": "BudgetError",
+            "detail": "range_http_503"
+          }
+        ],
+        "unique": null,
+        "withPhone": null,
+        "withWebsite": null,
+        "withAddress": null,
+        "validLocation": null
+      },
+      {
+        "city": "Monte Carmelo",
+        "country": "BR",
+        "elapsedMs": 749,
+        "status": "error",
+        "errorCode": "discovery_sources_unavailable",
+        "error": "As fontes não concluíram a consulta. Isso não significa ausência de empresas.",
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "reading_response",
+            "outcome": "qlever_http_503",
+            "httpStatus": 503,
+            "bytes": 0,
+            "elapsedMs": 39
+          },
+          {
+            "source": "qlever",
+            "outcome": "qlever_http_503",
+            "elapsedMs": 40,
+            "httpStatus": 503
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 692,
+            "httpStatus": 503,
+            "reason": "BudgetError",
+            "detail": "range_http_503"
+          }
+        ],
+        "unique": null,
+        "withPhone": null,
+        "withWebsite": null,
+        "withAddress": null,
+        "validLocation": null
+      },
+      {
+        "city": "Toronto",
+        "country": "CA",
+        "elapsedMs": 1086,
+        "status": "error",
+        "errorCode": "discovery_sources_unavailable",
+        "error": "As fontes não concluíram a consulta. Isso não significa ausência de empresas.",
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "reading_response",
+            "outcome": "qlever_http_503",
+            "httpStatus": 503,
+            "bytes": 0,
+            "elapsedMs": 388
+          },
+          {
+            "source": "qlever",
+            "outcome": "qlever_http_503",
+            "elapsedMs": 390,
+            "httpStatus": 503
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 685,
+            "httpStatus": 503,
+            "reason": "BudgetError",
+            "detail": "range_http_503"
+          }
+        ],
+        "unique": null,
+        "withPhone": null,
+        "withWebsite": null,
+        "withAddress": null,
+        "validLocation": null
+      },
+      {
+        "city": "Lunenburg",
+        "country": "CA",
+        "elapsedMs": 866,
+        "status": "error",
+        "errorCode": "discovery_sources_unavailable",
+        "error": "As fontes não concluíram a consulta. Isso não significa ausência de empresas.",
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "reading_response",
+            "outcome": "qlever_http_503",
+            "httpStatus": 503,
+            "bytes": 0,
+            "elapsedMs": 169
+          },
+          {
+            "source": "qlever",
+            "outcome": "qlever_http_503",
+            "elapsedMs": 170,
+            "httpStatus": 503
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 691,
+            "httpStatus": 503,
+            "reason": "BudgetError",
+            "detail": "range_http_503"
+          }
+        ],
+        "unique": null,
+        "withPhone": null,
+        "withWebsite": null,
+        "withAddress": null,
+        "validLocation": null
+      }
+    ],
+    "implementationCommit": "31cf784ae6f5c72a12c1ff14458eb6ec4278cbe5",
+    "database": "Separate empty disposable loopback PostGIS; no initial catalog reused"
+  },
+  "failureRates": {
+    "baseline": {
+      "completeFailures": 0,
+      "searches": 7
+    },
+    "initialLiveEngine": {
+      "completeFailures": 1,
+      "searches": 7
+    },
+    "finalLiveEngine": {
+      "completeFailures": 6,
+      "searches": 7
+    }
   }
 }

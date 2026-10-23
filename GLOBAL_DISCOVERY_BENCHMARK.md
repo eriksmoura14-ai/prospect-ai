@@ -48,9 +48,25 @@ Após a coleta, o código atual consultou o PostGIS local e repetiu a deduplica�
 
 Lunenburg possui zero registros **no cache desta execução**, pois a coleta falhou; isso não é uma conclusão sobre a cidade. Os demais números conferem com os dados reais persistidos. A biblioteca de numeração valida formato, não uma linha ativa.
 
-## Limite da comparação da versão final
+## Repetição online com a versão final
 
-A rodada online inicial antecedeu os ajustes adicionais de centro aproximado de geometrias OSM, cache de STAC imutável e redução do limite padrão Overture de 3.000 para 1.000 registros. Esses ajustes têm testes automatizados e o catálogo foi consultado novamente pelo código atual. Não foi possível repetir a matriz online inteira após a ponte de rede do ambiente começar a retornar HTTP 503 inclusive para STAC e GitHub, com erro de conexão antes dos headers (`cloudflare_https_tunnel`). Isso não permite atribuir a falha ao Render nem declarar indisponibilidade geral dos operadores. Não foram contornados proxy, TLS, limites ou controles de acesso.
+A rodada online inicial antecedeu os ajustes adicionais de centro aproximado de geometrias OSM, cache de STAC imutável e redução do limite padrão Overture de 3.000 para 1.000 registros. Esses ajustes têm testes automatizados e o catálogo foi consultado novamente pelo código atual, como registrado acima.
+
+Após uma recuperação transitória do acesso ao catálogo STAC, a matriz inteira foi repetida com o código final `31cf784ae6f5c72a12c1ff14458eb6ec4278cbe5`, em **outro PostGIS descartável vazio**, sem aproveitar os registros da rodada inicial. O resultado completo foi preservado, inclusive as falhas:
+
+| Cidade | Resultado final online | Únicos | Com telefone / website / endereço / localização válida | Tempo (s) |
+| --- | --- | ---: | --- | ---: |
+| Berlin | Parcial: QLever disponível, Overture HTTP 503 | 473 | 220 / 258 / 347 / 473 | 41.07 |
+| Monschau | Ambas as fontes falharam com HTTP 503 | — | — | 1.16 |
+| Cochem | Ambas as fontes falharam com HTTP 503 | — | — | 0.91 |
+| Uberlândia | Ambas as fontes falharam com HTTP 503 | — | — | 0.76 |
+| Monte Carmelo | Ambas as fontes falharam com HTTP 503 | — | — | 0.75 |
+| Toronto | Ambas as fontes falharam com HTTP 503 | — | — | 1.09 |
+| Lunenburg | Ambas as fontes falharam com HTTP 503 | — | — | 0.87 |
+
+Taxa de falha completa nessa repetição: **6/7 (85,7%)**; QLever trouxe dados em 1/7 cidades e Overture não concluiu nenhum dos sete recortes. Falha não é contabilizada como zero empresas. A ponte de rede do ambiente havia retornado HTTP 503 inclusive para STAC e GitHub, com erro de conexão antes dos headers (`cloudflare_https_tunnel`); a recuperação não se sustentou. O benchmark não consegue separar esse caminho de rede de eventual falha dos operadores. Isso não permite atribuir a causa ao Render nem declarar indisponibilidade geral das fontes. Não foram contornados proxy, TLS, limites ou controles de acesso, e não houve repetição automática das sete cidades.
+
+Portanto, a versão final **não possui uma matriz online completa bem-sucedida**. Os ganhos da primeira coleta e sua reutilização local estão demonstrados; a confiabilidade de coleta fria precisa de nova homologação quando houver acesso estável. As duas rodadas permanecem separadas no JSON agregado, sem escolher o melhor resultado de cada tentativa.
 
 O ganho demonstrado é no conjunto real de dados coletados em Monschau, Cochem, Monte Carmelo e Uberlândia, com uma fonte independente adicional e persistência reutilizável. Não é comprovação de cobertura mundial, censo de empresas ativas ou precisão manual de cada contato. A deduplicação é conservadora e pode deixar duplicatas cuja identidade não pôde ser comprovada.
 
