@@ -15,16 +15,28 @@ const config = auth.configuration({ AUTH_MODE: "password", DATABASE_URL: databas
 const store = accounts.createStore({ databaseUrl, encryptionKey: config.encryptionKey, local: true });
 const sql = new Pool(accounts.databaseOptions(databaseUrl, true));
 const service = auth.createService(config, { store, mailer: async () => { throw new Error("Email is prohibited in this fixture server."); } });
-const context = { require: name => name === "./auth.cjs" ? { ...auth, configuration: () => config, createService: () => service } : localRequire(name),
-  module: { exports: {} }, __dirname: root, process: { env: { APP_ORIGIN: origin, APP_FRONTEND_ORIGIN: frontendOrigin || "", PORT: String(port) } },
-  console, Buffer, URL, URLSearchParams, AbortSignal, structuredClone, setTimeout, clearTimeout, fetch };
+const globalTest=process.env.GLOBAL_DISCOVERY_BROWSER_TEST==="true",globalCalls={qlever:0,overture:0};
+if(globalTest&&!["127.0.0.1","localhost"].includes(new URL(process.env.TEST_DISCOVERY_DATABASE_URL).hostname))throw new Error("Global fixtures require local PostGIS.");
+const globalPlace={name:"Cidade global de fixture",display_name:"Cidade global de fixture, Brasil",osm_type:"relation",osm_id:9000001,type:"administrative",category:"boundary",place_rank:16,address:{country_code:"br",state:"Minas Gerais"},boundingbox:[-19,-18,-49,-48],geojson:{type:"Polygon",coordinates:[[[-49,-19],[-48,-19],[-48,-18],[-49,-18],[-49,-19]]]}};
+const fixtureProviders={providers:()=>({
+  qlever:async(area,niche)=>{globalCalls.qlever++;return {rows:[localRequire("./discovery/records.cjs").osm({type:"node",id:99001,lat:-18.5,lon:-48.5,tags:{name:"Global misto fictício",amenity:"restaurant",phone:"+5534998883900","addr:street":"Rua de teste","addr:housenumber":"1"}},area,niche,"qlever")],truncated:false};},
+  overture:async(area,niche)=>{globalCalls.overture++;return {rows:[0,1].map(index=>({...localRequire("./discovery/records.cjs").overture({id:"fictional-gers-"+index,names:{primary:index?"Global Overture fictício":"Global misto fictício"},geometry:{type:"Point",coordinates:[index?-48.4:-48.5,-18.5]},taxonomy:{primary:"restaurant",hierarchy:["restaurant"]},addresses:[{freeform:index?"Outra rua 2":"Rua de teste 1",country:"BR"}],phones:[index?"+553432249090":"+5534998883900"],sources:[{dataset:"meta"}],confidence:.9},area),category:niche})),truncated:false};}
+})};
+const context = { require: name => name === "./auth.cjs" ? { ...auth, configuration: () => config, createService: () => service }
+    : globalTest&&name==="./discovery/providers.cjs"?fixtureProviders
+    : globalTest&&name==="node:dns"?{promises:{Resolver:class {async resolve4(){throw Object.assign(new Error("Fictional domain absent"),{code:"ENOTFOUND"});}}}}:localRequire(name),
+  module: { exports: {} }, __dirname: root, process: { env: { APP_ORIGIN: origin, APP_FRONTEND_ORIGIN: frontendOrigin || "", PORT: String(port),
+    ...(globalTest?{DISCOVERY_ENGINE:"global",DISCOVERY_DATABASE_URL:process.env.TEST_DISCOVERY_DATABASE_URL,DISCOVERY_LOCAL:"true",DISCOVERY_SOURCES:"qlever,overture"}:{}) } },
+  console, Buffer, URL, URLSearchParams, AbortSignal, structuredClone, setTimeout, clearTimeout,
+  fetch:globalTest?async input=>{if(new URL(input).hostname!=="nominatim.openstreetmap.org")throw new Error("External fetch prohibited by global fixture");return new Response(JSON.stringify([globalPlace]));}:fetch };
 const source = fs.readFileSync(path.join(root, "server.cjs"), "utf8");
-vm.runInNewContext(source.slice(0, source.lastIndexOf("server.listen(")) + "\nmodule.exports={server,jobs};", context);
+vm.runInNewContext(source.slice(0, source.lastIndexOf("server.listen(")) + "\nmodule.exports={server,jobs,catalog};", context);
 const backend = context.module.exports, fixtures = {}, owners = [];
 const phrase = "Senha exclusiva de fixture local 2026!";
 let frontend;
 let netlifyProxy;
 async function start() {
+  if(globalTest)await backend.catalog.migration();
   await store.ready(); const passwordHash = await passwords.hashPassword(phrase);
   for (const device of ["desktop", "mobile"]) {
     const suffix = crypto.randomBytes(6).toString("hex"), users = {};
@@ -53,13 +65,13 @@ async function start() {
   backend.server.on("request", async (request, response) => {
     if (request.url.startsWith("/__test/info")) {
       response.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
-      return response.end(JSON.stringify(fixtures));
+      return response.end(JSON.stringify({...fixtures,globalProviderCalls:globalCalls}));
     }
     if (request.url === "/__test/expire") {
       const identity = await service.identity(request); if (identity) await service.logout(identity);
       response.writeHead(200); return response.end("fixture session revoked");
     }
-    if (request.url === "/api/search" || request.url === "/api/ai") {
+    if ((!globalTest&&request.url === "/api/search") || request.url === "/api/ai") {
       response.writeHead(403, { "Content-Type": "application/json", "Cache-Control": "no-store" });
       return response.end(JSON.stringify({ error: "External operations prohibited by fixture server." }));
     }
@@ -110,7 +122,7 @@ async function stop() {
   frontend?.close();
   backend.server.close();
   await sql.query("DELETE FROM prospect_accounts WHERE id=ANY($1::uuid[])", [owners]);
-  await store.close(); await sql.end(); process.exit(0);
+  await backend.catalog?.close();await store.close(); await sql.end(); process.exit(0);
 }
 process.on("SIGTERM", () => { void stop(); }); process.on("SIGINT", () => { void stop(); });
 start().catch(() => { console.error("Local list browser fixtures could not start."); process.exit(1); });

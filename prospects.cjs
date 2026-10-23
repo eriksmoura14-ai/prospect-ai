@@ -26,11 +26,16 @@ function snapshot(row) {
   const strings = { osmId: 200, name: 400, category: 400, city: 1000, address: 2000, phone: 200,
     mobilePhone: 200, whatsappPhone: 200, whatsappSource: 2000, sitePhone: 200, phoneSource: 1000, phoneVerification: 100,
     website: 2000, websiteSource: 1000, websiteVerification: 100, websiteCheckedAt: 100,
-    status: 100, source: 2000, reason: 4000 };
+    status: 100, source: 2000, reason: 4000, sourceKey:100,sourceId:200,sourceUrl:2000,sourceRelease:100,websiteClassification:100,discoveredAt:100,lastSeenAt:100,lastVerifiedAt:100,locationMethod:100,operatingStatus:100 };
   for (const [key, max] of Object.entries(strings)) result[key] = typeof row[key] === "string" ? row[key].slice(0, max) : "";
-  for (const key of ["confidence", "prospectScore", "latitude", "longitude"]) {
+  for (const key of ["confidence", "prospectScore", "latitude", "longitude", "sourceConfidence"]) {
     if (Number.isFinite(row[key])) result[key] = row[key];
   }
+  // Public provenance only; never persist arbitrary provider metadata here.
+  if (row.license && typeof row.license === "object") result.license={id:String(row.license.id||"").slice(0,200),url:String(row.license.url||"").slice(0,2000),attribution:String(row.license.attribution||"").slice(0,1000)};
+  if (Array.isArray(row.provenance)) result.provenance=row.provenance.slice(0,10).map(p=>({source:String(p.source||"").slice(0,100),sourceId:String(p.sourceId||"").slice(0,200),release:String(p.release||"").slice(0,100),license:p.license?{id:String(p.license.id||"").slice(0,200),attribution:String(p.license.attribution||"").slice(0,1000),url:String(p.license.url||"").slice(0,2000)}:null,
+    datasets:Array.isArray(p.datasets)?p.datasets.slice(0,10).map(d=>({dataset:String(d.dataset||"").slice(0,100),recordId:String(d.recordId||"").slice(0,200),license:String(d.license||"").slice(0,100),property:String(d.property||"").slice(0,200)})):[]}));
+  if(Array.isArray(row.externalIds))result.externalIds=row.externalIds.slice(0,10).map(d=>({namespace:String(d.namespace||"").slice(0,100),id:String(d.id||"").slice(0,200)}));
   return contacts.details({ ...result, countryCode: contacts.countryCode(row.countryCode) });
 }
 

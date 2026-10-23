@@ -24,6 +24,17 @@ const websiteEvidence = require("./website-evidence.cjs");
 const GEOAPIFY_KEY = (process.env.GEOAPIFY_API_KEY || "").trim();
 const BUSINESS_PROVIDER = process.env.BUSINESS_PROVIDER || "qlever";
 if (!["overpass", "geoapify", "qlever"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
+const DISCOVERY_ENGINE = process.env.DISCOVERY_ENGINE || "legacy";
+if (!["legacy","global"].includes(DISCOVERY_ENGINE)) throw new Error("DISCOVERY_ENGINE inválido.");
+let catalog, globalDiscovery;
+if (DISCOVERY_ENGINE === "global") {
+  if (!process.env.DISCOVERY_DATABASE_URL || process.env.DISCOVERY_DATABASE_URL === process.env.DATABASE_URL) throw new Error("Configure DISCOVERY_DATABASE_URL em uma base isolada, distinta da autenticação.");
+  catalog = require("./discovery/store.cjs").createStore({databaseUrl:process.env.DISCOVERY_DATABASE_URL,local:process.env.DISCOVERY_LOCAL === "true"});
+  const sources=(process.env.DISCOVERY_SOURCES || "qlever,overpass").split(",").map(v=>v.trim()).filter(Boolean);
+  if (!sources.length || new Set(sources).size!==sources.length || sources.some(v=>!["qlever","overpass","overture"].includes(v))) throw new Error("DISCOVERY_SOURCES inválido.");
+  globalDiscovery = require("./discovery/engine.cjs").createEngine({store:catalog,sources,
+    providers:require("./discovery/providers.cjs").providers({businessMatch,overpassURL:process.env.OVERPASS_URL,overpassMethod:process.env.OVERPASS_HTTP_METHOD||"POST",python:process.env.OVERTURE_PYTHON})});
+}
 
 // Configuração local e hospedada.
 const hosting = require("./hosting.cjs").configuration(process.env);
@@ -292,7 +303,7 @@ function locationSummary(place) {
 
 async function locate(city, onLocation = () => {}, selection = null) {
   const constraint = selection ? `${selection.countryCode}:${selection.stateCode}:${normalizeLocation(selection.stateName)}` : "legacy";
-  const key = `city:v7:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}`;
+  const key = `city:${DISCOVERY_ENGINE === "global" ? "v8:global" : "v7"}:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}`;
   const hit = cached(key);
   if (hit) {
     onLocation({ cacheHit: true, provider:hit.prospectGeocoder, selected: locationSummary(hit) });
@@ -318,7 +329,7 @@ async function locate(city, onLocation = () => {}, selection = null) {
     url.searchParams.set("addressdetails", "1");
     url.searchParams.set("namedetails", "1");
     url.searchParams.set("extratags", "1");
-    if (BUSINESS_PROVIDER === "geoapify") url.searchParams.set("polygon_geojson", "1");
+    if (BUSINESS_PROVIDER === "geoapify" || DISCOVERY_ENGINE === "global") url.searchParams.set("polygon_geojson", "1");
     url.searchParams.set("limit", "10");
     // Localities include towns/villages/boroughs in the worldwide catalogue.
     // Keep the provider's default feature coverage and validate results locally.
@@ -369,6 +380,10 @@ async function locate(city, onLocation = () => {}, selection = null) {
       throw new Error("Há cidades com esse nome. Informe cidade, estado/província e país.");
     }
     const selected = geocoding.choose(places,city,selection);
+    if (DISCOVERY_ENGINE === "global" && places.some(other=>other!==selected && geocoding.cityMatch(other,city,selection) && other.osm_type==="relation" && selected.osm_type==="relation" && other.place_rank===selected.place_rank &&
+      (Number(other.boundingbox[0])>Number(selected.boundingbox[1]) || Number(other.boundingbox[1])<Number(selected.boundingbox[0]) || Number(other.boundingbox[2])>Number(selected.boundingbox[3]) || Number(other.boundingbox[3])<Number(selected.boundingbox[2])))) {
+      throw Object.assign(new Error("Há localidades homônimas na mesma subdivisão. Confirme a área antes de pesquisar."),{code:"discovery_ambiguous_location"});
+    }
     selected.prospectGeocoder = plan.provider;
     onLocation({cacheHit:false,provider:plan.provider,attempts:structuredClone(attempts),
       candidates:places.map(locationSummary),selected:locationSummary(selected)});
@@ -417,6 +432,11 @@ function businessMatch(tags, niche) {
 }
 
 function prospectScore(row) {
+  if (row.sourceKey) {
+    const contact=contacts.details(row);
+    return Math.min(100,20+(row.name.length>=4?10:0)+(contact.phoneFormat==="valid"&&row.phoneVerification!=="conflict"?20:0)+(row.address?10:0)+
+      (Number.isFinite(row.latitude)&&Number.isFinite(row.longitude)?10:0)+(row.websiteVerification==="compatible"?5:0));
+  }
   let score = 20;
 
   if (row.name.length >= 4) score += 10;
@@ -504,7 +524,25 @@ function deduplicate(rows) {
   return output;
 }
 
-async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}, selection = null) {
+async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}, selection = null, owner = "operator") {
+  if (globalDiscovery) {
+    await catalog.ready();
+    const geometry=require("./discovery/geometry.cjs"),locationKey=geometry.locationKey(city,selection);
+    let area=await catalog.findArea(locationKey);
+    if (!area) {
+      onProgress("Confirmando o limite completo da localidade…");
+      const place=await locate(city,geocode=>onDiagnostics({geocode}),selection);
+      area=geometry.area(place,selection||{});await catalog.saveArea(area,locationKey);
+    } else onDiagnostics({geocode:{cacheHit:true,selected:locationSummary(area.place)}});
+    let result;
+    try { result=await globalDiscovery.search(area,niche,{owner,onProgress,onRows:rows=>onDiagnostics({preliminaryRows:rows})}); }
+    catch (error) {
+      if (typeof error.code === "string" && error.code.startsWith("discovery_")) throw error;
+      throw Object.assign(new Error("Catálogo geográfico indisponível. A falha não foi interpretada como ausência de empresas."),{code:"discovery_catalog_unavailable"});
+    }
+    onDiagnostics({place:area.displayName,geographicScope:area.scope,provider:"global",sources:result.sources,metrics:result.metrics,taskId:result.taskId,outcome:result.rows.length?"success":"empty_limited"});
+    return {...result,place:area.displayName,geographicScope:area.scope,provider:"global",discoveryMethod:"Catálogo PostGIS + fontes públicas",coverage:"Registros comerciais públicos com proveniência individual; cobertura das fontes não é censo de empresas."};
+  }
   const constraint = selection ? `${selection.countryCode}:${selection.stateCode}:${normalizeLocation(selection.stateName)}` : "legacy";
   const key = `discovery:v15:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
@@ -974,7 +1012,7 @@ function analyze(page, business) {
 }
 
 async function verify(business) {
-  const key = "verify:v6:" + createHash("sha256").update(JSON.stringify([
+  const key = "verify:v7:" + createHash("sha256").update(JSON.stringify([
     business.osmId, business.name, business.city, business.countryCode,
     business.phone, business.address, business.website, business.mobilePhone, business.whatsappPhone
   ])).digest("hex");
@@ -987,7 +1025,7 @@ async function verify(business) {
 
   const listed = Boolean(business.website);
   if (listed && websiteEvidence.isProfile(business.website)) {
-    const row = {...business, status:"WEBSITE_LISTED", confidence:0.4, websiteVerification:"profile",
+    const row = {...business, status:"WEBSITE_LISTED", confidence:0.4, websiteVerification:"profile",websiteClassification:"needs_verification",
       reason:"Perfil, diretório ou plataforma informado na fonte; site próprio da empresa não confirmado."};
     row.prospectScore = prospectScore(row);
     return row;
@@ -1042,6 +1080,9 @@ async function verify(business) {
   const checkedAt = new Date().toISOString();
   const result = {
     ...phoneData,
+    websiteClassification: found ? "website_identified" : profile ? "needs_verification"
+      : listed && evidence.some(item=>[404,410,500,502,503,504].includes(item.httpStatus)) ? "website_apparently_unavailable"
+      : listed ? "needs_verification" : incomplete ? "insufficient_information" : "website_not_identified",
     website: found || profile || business.website || "",
     websiteSource: business.websiteSource || (found ? "Página pública com identidade compatível" : ""),
     websiteVerification: found ? "compatible" : profile ? "profile" : listed ? "inconclusive" : "not_identified",
@@ -1084,15 +1125,19 @@ async function run(job, city, niche, limit, selection = null) {
           item.endpoint === attempt.endpoint && item.purpose === attempt.purpose);
         if (index < 0) queries.push(attempt);
         else queries[index] = attempt;
-      } else Object.assign(job.discoveryDiagnostics, update);
+      } else if (update.preliminaryRows) { job.rows=update.preliminaryRows.slice(0,limit); job.total=job.rows.length; }
+      else Object.assign(job.discoveryDiagnostics, update);
       if (update.place) job.place = update.place;
       if (update.geographicScope) job.geographicScope = update.geographicScope;
-    }, selection);
+    }, selection, job.ownerId);
     job.timings.discoveryMs = Date.now() - discoveryStarted;
 
     job.place = discovery.place;
     job.geographicScope = `${discovery.geographicScope} · ${discovery.discoveryMethod || "Consulta à fonte"}`;
     job.discoveryProvider = discovery.provider;
+    job.discoverySources = discovery.sources;
+    job.discoveryMetrics = discovery.metrics;
+    job.coveragePartial = Boolean(discovery.partial || discovery.truncated);
     job.coverage = discovery.coverage;
     job.discoveryWarning = discovery.warning;
     if (discovery.warning) job.geographicScope += ` · ${discovery.warning}`;
@@ -1108,12 +1153,19 @@ async function run(job, city, niche, limit, selection = null) {
     // Atualiza o resultado assim que a empresa termina, sem esperar as outras.
     let nextIndex = 0;
     const verificationStarted = Date.now();
+    const verificationDeadline = globalDiscovery ? verificationStarted + 30000 : Infinity;
     job.message = `Verificando websites: 0 de ${job.total} concluídos`;
     async function worker() {
       while (nextIndex < job.rows.length) {
         const index = nextIndex++;
+        if (Date.now() >= verificationDeadline) {
+          job.verificationWarning = "Parte dos sites ficou pendente por limite de tempo; ausência de website não foi confirmada.";
+          job.completed++;
+          continue;
+        }
         try {
           job.rows[index] = await verify(job.rows[index]);
+          if (catalog) try { await catalog.verification(job.rows[index]); } catch { job.persistenceWarning="A verificação não pôde ser registrada no catálogo; os resultados da busca foram preservados."; }
         } catch {
           const row = job.rows[index];
           row.status = "UNCERTAIN";
@@ -1136,6 +1188,7 @@ async function run(job, city, niche, limit, selection = null) {
       ? "Pesquisa concluída."
       : "Nenhuma empresa correspondente encontrada nesta fonte.";
     if (job.discoveryWarning) job.message += ` ${job.discoveryWarning}`;
+    if (job.verificationWarning) job.message += ` ${job.verificationWarning}`;
   } catch (error) {
     job.state = "error";
     job.message = error.message;
@@ -1215,7 +1268,7 @@ async function collectAIEvidence(row) {
       phone: row.phone, address: row.address, website: row.website,
       status: row.status
     },
-    source: `https://www.openstreetmap.org/${row.osmId}`,
+    source: row.sourceUrl || (/^(node|way|relation)\/[1-9]\d*$/.test(row.osmId) ? `https://www.openstreetmap.org/${row.osmId}` : ""),
     contactStatus: row.phoneVerification === "conflict"
       ? "Telefone da fonte diverge do telefone publicado no cadastro da mesma empresa no site. Revise antes de entrar em contato."
       : row.phoneVerification === "website_published"
@@ -1268,6 +1321,7 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
         try { await accountService.ready(); }
         catch { return json(response, 503, { ok: false }); }
       }
+      if (catalog) try { await catalog.ready(); } catch { return json(response,503,{ok:false}); }
       return json(response, 200, { ok: true });
     }
 
@@ -1415,6 +1469,16 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       }
     }
 
+    if (request.method === "GET" && url.pathname === "/api/discovery/capabilities") {
+      return json(response,200,{engine:DISCOVERY_ENGINE,persistence:Boolean(catalog),sources:["OpenStreetMap / QLever","OpenStreetMap / Overpass","Geofabrik regional imports","Overture Places regional imports"],
+        limits:{maximumCatalogRecords:50000,maximumQueryRows:3000,maximumSources:3,totalDiscoveryMs:75000},licenses:["ODbL-1.0","CDLA-Permissive-2.0","Apache-2.0","CC0-1.0"]});
+    }
+    if (request.method === "GET" && url.pathname.startsWith("/api/discovery/tasks/")) {
+      const id=url.pathname.slice("/api/discovery/tasks/".length);
+      if (!catalog || !/^[a-f\d-]{36}$/.test(id)) return json(response,404,{error:"Tarefa não encontrada."});
+      const task=await catalog.task(id,ownerId);
+      return json(response,task?200:404,task||{error:"Tarefa não encontrada."});
+    }
     if (request.method === "GET" && url.pathname === "/api/diagnostics/overpass") {
       if (accountService && !accountService.isAdmin(identity.user)) return json(response, 404, { error: "Rota não encontrada." });
       // Protegido pela mesma autenticação da aplicação. Sem chave do LocationIQ.

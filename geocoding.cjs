@@ -80,7 +80,8 @@ function choose(places, city, selection) {
     // returned. Do not replace a chosen relation with a small radius or rectangle.
     if (place.osm_type === "relation") value += 10;
     const rank = Number(place.place_rank);
-    if (rank >= 14 && rank <= 18) value += 20;
+    if (rank === 16) value += 30; // Municipality before a namesake association/district (e.g. Cochem).
+    else if (rank >= 14 && rank <= 18) value += 20;
     return value;
   };
   return [...places].sort((left,right) => score(right) - score(left))[0];

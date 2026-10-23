@@ -1,0 +1,683 @@
+{
+  "date": "2026-10-23",
+  "baselineCommit": "f876edde5df0c178245411f48ed3a7c94953b641",
+  "scope": "Seven requested cities, Restaurants only; initial live collection and current-code replay of persisted public records; no website/WhatsApp verification",
+  "sourceVersions": {
+    "Overture": "2026-10-21.0",
+    "OSM": "public QLever snapshot observed at request time"
+  },
+  "baseline": {
+    "mode": "baseline",
+    "baselineCommit": "f876edde5df0c178245411f48ed3a7c94953b641",
+    "niche": "Restaurantes",
+    "scope": "Discovery only; no website verification, accounts, WhatsApp lookups or production writes",
+    "samples": [
+      {
+        "city": "Berlin",
+        "country": "DE",
+        "elapsedMs": 2896,
+        "status": "success",
+        "unique": 500,
+        "withPhone": 228,
+        "withWebsite": 272,
+        "withAddress": 365,
+        "validLocation": 500,
+        "raw": null,
+        "truncated": true,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "count": 500
+          }
+        ],
+        "selectedOsmId": 62422
+      },
+      {
+        "city": "Monschau",
+        "country": "DE",
+        "elapsedMs": 802,
+        "status": "success",
+        "unique": 39,
+        "withPhone": 26,
+        "withWebsite": 27,
+        "withAddress": 26,
+        "validLocation": 28,
+        "raw": null,
+        "truncated": false,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "count": 39
+          }
+        ],
+        "selectedOsmId": 158020
+      },
+      {
+        "city": "Cochem",
+        "country": "DE",
+        "elapsedMs": 1340,
+        "status": "success",
+        "unique": 52,
+        "withPhone": 33,
+        "withWebsite": 28,
+        "withAddress": 37,
+        "validLocation": 52,
+        "raw": null,
+        "truncated": false,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "count": 52
+          }
+        ],
+        "selectedOsmId": 1259317
+      },
+      {
+        "city": "Uberlândia",
+        "country": "BR",
+        "elapsedMs": 1265,
+        "status": "success",
+        "unique": 175,
+        "withPhone": 15,
+        "withWebsite": 5,
+        "withAddress": 35,
+        "validLocation": 114,
+        "raw": null,
+        "truncated": false,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "count": 175
+          }
+        ],
+        "selectedOsmId": 314875
+      },
+      {
+        "city": "Monte Carmelo",
+        "country": "BR",
+        "elapsedMs": 810,
+        "status": "success",
+        "unique": 13,
+        "withPhone": 1,
+        "withWebsite": 0,
+        "withAddress": 4,
+        "validLocation": 7,
+        "raw": null,
+        "truncated": false,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "count": 13
+          }
+        ],
+        "selectedOsmId": 314777
+      },
+      {
+        "city": "Toronto",
+        "country": "CA",
+        "elapsedMs": 1845,
+        "status": "success",
+        "unique": 500,
+        "withPhone": 179,
+        "withWebsite": 181,
+        "withAddress": 337,
+        "validLocation": 500,
+        "raw": null,
+        "truncated": true,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "count": 500
+          }
+        ],
+        "selectedOsmId": 324211
+      },
+      {
+        "city": "Lunenburg",
+        "country": "CA",
+        "elapsedMs": 844,
+        "status": "success",
+        "unique": 7,
+        "withPhone": 3,
+        "withWebsite": 5,
+        "withAddress": 2,
+        "validLocation": 2,
+        "raw": null,
+        "truncated": false,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "count": 7
+          }
+        ],
+        "selectedOsmId": 9195113
+      }
+    ]
+  },
+  "initialLiveEngine": {
+    "mode": "new",
+    "baselineCommit": "f876edde5df0c178245411f48ed3a7c94953b641",
+    "niche": "Restaurantes",
+    "scope": "Discovery only; no website verification, accounts, WhatsApp lookups or production writes",
+    "samples": [
+      {
+        "city": "Berlin",
+        "country": "DE",
+        "elapsedMs": 73974,
+        "status": "success",
+        "unique": 473,
+        "withPhone": 220,
+        "withWebsite": 258,
+        "withAddress": 347,
+        "validLocation": 473,
+        "raw": 473,
+        "truncated": true,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 104490,
+            "elapsedMs": 11984
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 239279,
+            "elapsedMs": 1325
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 500,
+            "count": 473,
+            "elapsedMs": 13805,
+            "metrics": {
+              "raw": 500,
+              "valid": 473
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "source_timeout",
+            "elapsedMs": 60042
+          }
+        ],
+        "selectedOsmId": 62422
+      },
+      {
+        "city": "Monschau",
+        "country": "DE",
+        "elapsedMs": 24872,
+        "status": "success",
+        "unique": 73,
+        "withPhone": 56,
+        "withWebsite": 48,
+        "withAddress": 59,
+        "validLocation": 73,
+        "raw": 76,
+        "truncated": true,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 10422,
+            "elapsedMs": 4618
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 27704,
+            "elapsedMs": 788
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 49,
+            "count": 28,
+            "elapsedMs": 5435,
+            "metrics": {
+              "raw": 49,
+              "valid": 28
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "success",
+            "raw": 64,
+            "count": 48,
+            "elapsedMs": 19405,
+            "metrics": {
+              "bytes": 6010794,
+              "requests": 91,
+              "files": 1,
+              "budgetBytes": 33554432,
+              "raw": 64,
+              "elapsedMs": 19050
+            }
+          }
+        ],
+        "selectedOsmId": 158020
+      },
+      {
+        "city": "Cochem",
+        "country": "DE",
+        "elapsedMs": 13439,
+        "status": "success",
+        "unique": 95,
+        "withPhone": 73,
+        "withWebsite": 60,
+        "withAddress": 80,
+        "validLocation": 95,
+        "raw": 97,
+        "truncated": true,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 15456,
+            "elapsedMs": 2529
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 37110,
+            "elapsedMs": 712
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 71,
+            "count": 52,
+            "elapsedMs": 3288,
+            "metrics": {
+              "raw": 71,
+              "valid": 52
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "success",
+            "raw": 60,
+            "count": 45,
+            "elapsedMs": 10136,
+            "metrics": {
+              "bytes": 4166075,
+              "requests": 55,
+              "files": 1,
+              "budgetBytes": 33554432,
+              "raw": 60,
+              "elapsedMs": 9773
+            }
+          }
+        ],
+        "selectedOsmId": 1259317
+      },
+      {
+        "city": "Uberlândia",
+        "country": "BR",
+        "elapsedMs": 38983,
+        "status": "success",
+        "unique": 1135,
+        "withPhone": 931,
+        "withWebsite": 495,
+        "withAddress": 1021,
+        "validLocation": 1135,
+        "raw": 1137,
+        "truncated": true,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 39694,
+            "elapsedMs": 950
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 69762,
+            "elapsedMs": 758
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 186,
+            "count": 114,
+            "elapsedMs": 1833,
+            "metrics": {
+              "raw": 186,
+              "valid": 114
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "success",
+            "raw": 1202,
+            "count": 1023,
+            "elapsedMs": 36844,
+            "metrics": {
+              "bytes": 11423999,
+              "requests": 164,
+              "files": 1,
+              "budgetBytes": 33554432,
+              "raw": 1202,
+              "elapsedMs": 35429
+            }
+          }
+        ],
+        "selectedOsmId": 314875
+      },
+      {
+        "city": "Monte Carmelo",
+        "country": "BR",
+        "elapsedMs": 20582,
+        "status": "success",
+        "unique": 51,
+        "withPhone": 42,
+        "withWebsite": 18,
+        "withAddress": 45,
+        "validLocation": 51,
+        "raw": 51,
+        "truncated": true,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 2881,
+            "elapsedMs": 1376
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 4834,
+            "elapsedMs": 484
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 13,
+            "count": 7,
+            "elapsedMs": 1872,
+            "metrics": {
+              "raw": 13,
+              "valid": 7
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "success",
+            "raw": 48,
+            "count": 44,
+            "elapsedMs": 18681,
+            "metrics": {
+              "bytes": 6241691,
+              "requests": 91,
+              "files": 1,
+              "budgetBytes": 33554432,
+              "raw": 48,
+              "elapsedMs": 18351
+            }
+          }
+        ],
+        "selectedOsmId": 314777
+      },
+      {
+        "city": "Toronto",
+        "country": "CA",
+        "elapsedMs": 47163,
+        "status": "success",
+        "unique": 398,
+        "withPhone": 144,
+        "withWebsite": 148,
+        "withAddress": 266,
+        "validLocation": 398,
+        "raw": 398,
+        "truncated": true,
+        "sourceCoverage": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 106596,
+            "elapsedMs": 2274
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 208003,
+            "elapsedMs": 1286
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 500,
+            "count": 398,
+            "elapsedMs": 3879,
+            "metrics": {
+              "raw": 500,
+              "valid": 398
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 43248
+          }
+        ],
+        "selectedOsmId": 324211
+      },
+      {
+        "city": "Lunenburg",
+        "country": "CA",
+        "elapsedMs": 644,
+        "status": "error",
+        "errorCode": "discovery_sources_unavailable",
+        "error": "As fontes não concluíram a consulta. Isso não significa ausência de empresas.",
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "reading_response",
+            "outcome": "qlever_http_503",
+            "httpStatus": 503,
+            "bytes": 0,
+            "elapsedMs": 223
+          },
+          {
+            "source": "qlever",
+            "outcome": "qlever_http_503",
+            "elapsedMs": 224
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 407
+          }
+        ],
+        "unique": null,
+        "withPhone": null,
+        "withWebsite": null,
+        "withAddress": null,
+        "validLocation": null
+      }
+    ]
+  },
+  "currentLocalReplay": {
+    "scope": "Read-only local PostGIS reuse of previously collected live records; no network or website verification",
+    "cities": [
+      {
+        "city": "Berlin",
+        "recordsBeforeDedup": 473,
+        "unique": 473,
+        "withPhone": 220,
+        "validPhoneFormat": 220,
+        "withWebsite": 258,
+        "withAddress": 347,
+        "validLocation": 473,
+        "elapsedMs": 105.55,
+        "sourceCounts": {
+          "qlever": 473
+        },
+        "state": "local_records_available"
+      },
+      {
+        "city": "Monschau",
+        "recordsBeforeDedup": 76,
+        "unique": 73,
+        "withPhone": 56,
+        "validPhoneFormat": 56,
+        "withWebsite": 48,
+        "withAddress": 59,
+        "validLocation": 73,
+        "elapsedMs": 16.41,
+        "sourceCounts": {
+          "overture": 48,
+          "qlever": 28
+        },
+        "state": "local_records_available"
+      },
+      {
+        "city": "Cochem",
+        "recordsBeforeDedup": 97,
+        "unique": 95,
+        "withPhone": 73,
+        "validPhoneFormat": 73,
+        "withWebsite": 60,
+        "withAddress": 80,
+        "validLocation": 95,
+        "elapsedMs": 7.92,
+        "sourceCounts": {
+          "overture": 45,
+          "qlever": 52
+        },
+        "state": "local_records_available"
+      },
+      {
+        "city": "Uberlândia",
+        "recordsBeforeDedup": 1137,
+        "unique": 1135,
+        "withPhone": 931,
+        "validPhoneFormat": 915,
+        "withWebsite": 495,
+        "withAddress": 1021,
+        "validLocation": 1135,
+        "elapsedMs": 275.84,
+        "sourceCounts": {
+          "overture": 1023,
+          "qlever": 114
+        },
+        "state": "local_records_available"
+      },
+      {
+        "city": "Monte Carmelo",
+        "recordsBeforeDedup": 51,
+        "unique": 51,
+        "withPhone": 42,
+        "validPhoneFormat": 42,
+        "withWebsite": 18,
+        "withAddress": 45,
+        "validLocation": 51,
+        "elapsedMs": 8.21,
+        "sourceCounts": {
+          "overture": 44,
+          "qlever": 7
+        },
+        "state": "local_records_available"
+      },
+      {
+        "city": "Toronto",
+        "recordsBeforeDedup": 398,
+        "unique": 398,
+        "withPhone": 144,
+        "validPhoneFormat": 144,
+        "withWebsite": 148,
+        "withAddress": 266,
+        "validLocation": 398,
+        "elapsedMs": 30.85,
+        "sourceCounts": {
+          "qlever": 398
+        },
+        "state": "local_records_available"
+      },
+      {
+        "city": "Lunenburg",
+        "recordsBeforeDedup": 0,
+        "unique": 0,
+        "withPhone": 0,
+        "validPhoneFormat": 0,
+        "withWebsite": 0,
+        "withAddress": 0,
+        "validLocation": 0,
+        "elapsedMs": 1.36,
+        "sourceCounts": {},
+        "state": "no_cached_data"
+      }
+    ]
+  },
+  "limits": [
+    "Initial live round preceded later optional geometry-center parsing, metadata caching and 1000-row Overture default. Those later changes were unit/integration tested, but the complete live matrix could not be rerun after the environment HTTP bridge began returning 503.",
+    "Baseline does not expose pre-dedup candidate counts; those values are null, not reconstructed.",
+    "An online initial failure in Lunenburg is not evidence that it has no businesses.",
+    "Counts are algorithmically deduplicated source records, not a manual census of active businesses."
+  ],
+  "artifactSha256": {
+    "geocodes.json": "c562c5cae5c65939135eec798533284fcf297216c9cc7ddf7ea97b9c1a6a2f60",
+    "baseline.json": "f51d6eca21b90d42ba6215891f6adcf128300237cf7ffb0e2a3068beb9464d34",
+    "new.json": "c16d580fad2f3eead427a01333dfec69fe1796896d3a3acbbc86e01e34d4f48b",
+    "warm-catalog.json": "ae521f516ba9644c6e06d3f1158d41755b5fdf9f7d8eed3f88e14226a58916a1"
+  }
+}

@@ -8,7 +8,8 @@
     "build:frontend": "node scripts/build-frontend.cjs",
     "test": "node --test test/*.test.cjs",
     "audit:auth": "node scripts/audit-auth.cjs",
-    "eval:agent": "node agent-evaluation.cjs"
+    "eval:agent": "node agent-evaluation.cjs",
+    "discovery": "node scripts/discovery.cjs"
   },
   "engines": {
     "node": ">=22"

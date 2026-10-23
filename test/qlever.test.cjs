@@ -169,6 +169,18 @@ test("429 stops without retry, switching provider or reporting an empty result",
   await assert.rejects(qlever.discover(place,niches.Barber,{onTrace:t=>traces.push(t),fetchImpl:async()=>{calls++;return new Response("quota",{status:429});}}),{code:"qlever_http_429"});
   assert.equal(calls,1);assert.equal(traces[0].outcome,"qlever_http_429");
 });
+test("global geometry query does not require relation containment/name indexes and labels way centers",()=>{
+  const query=qlever.buildQuery({...place,name:"Fixture",boundingbox:[-19,-18,-49,-48]},niches.Restaurantes,"categories",true);
+  assert.doesNotMatch(query,/<https:\/\/www.openstreetmap.org\/relation\/314875> ogc:sfContains/);
+  assert.match(query,/geof:sfIntersects/);assert.match(query,/BIND\(/);
+  const elements=[{type:"way",id:"1",tags:{name:"Fixture"}}];
+  qlever.enrich(elements,{results:{bindings:[{poi:uri("https://www.openstreetmap.org/way/1"),wkt:literal("POLYGON((-48.3 -18.9,-48.2 -18.9,-48.2 -18.8,-48.3 -18.9))")}]}},true);
+  assert.equal(elements[0].locationMethod,"geometry_bbox_center");
+  assert(Math.abs(elements[0].lat- -18.85)<1e-9);assert(Math.abs(elements[0].lon- -48.25)<1e-9);
+});
+test("quota response retains Retry-After for the persistent per-source cooldown",async()=>{
+  await assert.rejects(qlever.discover(place,niches.Barber,{fetchImpl:async()=>new Response("quota",{status:429,headers:{"Retry-After":"3600"}})}),error=>error.httpStatus===429&&error.retryAfter==="3600");
+});
 test("Timeouts, numeric transport codes, invalid JSON and oversized responses become clear errors",async()=>{
   for(const [error,code] of [[Object.assign(new Error("timeout"),{name:"TimeoutError",code:23}),"qlever_timeout"],[new Error("connection"),"qlever_connection"]]) {
     await assert.rejects(qlever.discover(place,niches.Barber,{fetchImpl:async()=>{throw error;}}),{code});
