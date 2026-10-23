@@ -43,6 +43,44 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(len(result['rows']),1);self.assertEqual(result['rows'][0]['geometry']['coordinates'],[1.123,1.456])
         self.assertNotIn('unrelated',result['rows'][0]);self.assertGreater(result['metrics']['bytes'],0)
         self.assertLessEqual(result['metrics']['bytes'],1024*1024);self.assertTrue(self.requests)
+    def test_city_polygon_is_applied_before_the_row_limit(self):
+        self.prepare()
+        file=self.root/'fixture.parquet';con=duckdb.connect()
+        con.execute('CREATE TABLE places AS SELECT * FROM read_parquet(?)',[str(file)])
+        geometry=struct.pack('<BIdd',1,1,.2,1.5).hex()
+        con.execute("""INSERT INTO places BY NAME SELECT * REPLACE('inside-city' AS id,
+          {'xmin':.2,'ymin':1.5,'xmax':.2,'ymax':1.5} AS bbox,from_hex(?) AS geometry) FROM places""",[geometry])
+        con.execute("COPY places TO '"+str(file).replace("'","''")+"' (FORMAT PARQUET)");con.close()
+        self.data=file.read_bytes()
+        cache=self.root/f'{reader.RELEASE}-places-stac.json';items=json.loads(cache.read_text())
+        items[0]['assets']['aws']['file:size']=len(self.data);cache.write_text(json.dumps(items))
+        # Both records are in the envelope; the first is in the excluded corner
+        # of this L-shaped municipality. A bbox-only LIMIT 1 loses the city.
+        geometry={'type':'Polygon','coordinates':[[[0,0],[2,0],[2,.5],[.5,.5],[.5,2],[0,2],[0,0]]]}
+        before=self.run_extract(maxRows=1)
+        after=self.run_extract(maxRows=1,geometry=geometry)
+        self.assertEqual(before['rows'][0]['id'],'fictional-id')
+        self.assertTrue(before['truncated'])
+        self.assertEqual([r['id'] for r in after['rows']],['inside-city'])
+        self.assertFalse(after['truncated'])
+    def test_polygon_holes_islands_and_boundaries(self):
+        geometry={'type':'MultiPolygon','coordinates':[
+          [[[0,0],[1,0],[1,1],[0,1],[0,0]],[[.2,.2],[.4,.2],[.4,.4],[.2,.4],[.2,.2]]],
+          [[[1.5,1.5],[2,1.5],[2,2],[1.5,2],[1.5,1.5]]]]}
+        covers=reader.polygon_filter(geometry,[0,2,0,2])
+        point=lambda x,y:struct.pack('<BIdd',1,1,x,y)
+        self.assertFalse(covers(point(.3,.3)))
+        self.assertTrue(covers(point(.2,.3)))
+        self.assertTrue(covers(point(0,.5)))
+        self.assertTrue(covers(point(1.8,1.8)))
+        self.assertFalse(covers(point(1.2,1.2)))
+    def test_invalid_polygon_never_requests_source(self):
+        with patch.object(reader.requests,'get') as request:
+            for geometry in ({'type':'Point','coordinates':[1,1]},
+              {'type':'Polygon','coordinates':[[[0,0],[1,0],[1,1],[0,1]]]},
+              {'type':'Polygon','coordinates':[[[0,0],[3,0],[3,1],[0,0]]]}):
+                with self.assertRaises(ValueError):reader.extract({'bounds':[0,2,0,2],'categories':['restaurant'],'geometry':geometry})
+            request.assert_not_called()
     def test_closed_and_low_confidence_records_are_filtered(self):
         self.prepare(status='permanently_closed');self.assertEqual(self.run_extract()['rows'],[])
     def test_extension_survives_a_different_runtime_home(self):

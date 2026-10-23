@@ -33,7 +33,7 @@ test("real location dataset contains Brazil / Minas Gerais / Uberlândia", async
   assert.ok(stateIsoPeers.includes("BR-SP"));
   assert.deepEqual(selection, {
     query: "Uberlândia, Minas Gerais, Brazil",
-    countryCode: "BR", cityName: "Uberlândia", stateName: "Minas Gerais", countryName: "Brazil",
+    countryCode: "BR", cityId: brazil.cityId, cityName: "Uberlândia", stateName: "Minas Gerais", countryName: "Brazil",
     stateCode: "MG", stateNative: "Minas Gerais", stateIso: "BR-MG"
   });
 });
@@ -43,7 +43,7 @@ test("real location dataset resolves United States / New York / New York City", 
   assert.ok(stateIsoPeers.includes("US-TX"));
   assert.deepEqual(selection, {
     query: "New York City, New York, United States",
-    countryCode: "US", cityName: "New York City", stateName: "New York", countryName: "United States",
+    countryCode: "US", cityId: newYork.cityId, cityName: "New York City", stateName: "New York", countryName: "United States",
     stateCode: "NY", stateNative: "New York", stateIso: "US-NY"
   });
 });

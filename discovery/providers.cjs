@@ -25,12 +25,13 @@ function overture(area,niche,{python,timeoutMs=60000,maxBytes=32*1024*1024,maxRo
       const rows=data.rows.map(raw=>records.overture(raw,area,data.release)).filter(Boolean).filter(row=>records.overtureMatches(row,niche)).map(row=>({...row,category:niche}));
       const insideCount=data.rows.filter(raw=>require("./geometry.cjs").inside(area,{latitude:raw.geometry?.coordinates?.[1],longitude:raw.geometry?.coordinates?.[0]})).length;
       finish(null,{rows,truncated:Boolean(data.truncated)||rows.length<insideCount,metrics:{...data.metrics,rejectedInsideArea:insideCount-rows.length}});});
-    child.stdin.on("error",()=>{});child.stdin.end(JSON.stringify({bounds:area.bounds,maxBytes,maxRows,timeoutSeconds:Math.max(1,Math.ceil(timeoutMs/1000)-5),categories:records.groups[niche]||[]}));
+    child.stdin.on("error",()=>{});child.stdin.end(JSON.stringify({bounds:area.bounds,geometry:area.geometry,maxBytes,maxRows,timeoutSeconds:Math.max(1,Math.ceil(timeoutMs/1000)-5),categories:records.groups[niche]||[]}));
   });
 }
 function providers({overpassURL="https://overpass.private.coffee/api/interpreter",overpassMethod="POST",python,fetchImpl=fetch,businessMatch,userAgent="ProspectAI/0.9 (+https://github.com/eriksmoura14-ai/prospect-ai)"}={}) {
   return {
     async qlever(area,niche,options={}) {
+      if(area.officialBoundary)throw failure("source_area_unsupported","QLever exige um identificador OSM confirmado; a área oficial não foi convertida em uma relação fictícia.");
       const data=await qlever.discover(area.place,niches[niche],{fetchImpl,userAgent,geometryOnly:true,onTrace:options.onTrace,timeoutMs:options.timeoutMs});
       const matchingElements=data.elements.filter(e=>businessMatch(e.tags||{},niche));
       const rows=matchingElements.map(e=>records.osm(e,area,niche,"qlever")).filter(Boolean);

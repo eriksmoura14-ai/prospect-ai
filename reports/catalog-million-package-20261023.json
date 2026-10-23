@@ -1,0 +1,10 @@
+{
+  "records": 1000000,
+  "packageBytes": 225329018,
+  "packageSha256": "93886c0b3ea212f3f8d31e013075c03dcc476bdfd3b77e923051078ab7990641",
+  "parquetBytes": 137403018,
+  "csvGzipBytes": 83044468,
+  "duplicateAliasesGzipBytes": 114193,
+  "packageIntegrity": "passed",
+  "productionImported": 0
+}

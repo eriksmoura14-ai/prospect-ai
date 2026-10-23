@@ -37,11 +37,14 @@ function overture(raw,area,release="2026-10-21.0") {
     phone,whatsappPhone,whatsappSource:whatsappPhone?"Overture Maps · phones":"",phoneSource:"Overture Maps · phones",phoneVerification:phone?"listed":"not_listed",website,websiteSource:website?"Overture Maps · websites":"",websiteVerification:website?"listed":"not_identified",
     source:"Overture Maps",sourceKey:"overture",sourceUrl:"https://explore.overturemaps.org/",sourceRelease:release,license:OVERTURE,sourceConfidence:Number.isFinite(p.confidence)?p.confidence:null,
     taxonomy:p.taxonomy||null,categories:p.categories||null,basic_category:p.basic_category,operatingStatus:p.operating_status||"unknown",externalIds:[]};
-  const known=new Set(["alltheplaces","overture","birdeye","brightquery","dac","foursquare","krick","microsoft","opentravel","pinmeto","renderseo","uberall","meta"]);
+  const known=new Set(["alltheplaces","overture","birdeye","brightquery","dac","foursquare","krick","microsoft","opentravel","pinmeto","renderseo","uberall","meta","overture-signals"]);
   const datasets=(p.sources||[]).map(s=>({dataset:text(s.dataset,100),recordId:text(s.record_id,200),
     license:text(s.license,100)||(String(s.dataset).toLowerCase()==="foursquare"?"Apache-2.0":String(s.dataset).toLowerCase()==="alltheplaces"?"CC0-1.0":"CDLA-Permissive-2.0"),property:text(s.property,200)}));
   if(!datasets.length||datasets.some(s=>!known.has(s.dataset.toLowerCase())))return null;
   if(datasets.some(s=>!["CDLA-Permissive-2.0","Apache-2.0","CC0-1.0"].includes(s.license)))return null;
+  // Reviewed October release: this dataset is an operating-status signal,
+  // not permission to accept arbitrary data or another release's schema.
+  if(datasets.some(s=>s.dataset.toLowerCase()==="overture-signals"&&(s.license!=="CDLA-Permissive-2.0"||s.property!=="/properties/operating_status")))return null;
   row.externalIds=datasets.filter(d=>d.recordId).map(d=>({namespace:d.dataset,id:d.recordId}));
   row.license={...OVERTURE,attribution:"Overture Maps Foundation"+(datasets.length?"; "+[...new Set(datasets.map(d=>d.dataset))].join("; "):"")};
   row.provenance=[{source:"overture",sourceId:id,release,license:row.license,datasets}];

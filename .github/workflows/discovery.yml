@@ -37,6 +37,6 @@ jobs:
       - name: Real PostGIS and pure discovery regressions
         env:
           TEST_DISCOVERY_DATABASE_URL: postgresql://prospect_audit:disposable-local-fixture-only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/prospect_audit_geospatial
-        run: node --test test/global-*.test.cjs
+        run: node --test test/global-*.test.cjs test/catalog-archive.test.cjs
       - name: Regional Parquet reader with fictional data and mocked public transport
         run: python -m unittest discover -s test -p '*_reader_test.py' -v

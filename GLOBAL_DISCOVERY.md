@@ -61,7 +61,7 @@ export OVERTURE_PYTHON="$PWD/.venv-discovery/bin/python"
 export DISCOVERY_SOURCES=qlever,overture
 ```
 
-O setup instala uma extensão `httpfs` assinada da versão fixa do DuckDB, por HTTPS verificado. O leitor consulta STAC oficial e arquivos Places da release **2026-10-21.0**, filtra arquivos/row groups por bbox e lê somente colunas necessárias. A seleção final usa o polígono completo no Node/PostGIS. A geometria Point é decodificada do WKB; o canto do bbox não é usado como coordenada exata.
+O setup instala uma extensão `httpfs` assinada da versão fixa do DuckDB, por HTTPS verificado. O leitor consulta STAC oficial e arquivos Places da release **2026-10-21.0**, filtra arquivos/row groups por bbox e lê somente colunas necessárias. Quando a área está disponível, o leitor também aplica o Polygon/MultiPolygon completo no `WHERE` do DuckDB, **antes de `LIMIT`**, por um predicado de Point WKB sem extensão espacial adicional. Isso evita que estabelecimentos de municípios vizinhos esgotem o limite de candidatos de uma cidade com contorno irregular. O filtro conserva buracos, ilhas e pontos sobre as bordas; a seleção final no Node/PostGIS permanece como validação independente. Chamadas antigas ao extrator que só fornecem `bounds` continuam limitadas ao envelope e precisam do recorte final. A geometria Point é decodificada do WKB; o canto do bbox não é usado como coordenada exata.
 
 Um gateway **somente loopback** registra exclusivamente assets HTTPS oficiais e permite apenas ranges. Ele impõe orçamento agregado de bytes de corpo, rejeita respostas integrais/redirects inesperados e conserva proxy/TLS do ambiente. Não recebe URLs do navegador. Credenciais de autenticação/banco não são repassadas ao subprocesso.
 

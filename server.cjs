@@ -26,10 +26,22 @@ const BUSINESS_PROVIDER = process.env.BUSINESS_PROVIDER || "qlever";
 if (!["overpass", "geoapify", "qlever"].includes(BUSINESS_PROVIDER)) throw new Error("BUSINESS_PROVIDER inválido.");
 const DISCOVERY_ENGINE = process.env.DISCOVERY_ENGINE || "legacy";
 if (!["legacy","global"].includes(DISCOVERY_ENGINE)) throw new Error("DISCOVERY_ENGINE inválido.");
-let catalog, globalDiscovery;
+let catalog, globalDiscovery, catalogArchive;
 if (DISCOVERY_ENGINE === "global") {
   if (!process.env.DISCOVERY_DATABASE_URL || process.env.DISCOVERY_DATABASE_URL === process.env.DATABASE_URL) throw new Error("Configure DISCOVERY_DATABASE_URL em uma base isolada, distinta da autenticação.");
-  catalog = require("./discovery/store.cjs").createStore({databaseUrl:process.env.DISCOVERY_DATABASE_URL,local:process.env.DISCOVERY_LOCAL === "true"});
+  catalog = require("./discovery/store.cjs").createStore({databaseUrl:process.env.DISCOVERY_DATABASE_URL,local:process.env.DISCOVERY_LOCAL === "true",readHttp:process.env.DISCOVERY_READ_HTTP==="true"});
+  if(process.env.CATALOG_ARCHIVE_DATABASE_URL) {
+    if([process.env.DATABASE_URL,process.env.DISCOVERY_DATABASE_URL].includes(process.env.CATALOG_ARCHIVE_DATABASE_URL))throw new Error("A base de operações do catálogo deve ser isolada.");
+    catalogArchive=require("./discovery/catalog-archive.cjs").createArchive({databaseUrl:process.env.CATALOG_ARCHIVE_DATABASE_URL,python:process.env.OVERTURE_PYTHON});
+    const previousQuery=catalog.query;
+    const previousEnqueue=catalog.enqueue;
+    catalog.enqueue=async(area,niche,owner)=>{if(area.officialBoundary)await catalog.saveArea(area,area.catalogLocationKey);return previousEnqueue(area,niche,owner);};
+    catalog.query=async(area,niche,limit)=>{
+      const local=await previousQuery(area,niche,limit);
+      try{const archived=await catalogArchive.query(area,niche,Math.min(limit,250));return {...archived,rows:require("./discovery/records.cjs").merge([...local.rows,...archived.rows]),truncated:local.truncated||archived.truncated};}
+      catch{return {...local,archiveUnavailable:true};}
+    };
+  }
   const sources=(process.env.DISCOVERY_SOURCES || "qlever,overpass").split(",").map(v=>v.trim()).filter(Boolean);
   if (!sources.length || new Set(sources).size!==sources.length || sources.some(v=>!["qlever","overpass","overture"].includes(v))) throw new Error("DISCOVERY_SOURCES inválido.");
   globalDiscovery = require("./discovery/engine.cjs").createEngine({store:catalog,sources,
@@ -524,18 +536,19 @@ function deduplicate(rows) {
   return output;
 }
 
-async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}, selection = null, owner = "operator") {
+async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}, selection = null, owner = "operator", desiredRows = 50) {
   if (globalDiscovery) {
     await catalog.ready();
     const geometry=require("./discovery/geometry.cjs"),locationKey=geometry.locationKey(city,selection);
     let area=await catalog.findArea(locationKey);
+    if (!area && catalogArchive && selection)try{area=await catalogArchive.resolveArea(selection);if(area)area.catalogLocationKey=locationKey;}catch{onDiagnostics({archiveBoundaryWarning:"Registro de limites oficiais indisponível; consultando os mecanismos existentes."});}
     if (!area) {
       onProgress("Confirmando o limite completo da localidade…");
       const place=await locate(city,geocode=>onDiagnostics({geocode}),selection);
       area=geometry.area(place,selection||{});await catalog.saveArea(area,locationKey);
     } else onDiagnostics({geocode:{cacheHit:true,selected:locationSummary(area.place)}});
     let result;
-    try { result=await globalDiscovery.search(area,niche,{owner,onProgress,onRows:rows=>onDiagnostics({preliminaryRows:rows})}); }
+    try { result=await globalDiscovery.search(area,niche,{owner,desiredRows,onProgress,onRows:rows=>onDiagnostics({preliminaryRows:rows})}); }
     catch (error) {
       if (typeof error.code === "string" && error.code.startsWith("discovery_")) throw error;
       throw Object.assign(new Error("Catálogo geográfico indisponível. A falha não foi interpretada como ausência de empresas."),{code:"discovery_catalog_unavailable"});
@@ -1129,7 +1142,7 @@ async function run(job, city, niche, limit, selection = null) {
       else Object.assign(job.discoveryDiagnostics, update);
       if (update.place) job.place = update.place;
       if (update.geographicScope) job.geographicScope = update.geographicScope;
-    }, selection, job.ownerId);
+    }, selection, job.ownerId, limit);
     job.timings.discoveryMs = Date.now() - discoveryStarted;
 
     job.place = discovery.place;
@@ -1469,9 +1482,23 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       }
     }
 
+    if (request.method === "GET" && url.pathname === "/api/catalog/page") {
+      if(!catalogArchive)return json(response,503,{error:"Catálogo regional ainda não configurado neste ambiente."});
+      try {
+        const selection=await locations.resolveSelection({countryCode:url.searchParams.get("country"),stateCode:url.searchParams.get("state"),cityId:Number(url.searchParams.get("cityId"))});
+        const niche=url.searchParams.get("niche"),limit=Number(url.searchParams.get("limit")||50);
+        if(!Object.hasOwn(niches,niche)||!Number.isSafeInteger(limit)||limit<1||limit>250)return json(response,400,{error:"Segmento ou tamanho de página inválido."});
+        const area=await catalogArchive.resolveArea(selection);
+        if(!area)return json(response,409,{error:"Associação ao limite oficial pendente; use a busca interativa para confirmar esta localidade."});
+        const {cursor,decodeCursor}=require("./discovery/catalog-archive.cjs");
+        const paging=decodeCursor(url.searchParams.get("cursor"),area,niche);
+        const data=await catalogArchive.query(area,niche,limit,paging.after,paging.snapshot);
+        return json(response,200,{rows:require("./discovery/records.cjs").merge(data.rows),next:data.next?cursor(area,niche,data.next,data.snapshot):null,partial:true,scope:area.scope,sources:data.sources});
+      }catch(error){return json(response,error.status||503,{error:error.status?error.message:"Catálogo regional indisponível no momento; tente novamente."});}
+    }
     if (request.method === "GET" && url.pathname === "/api/discovery/capabilities") {
       return json(response,200,{engine:DISCOVERY_ENGINE,persistence:Boolean(catalog),sources:["OpenStreetMap / QLever","OpenStreetMap / Overpass","Geofabrik regional imports","Overture Places regional imports"],
-        limits:{maximumCatalogRecords:50000,maximumQueryRows:3000,maximumSources:3,totalDiscoveryMs:75000},licenses:["ODbL-1.0","CDLA-Permissive-2.0","Apache-2.0","CC0-1.0"]});
+        archiveConfigured:Boolean(catalogArchive),limits:{maximumMutableCatalogRecords:50000,maximumQueryRows:3000,maximumPageRows:250,archiveCacheBytes:512*1024*1024,maximumSources:3,totalDiscoveryMs:75000},licenses:["ODbL-1.0","CDLA-Permissive-2.0","Apache-2.0","CC0-1.0"]});
     }
     if (request.method === "GET" && url.pathname.startsWith("/api/discovery/tasks/")) {
       const id=url.pathname.slice("/api/discovery/tasks/".length);

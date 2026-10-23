@@ -1,0 +1,217 @@
+{
+  "country": "Afghanistan",
+  "countryCode": "AF",
+  "targetUnique": 10000,
+  "generatedAt": "2026-10-23T14:59:51.660Z",
+  "countryAreaKey": "8e558ac28b44d79f4895f4d0fece5877b74db943cab616d1d1a381f0d68dcb5b",
+  "geographicScope": "Country polygon, not a municipality or fixed city radius",
+  "countryRelation": 303427,
+  "baselineAfghanistan": 0,
+  "sourceRows": 4267,
+  "unique": {
+    "records": 2799,
+    "withPhone": 1035,
+    "withWebsite": 430,
+    "withAddress": 1110,
+    "withSourceCity": 1302,
+    "validLocation": 2799,
+    "activeNiches": 616
+  },
+  "targetMet": false,
+  "missingToTarget": 7201,
+  "invalidLocalityLabels": 74,
+  "sources": {
+    "geofabrik": {
+      "records": 1478,
+      "withPhone": 62,
+      "withWebsite": 26,
+      "withAddress": 117,
+      "withSourceCity": 116,
+      "validLocation": 1478,
+      "activeNiches": 303,
+      "rawCandidates": 4172,
+      "excluded": 2694,
+      "parser": {
+        "partial": false,
+        "records": 4172
+      },
+      "extract": {
+        "source": "Geofabrik OpenStreetMap regional country extract",
+        "url": "https://download.geofabrik.de/asia/afghanistan-261022.osm.pbf",
+        "bytes": 112605449,
+        "sha256": "e9bae529143c70655dc796e870e69c7be59549d9334c4493917d34333f954ef7",
+        "license": "ODbL-1.0",
+        "sourceLastModified": "Fri, 23 Oct 2026 03:21:09 GMT",
+        "elapsedMs": 6168,
+        "maximumReceivedBytes": 134217728
+      }
+    },
+    "qlever": {
+      "records": 1473,
+      "withPhone": 62,
+      "withWebsite": 26,
+      "withAddress": 118,
+      "withSourceCity": 117,
+      "validLocation": 1473,
+      "activeNiches": 298,
+      "priorScan": {
+        "source": "qlever",
+        "countryCode": "AF",
+        "countryRelation": 303427,
+        "targetUnique": 10000,
+        "startedAt": "2026-10-23T14:43:13.806Z",
+        "calls": 14,
+        "bytes": 2043837,
+        "maxBytes": 50331648,
+        "maxCalls": 50,
+        "candidates": 3711,
+        "truncated": false,
+        "finishedAt": "2026-10-23T14:43:29.372Z",
+        "acceptedSourceRows": 1474,
+        "unique": 1474,
+        "activeNicheUnique": 298,
+        "withPhone": 62,
+        "withWebsite": 26,
+        "withAddress": 118
+      },
+      "supersededOrExcluded": 1
+    },
+    "overture": {
+      "records": 1316,
+      "withPhone": 976,
+      "withWebsite": 405,
+      "withAddress": 992,
+      "withSourceCity": 1187,
+      "validLocation": 1316,
+      "activeNiches": 315,
+      "attempts": [
+        {
+          "file": "overture-country-raw.json",
+          "error": "overture_budget_or_source",
+          "reason": "BudgetError",
+          "detail": "deadline",
+          "httpStatus": null,
+          "retryAfter": null,
+          "rawRows": 0
+        },
+        {
+          "file": "overture-kabul-region-raw.json",
+          "release": "2026-10-21.0",
+          "truncated": false,
+          "metrics": {
+            "bytes": 4687721,
+            "requests": 38,
+            "files": 1,
+            "budgetBytes": 134217728,
+            "raw": 772,
+            "elapsedMs": 9348
+          },
+          "rawRows": 772
+        },
+        {
+          "file": "overture-country-cached-raw.json",
+          "error": "overture_budget_or_source",
+          "reason": "BudgetError",
+          "detail": "deadline",
+          "httpStatus": null,
+          "retryAfter": null,
+          "rawRows": 0
+        },
+        {
+          "file": "overture-country-resume-raw.json",
+          "release": "2026-10-21.0",
+          "truncated": false,
+          "metrics": {
+            "bytes": 21509474,
+            "requests": 289,
+            "files": 1,
+            "budgetBytes": 134217728,
+            "cacheHits": 361,
+            "raw": 1316,
+            "elapsedMs": 74940
+          },
+          "rawRows": 1316
+        }
+      ]
+    }
+  },
+  "checksPassed": 18,
+  "databaseVerification": {
+    "before": {
+      "total": "9687",
+      "af": "0",
+      "other_country_rows": "9687",
+      "other_country_identity_hash": "0092e5e957da600cfde04d3987cc2792"
+    },
+    "after": {
+      "total_source_rows": "13954",
+      "countries": "25",
+      "af_source_rows": "4267",
+      "other_country_rows": "9687",
+      "other_country_identity_hash": "0092e5e957da600cfde04d3987cc2792",
+      "af_identity_md5": "5ed1405bb1bd2d4a6632261be310ae2e",
+      "catalog_bytes": "30859264",
+      "database_bytes": "55140352",
+      "af_records": "4267",
+      "valid_locations": "4267",
+      "outside_country": "0",
+      "with_phone": "1100",
+      "with_website": "457",
+      "with_address": "1227",
+      "active_niche_source_rows": "916",
+      "invalid_provenance": "0"
+    },
+    "sourceIdentitySetMatches": true,
+    "otherCountryIdentitiesPreserved": true,
+    "productionHealth": {
+      "status": 200,
+      "ok": true
+    },
+    "verifiedAt": "2026-10-23T15:04:33.330Z"
+  },
+  "preparation": {
+    "sourceRows": 4267,
+    "unique": 2799,
+    "identityMd5": "5ed1405bb1bd2d4a6632261be310ae2e",
+    "countryAreas": 1,
+    "municipalAreasAdded": 0,
+    "existingAfghanistan": 0
+  },
+  "globalCatalogAfter": {
+    "sourceRecords": 13954,
+    "uniqueBusinessRecords": 12466,
+    "countries": 25,
+    "previousReviewedMunicipalities": 56,
+    "municipalitiesAdded": 0,
+    "countryAreasAdded": 1
+  },
+  "commercialCategorySelectors": 79,
+  "limitations": [
+    "Target 10000 was not reached; 2799 conservative unique public business/place records were obtained, not proof that the country has only 2799 businesses.",
+    "616 unique records match current selectable app niches. 2183 additional commercial-sector records are persisted for future filters and are not all exposed through current UI niches.",
+    "Country polygon validation does not verify each source-provided city or current operational status; missing or country-valued locality fields were not replaced with invented cities.",
+    "OSM extract full node/way pass, 4172 named POI candidates; relations retain QLever geometry where applicable. Commercial classifiers exclude named public institutions, vacant/disused places.",
+    "Overture 2026-10-21.0 returned 1316 candidates for the finite approved category selectors with no row truncation. Two earlier deadlines were errors, not empty-source evidence.",
+    "Conservative identity/phone/address/geographic deduplication may retain uncertain duplicate entities. Source observations are not legal company registration.",
+    "Public phones do not confirm WhatsApp. Missing website evidence remains insufficient_information. No messaging or mass website checks occurred.",
+    "Production application code, current UI categories, auth/private histories, Render settings and paid plans were unchanged. No continuous world scan or city-coverage completeness flag was enabled."
+  ],
+  "geofabrikDownloadNotes": {
+    "resumedAfterVerifiedBytes": 104857600,
+    "elapsedMsInDownloadMetadataIsLastResumeOnly": true,
+    "originalUnfilteredParser": {
+      "partial": true,
+      "reason": "time_budget",
+      "records": 1479
+    },
+    "onlyCompletePrefilteredParserUsedForImport": true
+  },
+  "overtureNetworkAccounting": {
+    "successfulAndInstrumentedFailedBodyBytes": 48430838,
+    "initialDeadlineChargedAtFullBudgetBytes": 100663296,
+    "totalConservativeBodyBytes": 149094134,
+    "rangeCacheDiskCapBytes": 201326592,
+    "operatorOnlyMaxDeadlineSeconds": 180,
+    "productionReaderDeadlineUnchanged": true
+  }
+}

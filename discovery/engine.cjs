@@ -2,15 +2,19 @@
 const records=require("./records.cjs"),geo=require("./geometry.cjs");
 function createEngine({store,providers,sources=["qlever","overpass"],maxRows=3000,totalMs=75000,clock=Date.now}) {
   const inflight=new Map();
-  async function search(area,niche,{onProgress=()=>{},onRows=()=>{},owner="operator",task:claimed}={}) {
+  async function search(area,niche,{onProgress=()=>{},onRows=()=>{},owner="operator",task:claimed,desiredRows=50}={}) {
     const key=area.key+":"+niche;
     if(inflight.has(key))return inflight.get(key);
     const promise=(async()=>{
       const started=clock(),existing=await store.query(area,niche,maxRows);
       let raw=existing.rows;onRows(records.merge(raw));
+      if(existing.archive && !claimed && raw.length>=desiredRows) {
+        const rows=records.merge(raw);
+        if(rows.length>=desiredRows)return {rows,partial:true,truncated:existing.truncated,sources:existing.sources||[],warning:"Catálogo regional reutilizado. Cobertura parcial; contatos publicados ainda precisam de verificação.",metrics:{raw:raw.length,unique:rows.length,withPhone:rows.filter(r=>r.phone).length,withWebsite:rows.filter(r=>r.website).length,withAddress:rows.filter(r=>r.address).length,validLocation:rows.length,elapsedMs:clock()-started,cacheHit:true,archive:true}};
+      }
       const coverage=await store.coverage(area,niche),traces=[];
       if(sources.every(source=>coverage.some(c=>c.source===source&&c.fresh))) {
-        const partial=existing.truncated||coverage.some(c=>sources.includes(c.source)&&!c.complete);
+        const partial=Boolean(existing.archiveUnavailable)||existing.truncated||coverage.some(c=>sources.includes(c.source)&&!c.complete);
         const rows=records.merge(raw);
         if(!rows.length&&partial){
           if(claimed)await store.finish(claimed,{retry:true,errorCode:"source_unavailable"});
@@ -24,7 +28,7 @@ function createEngine({store,providers,sources=["qlever","overpass"],maxRows=300
         if(!raw.length)throw Object.assign(new Error("A atualização está em execução ou aguardando retomada; não há dados locais suficientes ainda."),{code:"discovery_refresh_pending"});
         return {rows:records.merge(raw),truncated:existing.truncated,partial:true,sources:[],warning:"Atualização já está em execução ou em espera; dados locais disponíveis foram preservados.",taskId:queued?.id};
       }
-      let errors=0,success=0,partial=existing.truncated,checkpoint=task.checkpoint||{};
+      let errors=0,success=0,partial=Boolean(existing.archiveUnavailable)||existing.truncated,checkpoint=task.checkpoint||{};
       try {
         for(const source of sources) {
           const previous=coverage.find(c=>c.source===source);
