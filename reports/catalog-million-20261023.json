@@ -1,0 +1,138 @@
+{
+  "generatedAt": "2026-10-23T15:54:59Z",
+  "target": 1000000,
+  "targetMet": true,
+  "metrics": {
+    "records": 1000000,
+    "source_ids": 1000000,
+    "with_phone": 960387,
+    "with_website": 913182,
+    "with_address": 993575,
+    "with_city": 998304,
+    "active_niches": 443932,
+    "profile_only_websites": 10803
+  },
+  "licensedCandidates": 1454062,
+  "normalizedStagingCandidates": 1100000,
+  "deduplicationProcessed": 1001551,
+  "duplicatesRemoved": 1551,
+  "countries": [
+    {
+      "countryCode": "US",
+      "records": 885399,
+      "withPhone": 848902,
+      "withWebsite": 806095
+    },
+    {
+      "countryCode": "CA",
+      "records": 114600,
+      "withPhone": 111484,
+      "withWebsite": 107086
+    },
+    {
+      "countryCode": "RU",
+      "records": 1,
+      "withPhone": 1,
+      "withWebsite": 1
+    }
+  ],
+  "invalidRecords": 0,
+  "source": {
+    "source": "Overture Maps Foundation",
+    "release": "2026-10-21.0",
+    "assetId": "00002",
+    "assetBounds": [
+      -179.81707763671875,
+      34.77007293701172,
+      -87.93789672851562,
+      81.75200653076172
+    ],
+    "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00002-6f03d044-7fc3-539e-842b-7b15c796e629-c000.zstd.parquet",
+    "bytes": 814700009,
+    "sha256": "46e3b2d3160e189290d0a5d02075e6b5681c54d4efbc8141f21db4a381e5c219",
+    "receivedThisRun": 814700009,
+    "elapsedMs": 14646,
+    "maxNetworkBytes": 943718400,
+    "maxSeconds": 900,
+    "concurrency": 2
+  },
+  "boundarySource": {
+    "name": "Natural Earth 1:10m countries",
+    "license": "Public domain",
+    "url": "https://github.com/nvkelso/natural-earth-vector",
+    "scope": "Generalized country polygons; not authoritative municipal boundaries"
+  },
+  "output": {
+    "file": "prospect-businesses.parquet",
+    "bytes": 137403018,
+    "sha256": "f0d691f744c9cc55b5ed7213b6f8758061ddc694334ca879406119804f520314"
+  },
+  "elapsedMs": 106588,
+  "resumedFinalization": true,
+  "timingScope": "elapsedMs covers this invocation; earlier preprocessing checkpoints are retained",
+  "productionImported": 0,
+  "productionChanged": false,
+  "budgets": {
+    "inputBytes": 943718400,
+    "stagingCandidates": 1100000,
+    "targetRecords": 1000000,
+    "operatorSeconds": 1800,
+    "duckdbMemory": "768MB",
+    "spill": "3GB",
+    "diskTask": "8GB"
+  },
+  "limitations": [
+    "Finite regional partition, not a global or country census.",
+    "Source-country plus generalized Natural Earth polygon checks can omit coastal/border records; no city polygon was inferred.",
+    "Conservative duplicate rules may retain uncertain duplicates.",
+    "Public phones and websites are source claims; no WhatsApp or current operation verification.",
+    "Only catalog_scope=active_niche matches current app niches.",
+    "Offline staging only: zero records imported into the capacity-limited production database."
+  ],
+  "validation": {
+    "collectorTestsPassed": 16,
+    "queryTestsPassed": 9,
+    "realCatalogQuery": {
+      "country": "US",
+      "sourceCity": "Denver",
+      "niche": "Pizzarias",
+      "withPublicPhone": true,
+      "returned": 3
+    },
+    "csvFormulaProtectionRegressionPassed": true,
+    "copyPathParameterRegressionPassed": true,
+    "countryPolygonsAndSourceCountryCheckedForEveryOutputRow": true
+  },
+  "productionCatalog": {
+    "beforeSourceRecords": 13954,
+    "afterSourceRecords": 13954,
+    "recordsAndIndexesBytesBefore": 30859264,
+    "recordsAndIndexesBytesAfter": 30859264,
+    "databaseBytesBefore": 55140352,
+    "databaseBytesAfter": 55140352,
+    "importedFromMillion": 0
+  },
+  "upstreamPartitionRows": 5524225,
+  "initialNamedCommercialCandidates": 1630401,
+  "activeNicheRecords": 443932,
+  "additionalCommercialSectorRecords": 556068,
+  "websiteIdentifiedRecords": 902379,
+  "sourceProfileOnlyWebsites": 10803,
+  "boundaryManifestFile": "license-boundary-manifest.json",
+  "licensingNotes": [
+    "All source rows require approved per-source CDLA-Permissive-2.0 / Apache-2.0 / CC0-1.0 licenses; original providers, licenses and source record IDs are retained.",
+    "Overture-signals operating-status metadata is published by Overture with explicit CDLA-Permissive-2.0; this offline collector supports it. Current production normalizer does not yet admit that dataset name.",
+    "Full publisher attribution and license texts are included in the package, not just URLs."
+  ],
+  "executionNotes": [
+    "The first final COPY failed due to DuckDB COPY destination/input parameter binding. A completed million-ID checkpoint was retained, the writer was fixed and its I/O regression test passed; finalization resumed without repeating the scan.",
+    "elapsedMs covers finalization invocation only. Initial filtering/normalization/dedup ran separately; total end-to-end duration was not instrumented.",
+    "These counts are not added to the existing production total; the offline dataset may overlap prior source records and requires integration/deduplication before deployment."
+  ],
+  "exportVerification": {
+    "rows": 1000000,
+    "ids": 1000000,
+    "with_phone": 960387,
+    "unsafe_formula_cells": 0
+  }
+}
