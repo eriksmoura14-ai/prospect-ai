@@ -17,7 +17,8 @@ const resultCards = new Map();
 const fields = [
   "name", "category", "city", "address", "phone", "website",
   "status", "confidence", "prospectScore", "latitude", "longitude",
-  "osmId", "source", "phoneSource", "phoneVerification", "sitePhone",
+  "osmId", "source", "countryCode", "phoneSource", "phoneVerification", "phoneFormat", "sitePhone",
+  "whatsappNumber", "whatsappStatus", "whatsappSource",
   "websiteSource", "websiteVerification", "websiteCheckedAt"
 ];
 
@@ -115,10 +116,12 @@ function visibleRows() {
       (filter === "uncertain" && websiteUnconfirmed(row));
     const phoneOK = phoneFilter === "all" ||
       (phoneFilter === "yes" && Boolean(row.phone)) ||
-      (phoneFilter === "no" && !row.phone);
+      (phoneFilter === "no" && !row.phone) ||
+      (phoneFilter === "whatsapp" && row.whatsappStatus === "listed" && row.phoneVerification !== "conflict" &&
+        /^https:\/\/wa\.me\/[1-9]\d{6,14}$/.test(row.whatsappUrl || ""));
     const query = ProspectOpportunities.normalize($("result-search").value.trim());
     const queryOK = !query || ProspectOpportunities.normalize([row.name, row.city, row.address, row.category].join(" ")).includes(query);
-    const contactOK = !$("safe-contact").checked || (Boolean(row.phone) && row.phoneVerification !== "conflict");
+    const contactOK = !$("safe-contact").checked || (row.phoneFormat === "valid" && row.phoneVerification !== "conflict");
     return statusOK && phoneOK && queryOK && contactOK;
   }).sort((a, b) => {
     if (sort === "name") return a.name.localeCompare(b.name, "pt-BR");
@@ -143,8 +146,9 @@ function makeCard(row) {
   const businessStatus = node("div", "business-status");
   const websiteStatus = node("span", `website-status ${state.className}`, state.label);
   websiteStatus.prepend(uiIcon("globe"));
-  const contactStatus = node("span", "contact-status" + (row.phoneVerification === "conflict" ? " warning" : row.whatsappStatus === "listed" ? "" : " unconfirmed"),
+  const contactStatus = node("span", "contact-status" + (row.phoneVerification === "conflict" || row.phoneFormat === "needs_review" ? " warning" : row.whatsappStatus === "listed" ? "" : " unconfirmed"),
     row.phoneVerification === "conflict" ? "Contato a revisar"
+      : row.phoneFormat === "needs_review" ? "Formato a revisar"
       : row.whatsappStatus === "listed" ? "WhatsApp informado"
         : row.phone ? "Telefone publicado" : "Telefone não informado");
   contactStatus.prepend(uiIcon("phone"));

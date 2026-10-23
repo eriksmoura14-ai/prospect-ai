@@ -300,6 +300,17 @@ test("nomes distintos de alfabetos não latinos não são deduplicados pela prox
   const h=harness({locations:{[city]:[place(city,99,[35.5,35.9,139.5,139.9])]},answers:[items]});
   assert.equal((await h.discover(city,"Barber")).rows.length,2);
 });
+test("cadastros duplicados preservam o site próprio e a origem do WhatsApp adicional",async()=>{
+  const city="São Paulo",p={...place(city,99,[-24,-23,-47,-46]),address:{country_code:"br"}};
+  const common={name:"Central Barber",shop:"barber","addr:city":city,"addr:street":"Rua Central","addr:housenumber":"10"};
+  const items=[{type:"node",id:100,lat:-23.5,lon:-46.5,tags:{...common,website:"https://instagram.com/fixture"}},
+    {type:"node",id:101,lat:-23.50001,lon:-46.5,tags:{...common,"contact:website":"https://fixture.example/","contact:whatsapp":"https://wa.me/5511991234567"}}];
+  const h=harness({locations:{[city]:[p]},answers:[items]});const result=await h.discover(city,"Barber");
+  assert.equal(result.rows.length,1);
+  const row=result.rows[0];assert.equal(row.website,"https://fixture.example/");
+  assert.equal(row.websiteSource,"OpenStreetMap · contact:website");
+  assert.equal(row.whatsappPhone,"+5511991234567");assert.equal(row.whatsappSource,"OpenStreetMap · contact:whatsapp");
+});
 
 test("telefone de central compartilhado não mistura filiais com endereços diferentes",async()=>{
   const city="New York",items=[1,2].map(id=>({type:"node",id,lat:40.7+id*0.0001,lon:-74,

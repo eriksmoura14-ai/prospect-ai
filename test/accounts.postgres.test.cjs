@@ -295,6 +295,20 @@ test("contas e isolamento com PostgreSQL real", { skip: !process.env.TEST_DATABA
       assert.equal((await bob.call("GET",`/api/lists/${listA.id}/companies`)).status,404);
       await store.deleteCompany(userA.id,listA.id,saved.item.id);
     });
+    await t.test("WhatsApp publicado conserva destino e origem cifrada ao reabrir a lista",async()=>{
+      const source=require("../contacts.cjs").sourceData({"contact:whatsapp":"https://wa.me/5534998883900"});
+      const company={...source,osmId:"node/published-whatsapp",name:"Contato fictício",countryCode:"BR",phoneFormat:"needs_review"};
+      const saved=await store.saveCompany(userA.id,listA.id,company);
+      const result=await alice.call("GET",`/api/lists/${listA.id}/companies`);
+      const restored=result.data.find(item=>item.id===saved.item.id).company;
+      assert.equal(restored.whatsappSource,"OpenStreetMap · contact:whatsapp");
+      assert.equal(restored.whatsappNumber,"+5534998883900");assert.equal(restored.whatsappStatus,"listed");
+      assert.equal(restored.phoneFormat,"valid");assert.equal(restored.whatsappUrl,"https://wa.me/5534998883900");
+      const raw=(await sql.query("SELECT company_encrypted FROM prospect_list_companies WHERE id=$1",[saved.item.id])).rows[0];
+      for(const text of [source.phone,source.whatsappSource])assert.ok(!JSON.stringify(raw).includes(text));
+      assert.equal((await bob.call("GET",`/api/lists/${listA.id}/companies`)).status,404);
+      await store.deleteCompany(userA.id,listA.id,saved.item.id);
+    });
     await t.test("notas e status persistem cifrados e não são sobrescritos ao favoritar novamente",async()=>{
       const value={note:"Retornar na sexta-feira\n<script>texto privado</script>",status:"interested"};
       const update=await alice.call("PATCH",`/api/lists/${listA.id}/companies/${savedA.id}`,value);

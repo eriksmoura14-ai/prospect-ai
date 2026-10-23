@@ -473,9 +473,15 @@ function deduplicate(rows) {
       continue;
     }
 
-    for (const key of [
-      "phone", "phoneSource", "mobilePhone", "whatsappPhone", "address", "website", "websiteSource", "street", "houseNumber"
-    ]) {
+    if (!previous.whatsappPhone && row.whatsappPhone) {
+      previous.whatsappPhone = row.whatsappPhone;
+      previous.whatsappSource = row.whatsappSource || "";
+    }
+    if (row.website && (!previous.website || (websiteEvidence.isProfile(previous.website) && !websiteEvidence.isProfile(row.website)))) {
+      previous.website = row.website;
+      previous.websiteSource = row.websiteSource || "";
+    }
+    for (const key of ["phone", "phoneSource", "mobilePhone", "address", "street", "houseNumber"]) {
       if (!previous[key] && row[key]) previous[key] = row[key];
     }
 
@@ -500,7 +506,7 @@ function deduplicate(rows) {
 
 async function discover(city, niche, onProgress = () => {}, onDiagnostics = () => {}, selection = null) {
   const constraint = selection ? `${selection.countryCode}:${selection.stateCode}:${normalizeLocation(selection.stateName)}` : "legacy";
-  const key = `discovery:v14:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
+  const key = `discovery:v15:${BUSINESS_PROVIDER}:${LOCATIONIQ_KEY ? "locationiq" : "nominatim"}:${constraint}:${normalizeLocation(city)}:${niche}`;
   const hit = cached(key);
   if (hit) {
     onDiagnostics({ cacheHit: true, place: hit.place, geographicScope: hit.geographicScope,
@@ -968,7 +974,7 @@ function analyze(page, business) {
 }
 
 async function verify(business) {
-  const key = "verify:v5:" + createHash("sha256").update(JSON.stringify([
+  const key = "verify:v6:" + createHash("sha256").update(JSON.stringify([
     business.osmId, business.name, business.city, business.countryCode,
     business.phone, business.address, business.website, business.mobilePhone, business.whatsappPhone
   ])).digest("hex");
@@ -982,14 +988,14 @@ async function verify(business) {
   const listed = Boolean(business.website);
   if (listed && websiteEvidence.isProfile(business.website)) {
     const row = {...business, status:"WEBSITE_LISTED", confidence:0.4, websiteVerification:"profile",
-      reason:"Perfil ou diretório informado na fonte; site próprio da empresa não confirmado."};
+      reason:"Perfil, diretório ou plataforma informado na fonte; site próprio da empresa não confirmado."};
     row.prospectScore = prospectScore(row);
     return row;
   }
   const domains = listed ? [business.website] : candidates(business.name, business.city, business.countryCode);
   const deadline = Date.now() + (listed ? 12000 : 25000);
   const evidence = [];
-  let checked = 0, found = null, phoneData = {}, incomplete = false;
+  let checked = 0, found = null, profile = "", phoneData = {}, incomplete = false;
   for (const domain of domains) {
     if (Date.now() >= deadline) {
       incomplete = true;
@@ -1022,6 +1028,13 @@ async function verify(business) {
         break;
       }
     } catch (error) {
+      // A source URL may point to a profile. A guessed domain's redirect does
+      // not establish that profile's identity, so never adopt it as a contact.
+      if (listed && error.code === "WEBSITE_PROFILE" && websiteEvidence.isProfile(error.profileUrl)) {
+        profile = error.profileUrl;
+        evidence.push({domain, finalUrl:profile, reason:error.message});
+        break;
+      }
       incomplete = true;
       evidence.push({domain, error:String(error.message).slice(0,300)});
     }
@@ -1029,14 +1042,15 @@ async function verify(business) {
   const checkedAt = new Date().toISOString();
   const result = {
     ...phoneData,
-    website: found || business.website || "",
+    website: found || profile || business.website || "",
     websiteSource: business.websiteSource || (found ? "Página pública com identidade compatível" : ""),
-    websiteVerification: found ? "compatible" : listed ? "inconclusive" : "not_identified",
+    websiteVerification: found ? "compatible" : profile ? "profile" : listed ? "inconclusive" : "not_identified",
     websiteCheckedAt: checkedAt,
     status: found ? "WEBSITE_FOUND" : listed ? "WEBSITE_LISTED" : "UNCERTAIN",
     confidence: found ? 0.95 : listed ? 0.4 : 0,
     reason: found
       ? "Nome, cidade e telefone ou endereço compatíveis na página pública. Isso não comprova propriedade nem atualização do cadastro."
+      : profile ? "O endereço informado na fonte redirecionou para um perfil ou plataforma; site próprio não confirmado."
       : listed
         ? "Site informado na fonte, mas sua identidade ou disponibilidade não foi confirmada. Revise manualmente."
         : "Nenhum site identificado nesta verificação limitada. Os domínios sugeridos não cobrem todos os sites possíveis; ausência não comprovada.",

@@ -170,3 +170,49 @@ test("número que coincide com o site tem prioridade sobre outro telefone da fon
   assert.equal(contacts.details({...row,whatsappPhone:"+5511998765432"}).whatsappUrl,"https://wa.me/5511998765432");
   assert.equal(contacts.details(row).phone,row.phone);
 });
+
+test("fontes com URIs tel e vários telefones mantêm cada número e o ramal", () => {
+  for (const [country, first, second, expected] of [
+    ["GB", "tel:+442079460958", "+44 7911 123456", ["+442079460958", "+447911123456"]],
+    ["IT", "tel:+390236618300", "+39 333 1234567", ["+390236618300", "+393331234567"]],
+    ["BR", "tel:+553432249090;ext=123", "+55 34 99888-3900", ["+553432249090", "+5534998883900"]]
+  ]) {
+    const source = contacts.sourceData({phone:first,"contact:phone":second});
+    assert.deepEqual(contacts.numbers(source.phone,country),expected);
+    assert.equal(contacts.details({...source,countryCode:country}).phoneFormat,"valid");
+  }
+  const row = contacts.details({phone:"tel:+553432249090;ext=123; +55 34 99888-3900",countryCode:"BR"});
+  assert.equal(row.whatsappNumber,"+5534998883900");
+  assert.equal(contacts.details({phone:"tel:+5511991234567;ext=123",countryCode:"BR"}).whatsappUrl,"");
+});
+
+test("URL de WhatsApp em campo de telefone não engole outro contato nem interpreta o texto da mensagem", () => {
+  const source = contacts.sourceData({phone:"https://wa.me/5511991234567?text=Oi%3B%20%2B442079460958","contact:phone":"+551134567890"});
+  assert.deepEqual(contacts.numbers(source.phone,"BR"),["+5511991234567","+551134567890"]);
+  const row=contacts.details({...source,countryCode:"BR"});
+  assert.equal(row.whatsappStatus,"listed");assert.equal(row.whatsappSource,"OpenStreetMap · phone");
+  assert.deepEqual(contacts.numbers("https://wa.me/5511991234567?text=Oi; +442079460958","BR"),["+5511991234567"]);
+});
+
+test("site próprio informado em outro campo tem prioridade sobre perfil ou plataforma", () => {
+  for(const profile of ["https://instagram.com/fixture","https://www.ifood.com.br/delivery/fixture","https://api.whatsapp.com/send?phone=553432249090"]) {
+    const source=contacts.sourceData({website:profile,"contact:website":"https://fixture.example/"});
+    assert.equal(source.website,"https://fixture.example/");
+    assert.equal(source.websiteSource,"OpenStreetMap · contact:website");
+    assert.equal(contacts.sourceData({website:profile}).website,profile);
+  }
+  const source=contacts.sourceData({website:"https://instagram.com/fixture"},{website:"https://fixture.example/"});
+  assert.equal(source.website,"https://fixture.example/");
+  assert.equal(source.websiteSource,"Geoapify · website");
+});
+
+test("formato de telefone é recalculado e não equivale a WhatsApp confirmado", () => {
+  assert.equal(contacts.details({phone:"123",countryCode:"BR",phoneFormat:"valid"}).phoneFormat,"needs_review");
+  assert.equal(contacts.details({phone:"",countryCode:"BR"}).phoneFormat,"not_listed");
+  const row=contacts.details({phone:"+5534998883900",countryCode:"BR"});
+  assert.equal(row.phoneFormat,"valid");assert.equal(row.whatsappStatus,"unverified");
+  assert.equal(row.whatsappNumber,row.phone);
+  const source=contacts.sourceData({"contact:whatsapp":"https://wa.me/5534998883900"});
+  assert.equal(source.whatsappSource,"OpenStreetMap · contact:whatsapp");
+  assert.equal(snapshot({...source,countryCode:"BR",osmId:"node/1"}).whatsappSource,source.whatsappSource);
+});

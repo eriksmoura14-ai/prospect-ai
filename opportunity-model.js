@@ -12,7 +12,7 @@
     const missing = !usableSite && (row.websiteVerification === "not_identified" || row.status === "LIKELY_NO_WEBSITE");
     const compatible = usableSite && row.websiteVerification === "compatible";
     const conflict = row.phoneVerification === "conflict";
-    const contact = Boolean(String(row.phone || "").trim()) && !conflict;
+    const contact = Boolean(String(row.phone || "").trim()) && row.phoneFormat !== "needs_review" && !conflict;
     let title, evidence, question;
     if (selected === "website") {
       title = missing ? "Vale investigar a presença digital" : compatible ? "Explore a experiência no site" : "Confirme a presença digital";
