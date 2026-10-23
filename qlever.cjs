@@ -44,9 +44,9 @@ function geographicPattern(place, region) {
     FILTER(geof:sfIntersects(?searchGeometry, ${literal(wkt)}^^geo:wktLiteral))`;
 }
 
-function buildQuery(place, config, mode = "categories") {
+function buildQuery(place, config, mode = "categories", geometryOnly = false) {
   const region = regionURI(place);
-  const geography = geographicPattern(place, region);
+  const geography = geographicPattern(geometryOnly ? {...place,osm_type:"node"} : place, region);
   // UNION branches are planned independently by QLever. Pin the locality
   // inside every branch so name/cuisine filters cannot scan the planet first.
   const scoped = pattern => `{ ${geography} ${pattern} }`;
@@ -75,7 +75,7 @@ PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
 SELECT DISTINCT ?region ?poi ?name WHERE {
  VALUES ?region { <${region}> }
- ?region ${predicate("name")} ?regionName .
+ ${geometryOnly ? `BIND(${literal(place.name || "selected area")} AS ?regionName)` : `?region ${predicate("name")} ?regionName .`}
  OPTIONAL {
     ${geography}
     ?poi ${predicate("name")} ?name .
@@ -100,9 +100,15 @@ SELECT ?poi ${TAGS.map((_, i) => `?field${i}`).join(" ")} ?wkt WHERE {
 }`;
 }
 
-function point(wkt) {
+function point(wkt, centers = false) {
   const match = /^POINT\s*\(\s*([-+\d.eE]+)\s+([-+\d.eE]+)\s*\)$/i.exec(wkt || "");
-  if (!match) return {};
+  if (!match) {
+    if (!centers || typeof wkt!=="string" || wkt.length>2*1024*1024 || !/^(POLYGON|MULTIPOLYGON|LINESTRING|MULTILINESTRING)\s*\(/i.test(wkt)) return {};
+    const pairs=[...wkt.matchAll(/(?:\(|,)\s*([-+\d.eE]+)\s+([-+\d.eE]+)\s*(?=[,)])/g)].map(m=>[Number(m[1]),Number(m[2])]);
+    if (!pairs.length || pairs.length>50000 || pairs.some(([x,y])=>!Number.isFinite(x)||!Number.isFinite(y)||Math.abs(x)>180||Math.abs(y)>90)) return {};
+    return {lon:(Math.min(...pairs.map(p=>p[0]))+Math.max(...pairs.map(p=>p[0])))/2,
+      lat:(Math.min(...pairs.map(p=>p[1]))+Math.max(...pairs.map(p=>p[1])))/2,locationMethod:"geometry_bbox_center"};
+  }
   const lon = Number(match[1]), lat = Number(match[2]);
   return Number.isFinite(lon) && Number.isFinite(lat) && Math.abs(lon) <= 180 && Math.abs(lat) <= 90 ? { lat, lon } : {};
 }
@@ -134,7 +140,7 @@ function extract(data, place) {
     warning: truncated ? `Amostra limitada aos primeiros ${MAX_BUSINESSES} registros da fonte; podem existir outras empresas.` : "" };
 }
 
-function enrich(elements, data) {
+function enrich(elements, data, centers = false) {
   if (data?.exception || data?.status === "ERROR" || !Array.isArray(data?.results?.bindings)) {
     throw failure("qlever_invalid_response", "A fonte QLever retornou detalhes inválidos ou incompletos.");
   }
@@ -150,7 +156,7 @@ function enrich(elements, data) {
       const value = row[`field${i}`];
       if (value?.type === "literal" || ["brand:wikidata", "operator:wikidata"].includes(field) && value?.type === "uri") element.tags[field] = value.value;
     }
-    Object.assign(element, point(row.wkt?.value));
+    Object.assign(element, point(row.wkt?.value, centers));
   }
   if (seen.size !== records.size) throw failure("qlever_invalid_response", "Os detalhes de algumas empresas não foram retornados. A pesquisa não foi apresentada como completa.");
   return elements;
@@ -173,9 +179,9 @@ async function request(query, { fetchImpl, userAgent, onTrace, purpose, deadline
     phase = "reading_response";
     if (!response.ok) {
       await response.body?.cancel();
-      throw failure(`qlever_http_${response.status}`, response.status === 429
+      throw Object.assign(failure(`qlever_http_${response.status}`, response.status === 429
         ? "A fonte QLever atingiu seu limite de consultas. Aguarde antes de tentar novamente."
-        : "A fonte QLever está indisponível temporariamente. Tente novamente mais tarde.");
+        : "A fonte QLever está indisponível temporariamente. Tente novamente mais tarde."), {httpStatus:response.status,retryAfter:response.headers.get("retry-after")});
     }
     const reader = response.body.getReader();
     const chunks = [];
@@ -203,14 +209,14 @@ async function request(query, { fetchImpl, userAgent, onTrace, purpose, deadline
   } finally { onTrace({ endpoint: ENDPOINT, purpose, phase, outcome, httpStatus, bytes, elapsedMs: Date.now() - started }); }
 }
 
-async function discover(place, config, { fetchImpl = fetch, userAgent = "ProspectAI/0.7", onTrace = () => {} } = {}) {
-  const options = {fetchImpl, userAgent, onTrace, deadline:Date.now() + 45000};
-  const result = extract(await request(buildQuery(place, config), {...options, purpose:"candidates"}), place);
+async function discover(place, config, { fetchImpl = fetch, userAgent = "ProspectAI/0.7", onTrace = () => {}, geometryOnly = false, timeoutMs = 45000 } = {}) {
+  const options = {fetchImpl, userAgent, onTrace, deadline:Date.now() + Math.min(timeoutMs,45000)};
+  const result = extract(await request(buildQuery(place, config, "categories", geometryOnly), {...options, purpose:"candidates"}), place);
   if (!result.elements.length && config.terms.length) {
-    Object.assign(result, extract(await request(buildQuery(place, config, "names"), {...options, purpose:"names"}), place));
+    Object.assign(result, extract(await request(buildQuery(place, config, "names", geometryOnly), {...options, purpose:"names"}), place));
   }
   if (result.elements.length) enrich(result.elements,
-    await request(buildDetailsQuery(result.elements), {...options, purpose:"details"}));
+    await request(buildDetailsQuery(result.elements), {...options, purpose:"details"}), geometryOnly);
   return result;
 }
 

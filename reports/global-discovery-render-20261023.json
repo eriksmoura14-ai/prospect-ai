@@ -1,0 +1,1311 @@
+{
+  "date": "2026-10-23",
+  "implementationCommit": "35f7c90a5ae2f2bffc45c245b1e9d1a9559f5733",
+  "productionModified": false,
+  "environment": {
+    "renderServiceId": "srv-dbdi4fbncjis73a9kes0",
+    "renderDeployId": "dep-dbdiad1srm7s73brm9r0",
+    "renderURL": "https://prospect-global-staging-20261023.onrender.com",
+    "renderPlan": "free",
+    "autoDeploy": false,
+    "neonProjectId": "sweet-paper-26363335",
+    "neonBranchId": "br-dry-star-b7f4rk2l",
+    "catalogDatabase": "prospect_staging_catalog_v2",
+    "neonOrganizationPlan": "free",
+    "neonMaxCU": 0.25,
+    "postgres": 17,
+    "postgis": "3.5.7",
+    "catalogInitialRecords": 0,
+    "catalogFinalSourceRecords": 2822,
+    "catalogFinalBytes": 23855104,
+    "privateProductionDataCopied": false,
+    "authentication": "Separate temporary Basic protection; production password accounts untouched; no email keys copied"
+  },
+  "finalRenderRun": {
+    "scope": "Real staging Render API to isolated Neon/PostGIS; no production writes or mail; published contacts are not verified WhatsApp accounts",
+    "origin": "https://prospect-global-staging-20261023.onrender.com",
+    "implementationCommit": "35f7c90a5ae2f2bffc45c245b1e9d1a9559f5733",
+    "samples": [
+      {
+        "city": "Berlin",
+        "country": "DE",
+        "state": "BE",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cobertura parcial: uma fonte, limite de recursos ou verificação de localização impediu confirmar a consulta completa. Resultados disponíveis foram preservados.",
+        "errorCode": null,
+        "totalDiscovered": 473,
+        "metrics": {
+          "raw": 473,
+          "unique": 473,
+          "withPhone": 220,
+          "withWebsite": 258,
+          "withAddress": 347,
+          "validLocation": 473,
+          "elapsedMs": 76413,
+          "sourceErrors": 1
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 104490,
+            "elapsedMs": 15248
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 239279,
+            "elapsedMs": 1415
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 500,
+            "count": 473,
+            "elapsedMs": 21008,
+            "metrics": {
+              "raw": 500,
+              "valid": 473,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "source_timeout",
+            "elapsedMs": 53948
+          }
+        ],
+        "partial": true,
+        "place": "Berlin, Germany",
+        "timings": {
+          "discoveryMs": 77604,
+          "verificationMs": 9836,
+          "totalMs": 87440
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 7,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 91599
+      },
+      {
+        "city": "Monschau",
+        "country": "DE",
+        "state": "NW",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cadastros das fontes consultadas; ausência de registro não comprova ausência de empresa.",
+        "errorCode": null,
+        "totalDiscovered": 82,
+        "metrics": {
+          "raw": 87,
+          "unique": 82,
+          "withPhone": 64,
+          "withWebsite": 55,
+          "withAddress": 68,
+          "validLocation": 82,
+          "elapsedMs": 29869,
+          "sourceErrors": 0
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 10422,
+            "elapsedMs": 4573
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 27704,
+            "elapsedMs": 434
+          },
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "raw": 49,
+            "count": 39,
+            "elapsedMs": 5771,
+            "metrics": {
+              "raw": 49,
+              "valid": 39,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "success",
+            "raw": 64,
+            "count": 48,
+            "elapsedMs": 23584,
+            "metrics": {
+              "bytes": 5962069,
+              "requests": 74,
+              "files": 1,
+              "budgetBytes": 33554432,
+              "raw": 64,
+              "elapsedMs": 21094,
+              "rejectedInsideArea": 0
+            }
+          }
+        ],
+        "partial": false,
+        "place": "Monschau, Aachen (district), North Rhine-Westphalia, 52156, Germany",
+        "timings": {
+          "discoveryMs": 30261,
+          "verificationMs": 7249,
+          "totalMs": 37510
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 8,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 37767
+      },
+      {
+        "city": "Cochem",
+        "country": "DE",
+        "state": "RP",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cadastros das fontes consultadas; ausência de registro não comprova ausência de empresa.",
+        "errorCode": null,
+        "totalDiscovered": 95,
+        "metrics": {
+          "raw": 97,
+          "unique": 95,
+          "withPhone": 73,
+          "withWebsite": 60,
+          "withAddress": 80,
+          "validLocation": 95,
+          "elapsedMs": 21643,
+          "sourceErrors": 0
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 15456,
+            "elapsedMs": 2374
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 37110,
+            "elapsedMs": 475
+          },
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "raw": 71,
+            "count": 52,
+            "elapsedMs": 3625,
+            "metrics": {
+              "raw": 71,
+              "valid": 52,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "success",
+            "raw": 60,
+            "count": 45,
+            "elapsedMs": 17496,
+            "metrics": {
+              "bytes": 4117350,
+              "requests": 38,
+              "files": 1,
+              "budgetBytes": 33554432,
+              "raw": 60,
+              "elapsedMs": 14592,
+              "rejectedInsideArea": 0
+            }
+          }
+        ],
+        "partial": false,
+        "place": "Cochem, Landkreis Cochem-Zell, Rhineland-Palatinate, Germany",
+        "timings": {
+          "discoveryMs": 22014,
+          "verificationMs": 10832,
+          "totalMs": 32846
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 8,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 33144
+      },
+      {
+        "city": "Uberlândia",
+        "country": "BR",
+        "state": "MG",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cobertura parcial: uma fonte, limite de recursos ou verificação de localização impediu confirmar a consulta completa. Resultados disponíveis foram preservados.",
+        "errorCode": null,
+        "totalDiscovered": 1149,
+        "metrics": {
+          "raw": 1151,
+          "unique": 1149,
+          "withPhone": 894,
+          "withWebsite": 476,
+          "withAddress": 993,
+          "validLocation": 1149,
+          "elapsedMs": 53299,
+          "sourceErrors": 0
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 39694,
+            "elapsedMs": 1033
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 69762,
+            "elapsedMs": 822
+          },
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "raw": 186,
+            "count": 175,
+            "elapsedMs": 4205,
+            "metrics": {
+              "raw": 186,
+              "valid": 175,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "partial",
+            "raw": 1001,
+            "count": 976,
+            "elapsedMs": 44667,
+            "metrics": {
+              "bytes": 9265666,
+              "requests": 110,
+              "files": 1,
+              "budgetBytes": 33554432,
+              "raw": 1001,
+              "elapsedMs": 29698,
+              "rejectedInsideArea": 0
+            }
+          }
+        ],
+        "partial": true,
+        "place": "Uberlândia, Minas Gerais, Southeast Region, Brazil",
+        "timings": {
+          "discoveryMs": 54151,
+          "verificationMs": 9195,
+          "totalMs": 63349
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 2,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 66580
+      },
+      {
+        "city": "Monte Carmelo",
+        "country": "BR",
+        "state": "MG",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cadastros das fontes consultadas; ausência de registro não comprova ausência de empresa.",
+        "errorCode": null,
+        "totalDiscovered": 57,
+        "metrics": {
+          "raw": 57,
+          "unique": 57,
+          "withPhone": 42,
+          "withWebsite": 18,
+          "withAddress": 47,
+          "validLocation": 57,
+          "elapsedMs": 26544,
+          "sourceErrors": 0
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 2881,
+            "elapsedMs": 1551
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 4834,
+            "elapsedMs": 318
+          },
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "raw": 13,
+            "count": 13,
+            "elapsedMs": 2495,
+            "metrics": {
+              "raw": 13,
+              "valid": 13,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "success",
+            "raw": 48,
+            "count": 44,
+            "elapsedMs": 23530,
+            "metrics": {
+              "bytes": 6192966,
+              "requests": 74,
+              "files": 1,
+              "budgetBytes": 33554432,
+              "raw": 48,
+              "elapsedMs": 20399,
+              "rejectedInsideArea": 0
+            }
+          }
+        ],
+        "partial": false,
+        "place": "Monte Carmelo, Minas Gerais, Southeast Region, 38500-000, Brazil",
+        "timings": {
+          "discoveryMs": 26964,
+          "verificationMs": 2605,
+          "totalMs": 29569
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 3,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 32880
+      },
+      {
+        "city": "Toronto",
+        "country": "CA",
+        "state": "ON",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cobertura parcial: uma fonte, limite de recursos ou verificação de localização impediu confirmar a consulta completa. Resultados disponíveis foram preservados.",
+        "errorCode": null,
+        "totalDiscovered": 929,
+        "metrics": {
+          "raw": 931,
+          "unique": 929,
+          "withPhone": 654,
+          "withWebsite": 634,
+          "withAddress": 795,
+          "validLocation": 929,
+          "elapsedMs": 61008,
+          "sourceErrors": 0
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 106596,
+            "elapsedMs": 2017
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 208003,
+            "elapsedMs": 1288
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 500,
+            "count": 398,
+            "elapsedMs": 5514,
+            "metrics": {
+              "raw": 500,
+              "valid": 398,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "partial",
+            "raw": 1001,
+            "count": 533,
+            "elapsedMs": 54000,
+            "metrics": {
+              "bytes": 8824275,
+              "requests": 182,
+              "files": 1,
+              "budgetBytes": 33554432,
+              "raw": 1001,
+              "elapsedMs": 47306,
+              "rejectedInsideArea": 0
+            }
+          }
+        ],
+        "partial": true,
+        "place": "Toronto, Ontario, Canada",
+        "timings": {
+          "discoveryMs": 61350,
+          "verificationMs": 5491,
+          "totalMs": 66842
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 7,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 67211
+      },
+      {
+        "city": "Lunenburg",
+        "country": "CA",
+        "state": "NS",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cadastros das fontes consultadas; ausência de registro não comprova ausência de empresa.",
+        "errorCode": null,
+        "totalDiscovered": 26,
+        "metrics": {
+          "raw": 26,
+          "unique": 26,
+          "withPhone": 22,
+          "withWebsite": 20,
+          "withAddress": 21,
+          "validLocation": 26,
+          "elapsedMs": 16833,
+          "sourceErrors": 0
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 1610,
+            "elapsedMs": 1465
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 3819,
+            "elapsedMs": 317
+          },
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "raw": 7,
+            "count": 7,
+            "elapsedMs": 2396,
+            "metrics": {
+              "raw": 7,
+              "valid": 7,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "success",
+            "raw": 19,
+            "count": 19,
+            "elapsedMs": 13947,
+            "metrics": {
+              "bytes": 4753161,
+              "requests": 38,
+              "files": 1,
+              "budgetBytes": 33554432,
+              "raw": 19,
+              "elapsedMs": 11202,
+              "rejectedInsideArea": 0
+            }
+          }
+        ],
+        "partial": false,
+        "place": "Lunenburg, Town of Lunenburg, Lunenburg County, Nova Scotia, B0J 2C0, Canada",
+        "timings": {
+          "discoveryMs": 17063,
+          "verificationMs": 4729,
+          "totalMs": 21792
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 7,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 24613
+      }
+    ],
+    "capabilities": {
+      "engine": "global",
+      "persistence": true,
+      "sources": [
+        "OpenStreetMap / QLever",
+        "OpenStreetMap / Overpass",
+        "Geofabrik regional imports",
+        "Overture Places regional imports"
+      ],
+      "limits": {
+        "maximumCatalogRecords": 50000,
+        "maximumQueryRows": 3000,
+        "maximumSources": 3,
+        "totalDiscoveryMs": 75000
+      },
+      "licenses": [
+        "ODbL-1.0",
+        "CDLA-Permissive-2.0",
+        "Apache-2.0",
+        "CC0-1.0"
+      ]
+    },
+    "unauthenticatedHTTPStatus": 401
+  },
+  "failureRate": {
+    "completeFailures": 0,
+    "searches": 7,
+    "qleverReturnedData": 7,
+    "overtureReturnedData": 6,
+    "overtureTimeout": 1
+  },
+  "initialRenderDiagnosticRun": {
+    "scope": "Real staging Render API to isolated Neon/PostGIS; no production writes or mail; published contacts are not verified WhatsApp accounts",
+    "origin": "https://prospect-global-staging-20261023.onrender.com",
+    "implementationCommit": "0c69aff9d7777c1d5c0872e8ca721d3ccadbc01d",
+    "samples": [
+      {
+        "city": "Berlin",
+        "country": "DE",
+        "state": "BE",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cobertura parcial: uma fonte, limite de recursos ou verificação de localização impediu confirmar a consulta completa. Resultados disponíveis foram preservados.",
+        "errorCode": null,
+        "totalDiscovered": 473,
+        "metrics": {
+          "raw": 473,
+          "unique": 473,
+          "withPhone": 220,
+          "withWebsite": 258,
+          "withAddress": 347,
+          "validLocation": 473,
+          "elapsedMs": 89612,
+          "sourceErrors": 0
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 104490,
+            "elapsedMs": 25459
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 239280,
+            "elapsedMs": 2161
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 500,
+            "count": 473,
+            "elapsedMs": 88374,
+            "metrics": {
+              "raw": 500,
+              "valid": 473,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "budget_exhausted"
+          }
+        ],
+        "partial": true,
+        "place": "Berlin, Germany",
+        "timings": {
+          "discoveryMs": 91494,
+          "verificationMs": 10063,
+          "totalMs": 101557
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 7,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 103021
+      },
+      {
+        "city": "Monschau",
+        "country": "DE",
+        "state": "NW",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cobertura parcial: uma fonte, limite de recursos ou verificação de localização impediu confirmar a consulta completa. Resultados disponíveis foram preservados.",
+        "errorCode": null,
+        "totalDiscovered": 39,
+        "metrics": {
+          "raw": 39,
+          "unique": 39,
+          "withPhone": 26,
+          "withWebsite": 27,
+          "withAddress": 26,
+          "validLocation": 39,
+          "elapsedMs": 24452,
+          "sourceErrors": 1
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 10422,
+            "elapsedMs": 6540
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 27704,
+            "elapsedMs": 635
+          },
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "raw": 49,
+            "count": 39,
+            "elapsedMs": 12412,
+            "metrics": {
+              "raw": 49,
+              "valid": 39,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 11548,
+            "httpStatus": null,
+            "reason": "IOException",
+            "detail": "IO Error: Extension \"/opt/render/.duckdb/extensions/v1.4.4/linux_amd64/httpfs.duckdb_extension\" not found.\nExtension \"httpfs\" is an existing extension.\n\nInstall it first using \"INSTALL httpfs\"."
+          }
+        ],
+        "partial": true,
+        "place": "Monschau, Aachen (district), North Rhine-Westphalia, 52156, Germany",
+        "timings": {
+          "discoveryMs": 25536,
+          "verificationMs": 7961,
+          "totalMs": 33497
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 8,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 36992
+      },
+      {
+        "city": "Cochem",
+        "country": "DE",
+        "state": "RP",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cobertura parcial: uma fonte, limite de recursos ou verificação de localização impediu confirmar a consulta completa. Resultados disponíveis foram preservados.",
+        "errorCode": null,
+        "totalDiscovered": 52,
+        "metrics": {
+          "raw": 52,
+          "unique": 52,
+          "withPhone": 33,
+          "withWebsite": 28,
+          "withAddress": 37,
+          "validLocation": 52,
+          "elapsedMs": 13111,
+          "sourceErrors": 1
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 15456,
+            "elapsedMs": 2769
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 37110,
+            "elapsedMs": 479
+          },
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "raw": 71,
+            "count": 52,
+            "elapsedMs": 10329,
+            "metrics": {
+              "raw": 71,
+              "valid": 52,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 2290,
+            "httpStatus": null,
+            "reason": "IOException",
+            "detail": "IO Error: Extension \"/opt/render/.duckdb/extensions/v1.4.4/linux_amd64/httpfs.duckdb_extension\" not found.\nExtension \"httpfs\" is an existing extension.\n\nInstall it first using \"INSTALL httpfs\"."
+          }
+        ],
+        "partial": true,
+        "place": "Cochem, Landkreis Cochem-Zell, Rhineland-Palatinate, Germany",
+        "timings": {
+          "discoveryMs": 14472,
+          "verificationMs": 13873,
+          "totalMs": 28346
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 8,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 28801
+      },
+      {
+        "city": "Uberlândia",
+        "country": "BR",
+        "state": "MG",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cobertura parcial: uma fonte, limite de recursos ou verificação de localização impediu confirmar a consulta completa. Resultados disponíveis foram preservados.",
+        "errorCode": null,
+        "totalDiscovered": 175,
+        "metrics": {
+          "raw": 175,
+          "unique": 175,
+          "withPhone": 15,
+          "withWebsite": 5,
+          "withAddress": 35,
+          "validLocation": 175,
+          "elapsedMs": 30701,
+          "sourceErrors": 1
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 39694,
+            "elapsedMs": 834
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 69762,
+            "elapsedMs": 865
+          },
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "raw": 186,
+            "count": 175,
+            "elapsedMs": 27751,
+            "metrics": {
+              "raw": 186,
+              "valid": 175,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 2129,
+            "httpStatus": null,
+            "reason": "IOException",
+            "detail": "IO Error: Extension \"/opt/render/.duckdb/extensions/v1.4.4/linux_amd64/httpfs.duckdb_extension\" not found.\nExtension \"httpfs\" is an existing extension.\n\nInstall it first using \"INSTALL httpfs\"."
+          }
+        ],
+        "partial": true,
+        "place": "Uberlândia, Minas Gerais, Southeast Region, Brazil",
+        "timings": {
+          "discoveryMs": 32624,
+          "verificationMs": 10069,
+          "totalMs": 42694
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 2,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 45040
+      },
+      {
+        "city": "Monte Carmelo",
+        "country": "BR",
+        "state": "MG",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cobertura parcial: uma fonte, limite de recursos ou verificação de localização impediu confirmar a consulta completa. Resultados disponíveis foram preservados.",
+        "errorCode": null,
+        "totalDiscovered": 13,
+        "metrics": {
+          "raw": 13,
+          "unique": 13,
+          "withPhone": 1,
+          "withWebsite": 0,
+          "withAddress": 4,
+          "validLocation": 13,
+          "elapsedMs": 6762,
+          "sourceErrors": 1
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 2881,
+            "elapsedMs": 1421
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 4834,
+            "elapsedMs": 336
+          },
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "raw": 13,
+            "count": 13,
+            "elapsedMs": 4086,
+            "metrics": {
+              "raw": 13,
+              "valid": 13,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 2124,
+            "httpStatus": null,
+            "reason": "IOException",
+            "detail": "IO Error: Extension \"/opt/render/.duckdb/extensions/v1.4.4/linux_amd64/httpfs.duckdb_extension\" not found.\nExtension \"httpfs\" is an existing extension.\n\nInstall it first using \"INSTALL httpfs\"."
+          }
+        ],
+        "partial": true,
+        "place": "Monte Carmelo, Minas Gerais, Southeast Region, 38500-000, Brazil",
+        "timings": {
+          "discoveryMs": 7786,
+          "verificationMs": 13271,
+          "totalMs": 21058
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 1,
+          "withWebsite": 0,
+          "withAddress": 4,
+          "validLocation": 10
+        },
+        "elapsedMs": 24685
+      },
+      {
+        "city": "Toronto",
+        "country": "CA",
+        "state": "ON",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cobertura parcial: uma fonte, limite de recursos ou verificação de localização impediu confirmar a consulta completa. Resultados disponíveis foram preservados.",
+        "errorCode": null,
+        "totalDiscovered": 398,
+        "metrics": {
+          "raw": 398,
+          "unique": 398,
+          "withPhone": 144,
+          "withWebsite": 148,
+          "withAddress": 266,
+          "validLocation": 398,
+          "elapsedMs": 62888,
+          "sourceErrors": 1
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 106596,
+            "elapsedMs": 1946
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 208003,
+            "elapsedMs": 1303
+          },
+          {
+            "source": "qlever",
+            "outcome": "partial",
+            "raw": 500,
+            "count": 398,
+            "elapsedMs": 59722,
+            "metrics": {
+              "raw": 500,
+              "valid": 398,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 2395,
+            "httpStatus": null,
+            "reason": "IOException",
+            "detail": "IO Error: Extension \"/opt/render/.duckdb/extensions/v1.4.4/linux_amd64/httpfs.duckdb_extension\" not found.\nExtension \"httpfs\" is an existing extension.\n\nInstall it first using \"INSTALL httpfs\"."
+          }
+        ],
+        "partial": true,
+        "place": "Toronto, Ontario, Canada",
+        "timings": {
+          "discoveryMs": 64079,
+          "verificationMs": 6759,
+          "totalMs": 70838
+        },
+        "displayed": {
+          "count": 10,
+          "withPhone": 10,
+          "withWebsite": 7,
+          "withAddress": 10,
+          "validLocation": 10
+        },
+        "elapsedMs": 73497
+      },
+      {
+        "city": "Lunenburg",
+        "country": "CA",
+        "state": "NS",
+        "searchHTTPStatus": 202,
+        "status": "done",
+        "message": "Pesquisa concluída. Cobertura parcial: uma fonte, limite de recursos ou verificação de localização impediu confirmar a consulta completa. Resultados disponíveis foram preservados.",
+        "errorCode": null,
+        "totalDiscovered": 7,
+        "metrics": {
+          "raw": 7,
+          "unique": 7,
+          "withPhone": 3,
+          "withWebsite": 5,
+          "withAddress": 2,
+          "validLocation": 7,
+          "elapsedMs": 5989,
+          "sourceErrors": 1
+        },
+        "sources": [
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "candidates",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 1610,
+            "elapsedMs": 1610
+          },
+          {
+            "source": "qlever",
+            "endpoint": "https://qlever.dev/api/osm-planet",
+            "purpose": "details",
+            "phase": "complete",
+            "outcome": "success",
+            "httpStatus": 200,
+            "bytes": 3819,
+            "elapsedMs": 354
+          },
+          {
+            "source": "qlever",
+            "outcome": "success",
+            "raw": 7,
+            "count": 7,
+            "elapsedMs": 3429,
+            "metrics": {
+              "raw": 7,
+              "valid": 7,
+              "missingCoordinates": 0
+            }
+          },
+          {
+            "source": "overture",
+            "outcome": "overture_budget_or_source",
+            "elapsedMs": 2022,
+            "httpStatus": null,
+            "reason": "IOException",
+            "detail": "IO Error: Extension \"/opt/render/.duckdb/extensions/v1.4.4/linux_amd64/httpfs.duckdb_extension\" not found.\nExtension \"httpfs\" is an existing extension.\n\nInstall it first using \"INSTALL httpfs\"."
+          }
+        ],
+        "partial": true,
+        "place": "Lunenburg, Town of Lunenburg, Lunenburg County, Nova Scotia, B0J 2C0, Canada",
+        "timings": {
+          "discoveryMs": 6738,
+          "verificationMs": 3076,
+          "totalMs": 9814
+        },
+        "displayed": {
+          "count": 7,
+          "withPhone": 3,
+          "withWebsite": 5,
+          "withAddress": 2,
+          "validLocation": 7
+        },
+        "elapsedMs": 12370
+      }
+    ],
+    "capabilities": {
+      "engine": "global",
+      "persistence": true,
+      "sources": [
+        "OpenStreetMap / QLever",
+        "OpenStreetMap / Overpass",
+        "Geofabrik regional imports",
+        "Overture Places regional imports"
+      ],
+      "limits": {
+        "maximumCatalogRecords": 50000,
+        "maximumQueryRows": 3000,
+        "maximumSources": 3,
+        "totalDiscoveryMs": 75000
+      },
+      "licenses": [
+        "ODbL-1.0",
+        "CDLA-Permissive-2.0",
+        "Apache-2.0",
+        "CC0-1.0"
+      ]
+    },
+    "unauthenticatedHTTPStatus": 401
+  },
+  "warmBrowserQuery": {
+    "city": "Cochem",
+    "scope": "Actual browser form: Germany > Rhineland-Palatinate > manual Cochem > Restaurants > search; repeated API query using persisted PostGIS data",
+    "state": "done",
+    "totalDiscovered": 95,
+    "metrics": {
+      "raw": 97,
+      "unique": 95,
+      "withPhone": 73,
+      "withWebsite": 60,
+      "withAddress": 80,
+      "validLocation": 95,
+      "elapsedMs": 286,
+      "cacheHit": true
+    },
+    "sources": [
+      {
+        "source": "overture",
+        "complete": true,
+        "fresh": true,
+        "records": 45,
+        "outcome": "success"
+      },
+      {
+        "source": "qlever",
+        "complete": true,
+        "fresh": true,
+        "records": 52,
+        "outcome": "success"
+      }
+    ],
+    "timings": {
+      "discoveryMs": 862,
+      "verificationMs": 614,
+      "totalMs": 1476
+    },
+    "elapsedMs": 2120,
+    "locationFilterValidated": true,
+    "cards": 10
+  },
+  "browser": {
+    "scope": "Real staging data, existing authenticated job, desktop/mobile and exports; Basic protection only, no account/email flow",
+    "devices": [
+      {
+        "device": "desktop",
+        "cards": 10,
+        "sourceAttribution": true,
+        "jsonExport": true,
+        "csvExport": true,
+        "horizontalOverflow": false,
+        "pageErrors": []
+      },
+      {
+        "device": "mobile",
+        "cards": 10,
+        "sourceAttribution": true,
+        "jsonExport": true,
+        "csvExport": true,
+        "horizontalOverflow": false,
+        "pageErrors": []
+      }
+    ]
+  },
+  "verification": {
+    "nodeTests": 336,
+    "nodeFailures": 0,
+    "nodeSkipped": 0,
+    "pythonReaderTests": 7,
+    "authenticationCI": "success",
+    "authenticationRun": 39930221076,
+    "geospatialCI": "success",
+    "geospatialRun": 39930220782
+  },
+  "runtimeObservation": {
+    "metric": "memory_usage",
+    "resolutionSeconds": 60,
+    "samples": 9,
+    "maximumObservedBytes": 184520700,
+    "limitBytes": 536870900,
+    "note": "Sampled observations, not a guaranteed peak or a load test"
+  },
+  "limitations": [
+    "One seven-city round, Restaurants only; no statistical repeatability or worldwide census claim.",
+    "Berlin Overture timed out; Berlin/Toronto QLever and Uberlandia/Toronto Overture reached candidate limits. Results explicitly remain partial.",
+    "Phone/website metrics count published fields, not active lines, WhatsApp accounts, current websites or manual ownership verification.",
+    "Discovery metrics cover all accepted records; the API verified/displayed up to ten per city.",
+    "Network-path/operator causality of previous HTTP 503 is not established by a later successful run from another location/time.",
+    "OSM way/relation centers can be approximate; valid location means finite coordinates inside the selected municipal polygon."
+  ],
+  "artifactSha256": {
+    "report.json": "7d8d76853f962f61df6ddfa81bbdf4108bfbd7042c179d6eb62a5257eb0d0e53",
+    "initial-render-report.json": "67d43ffdf946e856bae6f26d73b6d2dd9318a5caa0c2a7c0665ce751b5fa7cdd",
+    "warm-report.json": "bfe6f2c32c7df282f854be20a562a053b9621f9380ea673fa759f556d63af09a",
+    "browser-report.json": "f24957a1122dde1b764321f7bc75c169e23276c6fdb0e44e5d718e344de206cd",
+    "node-tests.log": "e91a14522c89332c0bc0daf89119b2baf82b57eabce33f9b96e3217b5bc94952",
+    "python-tests.log": "ae9296882bff4cec7cbee1ebf863d55f1efe775ee97353f5096dd458fa2f2c53"
+  },
+  "sourceVersions": {
+    "Overture": "2026-10-21.0",
+    "OSM": "Public QLever snapshot at request time"
+  }
+}

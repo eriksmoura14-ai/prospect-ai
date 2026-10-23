@@ -1,0 +1,42 @@
+name: Global geospatial discovery regression
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  geospatial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
+        env:
+          POSTGRES_USER: prospect_audit
+          POSTGRES_PASSWORD: disposable-local-fixture-only
+          POSTGRES_DB: prospect_audit_geospatial
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -U prospect_audit -d prospect_audit_geospatial"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: pip install -r tools/discovery-requirements.txt
+      - run: python scripts/setup-discovery.py
+      - name: Real PostGIS and pure discovery regressions
+        env:
+          TEST_DISCOVERY_DATABASE_URL: postgresql://prospect_audit:disposable-local-fixture-only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/prospect_audit_geospatial
+        run: node --test test/global-*.test.cjs
+      - name: Regional Parquet reader with fictional data and mocked public transport
+        run: python -m unittest discover -s test -p '*_reader_test.py' -v

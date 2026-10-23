@@ -99,6 +99,7 @@ const prospectLists = (() => {
     box.append(node("p",siteNotes[company.websiteVerification] || (company.website
       ? "Registro anterior: refaça a busca para verificar o site com os critérios atuais."
       : siteNotes.not_identified),"reason"));
+    if(company.websiteClassification === "website_apparently_unavailable")box.append(node("p","O endereço retornou erro HTTP durante a verificação. Isso não comprova encerramento da empresa nem ausência de site.","reason"));
     if (company.websiteSource) box.append(node("p","Fonte do site: " + company.websiteSource,"reason"));
     return box;
   }
@@ -165,6 +166,8 @@ const prospectLists = (() => {
     if (contactButton) sources.append(contactButton);
     if (validURL(company.website)) sources.append(link("Abrir site", company.website));
     if (/^(node|way|relation)\/\d+$/.test(company.osmId)) sources.append(link("Ver fonte", `https://www.openstreetmap.org/${company.osmId}`));
+    else if (validURL(company.sourceUrl)) sources.append(link("Ver fonte",company.sourceUrl));
+    for (const entry of company.provenance || []) sources.append(node("p",`${entry.source} · ${entry.sourceId} · ${entry.license?.attribution || ""} · ${entry.license?.id || ""}`,"reason"));
     sources.append(node("span", company.websiteVerification === "profile" ? "Perfil na fonte"
       : company.status === "WEBSITE_FOUND" && company.websiteVerification !== "compatible" ? "Verificação anterior"
       : websiteLabels[company.status] || "Site incerto"));

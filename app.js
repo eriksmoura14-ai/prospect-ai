@@ -19,7 +19,8 @@ const fields = [
   "status", "confidence", "prospectScore", "latitude", "longitude",
   "osmId", "source", "countryCode", "phoneSource", "phoneVerification", "phoneFormat", "sitePhone",
   "whatsappNumber", "whatsappStatus", "whatsappSource",
-  "websiteSource", "websiteVerification", "websiteCheckedAt"
+  "websiteSource", "websiteVerification", "websiteCheckedAt", "websiteClassification",
+  "sourceId", "sourceRelease", "sourceUrl", "sourceConfidence", "operatingStatus", "quality", "license", "provenance", "externalIds", "discoveredAt", "lastSeenAt", "lastVerifiedAt", "locationMethod"
 ];
 
 const states = {
@@ -132,7 +133,9 @@ function visibleRows() {
 }
 
 function makeCard(row) {
-  const state = row.websiteVerification === "profile" ? {label:"Perfil na fonte",className:"uncertain"}
+  const state = row.websiteClassification === "website_apparently_unavailable" ? {label:"Site possivelmente fora do ar",className:"uncertain"}
+    : row.websiteClassification === "website_not_identified" ? {label:"Site não identificado",className:"uncertain"}
+    : row.websiteVerification === "profile" ? {label:"Perfil na fonte",className:"uncertain"}
     : row.status === "WEBSITE_FOUND" && row.websiteVerification !== "compatible" ? {label:"Verificação anterior",className:"uncertain"}
     : states[row.status] || states.UNCERTAIN;
   const card = node("article", "panel card");
@@ -141,7 +144,7 @@ function makeCard(row) {
   const identity = node("div");
   identity.append(
     node("h3", "", row.name),
-    node("p", "meta", `${row.category} · ${row.city} · OpenStreetMap`)
+    node("p", "meta", `${row.category} · ${row.city} · ${row.source || "OpenStreetMap"}`)
   );
   const businessStatus = node("div", "business-status");
   const websiteStatus = node("span", `website-status ${state.className}`, state.label);
@@ -164,6 +167,7 @@ function makeCard(row) {
   phone.prepend(uiIcon("phone")); address.prepend(uiIcon("pin"));
   contact.append(phone, address);
   if (row.phoneVerification === "conflict") contact.append(node("span","reason","Telefones divergentes; revise antes de entrar em contato."));
+  if (row.locationMethod === "geometry_bbox_center") contact.append(node("span","reason","Posição aproximada pelo centro da geometria; entrada do estabelecimento não confirmada."));
 
   const website = node("div", "website");
   const websiteUrl = safeWebsite(row.website);
@@ -186,6 +190,11 @@ function makeCard(row) {
   if (/^(node|way|relation)\/\d+$/.test(row.osmId)) {
     evidenceLinks.append(link("Ver fonte",
       `https://www.openstreetmap.org/${row.osmId}`));
+  }
+  else if (safeWebsite(row.sourceUrl)) evidenceLinks.append(link("Ver fonte",safeWebsite(row.sourceUrl)));
+  if (row.provenance?.length) for (const entry of row.provenance) {
+    const license=node("span","reason",`${entry.source} · ${entry.sourceId} · ${entry.license?.attribution || ""} · ${entry.license?.id || "Licença não informada"}`);
+    evidenceLinks.append(license);
   }
   const tools = node("div", "card-tools");
   const aiButton = node("button", "card-agent", "Analisar com IA");
@@ -593,7 +602,7 @@ function download(content, type, extension) {
 }
 
 function csvCell(value) {
-  let text = value == null ? "" : String(value);
+  let text = value == null ? "" : typeof value === "object" ? JSON.stringify(value) : String(value);
   if (/^\s*[=+\-@]/.test(text) || /^[\t\r\n]/.test(text)) text = "'" + text;
   return '"' + text.replaceAll('"', '""') + '"';
 }
@@ -607,9 +616,10 @@ $("csv").addEventListener("click", () => {
 $("json").addEventListener("click", () => {
   download(JSON.stringify({
     exportedAt: new Date().toISOString(),
-    partial: lastJob?.state !== "done",
-    attribution: "© OpenStreetMap contributors",
-    license: "https://www.openstreetmap.org/copyright",
+    partial: lastJob?.state !== "done" || Boolean(lastJob?.coveragePartial),
+    attribution: visibleRows().some(row=>row.provenance?.length) ? "Atribuições por registro e fonte em licenses/provenance" : "© OpenStreetMap contributors",
+    license: visibleRows().some(row=>row.provenance?.length) ? "multiple" : "https://www.openstreetmap.org/copyright",
+    licenses: [...new Map(visibleRows().flatMap(row=>row.provenance||[]).filter(p=>p.license).map(p=>[p.license.id+":"+p.license.attribution,p.license])).values()],
     results: visibleRows()
   }, null, 2), "application/json;charset=utf-8", "json");
 });
@@ -618,7 +628,7 @@ async function initialize() {
   document.title = "Prospect AI";
   document.querySelector(".version").textContent = "Pesquisa de empresas · v0.8";
   document.querySelector(".notice").textContent =
-    "Dados públicos do OpenStreetMap. A ausência de website " +
+    "Dados comerciais públicos com origem indicada em cada registro. A ausência de website " +
     "cadastrado não significa ausência de site. Durante a busca, " +
     "os negócios ainda não verificados aparecem como incertos.";
   document.querySelector(".form-note").replaceChildren(
@@ -632,6 +642,8 @@ async function initialize() {
     node("span", "", " · "),
     link("Powered by Geoapify", "https://www.geoapify.com/"),
     link("OSM via QLever", "https://qlever.dev/osm-planet"),
+    node("span", "", " · "),
+    link("Overture Maps · licenças e atribuição", "https://docs.overturemaps.org/attribution/"),
     node("span", "", " · "),
     link("Localidades: Countries States Cities Database · ODbL", "https://github.com/dr5hn/countries-states-cities-database"),
     node("span", "", " · "),
@@ -928,7 +940,7 @@ function showAISources(panel, evidence) {
   panel.sourceBody.replaceChildren();
   if (!evidence) return;
   const source = safeWebsite(evidence.source);
-  if (source) panel.sourceBody.append(link("Cadastro no OpenStreetMap", source));
+  if (source) panel.sourceBody.append(link("Fonte do cadastro", source));
   panel.sourceBody.append(node("p", "", evidence.contactStatus || ""));
   const website = evidence.websiteCheck || {};
   const url = safeWebsite(website.source);

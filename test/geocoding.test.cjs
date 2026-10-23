@@ -2,6 +2,10 @@
 const {test}=require("node:test"), assert=require("node:assert/strict");
 const geocoding=require("../geocoding.cjs"),locations=require("../locations.cjs");
 const recorded=require("./fixtures/geocoding-world.json");
+test("municipality outranks its namesake administrative association independent of result order",()=>{
+  const association={name:"Cochem",osm_type:"relation",place_rank:14},municipality={name:"Cochem",osm_type:"relation",place_rank:16};
+  for(const rows of [[association,municipality],[municipality,association]])assert.equal(geocoding.choose(rows,"Cochem",{cityName:"Cochem"}),municipality);
+});
 
 test("31 captured real world lookups preserve their original metadata and constraints",()=>{
   let successes=0;
