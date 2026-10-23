@@ -139,3 +139,15 @@ Vercel/Netlify continuam hospedando arquivos públicos e encaminhando API; o bac
 ## Homologação posterior no Render
 
 Resultados da API real, correções de gravação em lotes/build-runtime, configuração e limites do serviço gratuito separado estão em [GLOBAL_DISCOVERY_STAGING.md](GLOBAL_DISCOVERY_STAGING.md). A produção continua inalterada.
+
+## Ativação em serviço Render existente
+
+Quando o build existente é apenas `npm install` ou `npm ci`, habilite `DISCOVERY_INSTALL_OVERTURE=true`, `OVERTURE_PYTHON=.venv-discovery/bin/python` e `DUCKDB_EXTENSION_DIRECTORY=.duckdb-extensions`. O hook `postinstall` prepara o venv, dependências fixas e extensão assinada dentro do artefato; fica inativo por padrão, fora do Render ou sem ativação explícita. Não executa migração nem consulta empresas. Os subprocessos não recebem chaves de contas/e-mail/banco. Uma instalação incompleta interrompe o build em vez de habilitar um leitor quebrado.
+
+Para ativar a busca, aplique `db/discovery.sql` explicitamente em catálogo dedicado, configure a URL privada em `DISCOVERY_DATABASE_URL`, `DISCOVERY_SOURCES=qlever,overture` e `DISCOVERY_ENGINE=global`. Preserve `AUTH_MODE`, `DATABASE_URL`, `DATA_ENCRYPTION_KEY`, `BREVO_API_KEY`, remetente e origens atuais. O catálogo não contém contas ou sessões; nunca copie a proteção Basic da homologação para a produção.
+
+O diagnóstico administrativo existente `DISCOVERY_CHECK_RUN` usa três municípios já homologados no modo global: Cochem, Monte Carmelo e Lunenburg. É iniciado somente por configuração do servidor, limitado a uma execução por identificador/dia; não verifica websites, não envia mensagens e não imprime contatos individuais. Os resultados agregados aparecem como `DISCOVERY_CHECK` nos logs. Não habilitar varreduras periódicas.
+
+Retorno operacional: configurar `DISCOVERY_ENGINE=legacy` e aplicar um deploy conserva contas e catálogo e volta ao provedor anterior. Isso não desfaz registros coletados nem alterações externas. Desabilitar a instalação opcional só afeta builds futuros; não elimina arquivos já instalados.
+
+A preparação adicional de publicação passou em 341 testes Node, sem falhas ou skips, com PostgreSQL/PostGIS descartáveis. Inclui os controles do hook opt-in e o perfil global de verificação de municípios.

@@ -1757,7 +1757,7 @@ server.listen(
       (async () => {
         await accountService.ready();
         if (!await accountService.store.allow([{key:`discovery-check:${discoveryCheckRun}`,limit:1,seconds:86400}])) return;
-        const report = await require("./discovery-check.cjs").run({discover, locations,
+        const report = await require("./discovery-check.cjs").run({discover, locations,profile:DISCOVERY_ENGINE,
           onCase: item => console.log("DISCOVERY_CHECK", JSON.stringify({run:discoveryCheckRun,...item}))});
         console.log("DISCOVERY_CHECK", JSON.stringify({run:discoveryCheckRun,...report}));
       })().catch(() => console.log("DISCOVERY_CHECK", JSON.stringify({run:discoveryCheckRun,outcome:"check_unavailable"})));
