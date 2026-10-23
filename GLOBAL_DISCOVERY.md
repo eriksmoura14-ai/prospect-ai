@@ -135,3 +135,7 @@ Vercel/Netlify continuam hospedando arquivos públicos e encaminhando API; o bac
 - Chromium, computador e celular: busca autenticada → geocodificação controlada → dois provedores fictícios → PostGIS → cards → CSV → lista cifrada → recarga. Outra conta recebeu 404 para jobs/tarefas privados; o catálogo público foi reutilizado sem chamadas adicionais aos provedores. A regressão anterior de contatos também passou em ambos os formatos de tela.
 - Auditoria de autenticação: **29 controles da ferramenta e 31 verificações HTTP** passaram, sem achados; apenas fixtures locais. A interface pública compilou com sucesso.
 - A coleta real e seus limites estão em `GLOBAL_DISCOVERY_BENCHMARK.md`; testes fictícios não foram contabilizados como empresas reais. Um dump local das três tabelas públicas de validação foi preservado no workspace, separado de contas, sessões e tarefas; nenhuma base foi publicada automaticamente.
+
+## Homologação posterior no Render
+
+Resultados da API real, correções de gravação em lotes/build-runtime, configuração e limites do serviço gratuito separado estão em [GLOBAL_DISCOVERY_STAGING.md](GLOBAL_DISCOVERY_STAGING.md). A produção continua inalterada.

@@ -1,5 +1,7 @@
 # Comparação real de descoberta — 2026-10-23
 
+**Atualização posterior:** a homologação pelo Render, com correções de gravação e extensão, retornou resultados nas sete cidades. Veja [GLOBAL_DISCOVERY_STAGING.md](GLOBAL_DISCOVERY_STAGING.md). As tentativas anteriores abaixo permanecem preservadas com suas falhas.
+
 Base antiga: `f876edde5df0c178245411f48ed3a7c94953b641`. Segmento fixo: **Restaurantes**. A mesma seleção de país/subdivisão e respostas reais de geocodificação foram reutilizadas. O código antigo foi carregado diretamente do commit original, incluindo o adaptador QLever original. Não houve escrita em produção, consulta de contas WhatsApp, mensagens ou verificação dos websites durante a medição.
 
 ## Rodada online inicial
