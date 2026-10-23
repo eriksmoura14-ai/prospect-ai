@@ -1,0 +1,1156 @@
+{
+  "date": "2026-10-23T14:25:31.516Z",
+  "productionURL": "https://prospect-ai-a90q.onrender.com",
+  "databaseVerified": true,
+  "verifiedDatabase": {
+    "records": 9687,
+    "sources": {
+      "qlever": 6143,
+      "overture": 3544
+    },
+    "withPhone": 4713,
+    "identityMd5": "0092e5e957da600cfde04d3987cc2792",
+    "withAddress": 6030,
+    "withWebsite": 3486,
+    "countryCount": 24,
+    "recordsBytes": 20987904,
+    "databaseBytes": 43384832,
+    "validLocation": 9687,
+    "invalidProvenance": 0,
+    "outsideReviewedAreas": 0
+  },
+  "before": {
+    "sourceRecords": 6100,
+    "uniqueBusinesses": 6088,
+    "cities": 27,
+    "countries": 17,
+    "citiesAtLeast50": 24
+  },
+  "after": {
+    "sourceRecords": 9687,
+    "uniqueBusinesses": 9667,
+    "cities": 56,
+    "countries": 24,
+    "continents": 6,
+    "citiesAtLeast50": 52,
+    "withPhone": 4699,
+    "withWebsite": 3474,
+    "withAddress": 6011
+  },
+  "addedSourceRecords": 3587,
+  "addedUniqueBusinesses": 3579,
+  "newCities": 29,
+  "cities": [
+    {
+      "city": "Buenos Aires",
+      "countryCode": "AR",
+      "continent": "South America",
+      "beforeUnique": 135,
+      "afterUnique": 135,
+      "sourceRecords": 135,
+      "withPhone": 104,
+      "withWebsite": 50,
+      "withAddress": 135,
+      "validLocation": 135,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 135
+      }
+    },
+    {
+      "city": "Ushuaia",
+      "countryCode": "AR",
+      "continent": "South America",
+      "beforeUnique": 171,
+      "afterUnique": 171,
+      "sourceRecords": 171,
+      "withPhone": 156,
+      "withWebsite": 85,
+      "withAddress": 170,
+      "validLocation": 171,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 171
+      }
+    },
+    {
+      "city": "City of Hobart",
+      "countryCode": "AU",
+      "continent": "Oceania",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 41,
+      "withWebsite": 41,
+      "withAddress": 38,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "City of Launceston",
+      "countryCode": "AU",
+      "continent": "Oceania",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 5,
+      "withWebsite": 27,
+      "withAddress": 20,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "City of Sydney",
+      "countryCode": "AU",
+      "continent": "Oceania",
+      "beforeUnique": 150,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 19,
+      "withWebsite": 49,
+      "withAddress": 37,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Alvarães",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 15,
+      "afterUnique": 15,
+      "sourceRecords": 15,
+      "withPhone": 2,
+      "withWebsite": 0,
+      "withAddress": 2,
+      "validLocation": 15,
+      "targetMet": false,
+      "sourceCounts": {
+        "qlever": 13,
+        "overture": 2
+      }
+    },
+    {
+      "city": "Araguari",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 250,
+      "afterUnique": 250,
+      "sourceRecords": 250,
+      "withPhone": 229,
+      "withWebsite": 91,
+      "withAddress": 248,
+      "validLocation": 250,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 250
+      }
+    },
+    {
+      "city": "Arraial do Cabo",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 63,
+      "sourceRecords": 63,
+      "withPhone": 7,
+      "withWebsite": 3,
+      "withAddress": 10,
+      "validLocation": 63,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 63
+      }
+    },
+    {
+      "city": "Bonito",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 17,
+      "sourceRecords": 17,
+      "withPhone": 10,
+      "withWebsite": 2,
+      "withAddress": 12,
+      "validLocation": 17,
+      "targetMet": false,
+      "sourceCounts": {
+        "qlever": 17
+      }
+    },
+    {
+      "city": "Gramado",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 250,
+      "afterUnique": 250,
+      "sourceRecords": 250,
+      "withPhone": 229,
+      "withWebsite": 129,
+      "withAddress": 248,
+      "validLocation": 250,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 250
+      }
+    },
+    {
+      "city": "Monte Carmelo",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 57,
+      "afterUnique": 57,
+      "sourceRecords": 57,
+      "withPhone": 42,
+      "withWebsite": 18,
+      "withAddress": 47,
+      "validLocation": 57,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 44,
+        "qlever": 13
+      }
+    },
+    {
+      "city": "Olinda",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 92,
+      "sourceRecords": 92,
+      "withPhone": 28,
+      "withWebsite": 12,
+      "withAddress": 48,
+      "validLocation": 92,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 92
+      }
+    },
+    {
+      "city": "Ouro Preto",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 111,
+      "sourceRecords": 111,
+      "withPhone": 14,
+      "withWebsite": 5,
+      "withAddress": 29,
+      "validLocation": 111,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 111
+      }
+    },
+    {
+      "city": "Paraty",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 6,
+      "withWebsite": 6,
+      "withAddress": 52,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Pirenópolis",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 57,
+      "sourceRecords": 58,
+      "withPhone": 6,
+      "withWebsite": 4,
+      "withAddress": 16,
+      "validLocation": 57,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 58
+      }
+    },
+    {
+      "city": "São João del Rei",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 50,
+      "sourceRecords": 50,
+      "withPhone": 1,
+      "withWebsite": 0,
+      "withAddress": 20,
+      "validLocation": 50,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 50
+      }
+    },
+    {
+      "city": "Tiradentes",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 116,
+      "afterUnique": 116,
+      "sourceRecords": 116,
+      "withPhone": 109,
+      "withWebsite": 55,
+      "withAddress": 113,
+      "validLocation": 116,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 116
+      }
+    },
+    {
+      "city": "Uberlândia",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 1149,
+      "afterUnique": 1149,
+      "sourceRecords": 1151,
+      "withPhone": 894,
+      "withWebsite": 476,
+      "withAddress": 993,
+      "validLocation": 1149,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 976,
+        "qlever": 175
+      }
+    },
+    {
+      "city": "Banff",
+      "countryCode": "CA",
+      "continent": "North America",
+      "beforeUnique": 0,
+      "afterUnique": 118,
+      "sourceRecords": 119,
+      "withPhone": 84,
+      "withWebsite": 88,
+      "withAddress": 101,
+      "validLocation": 118,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 119
+      }
+    },
+    {
+      "city": "Lunenburg",
+      "countryCode": "CA",
+      "continent": "North America",
+      "beforeUnique": 49,
+      "afterUnique": 49,
+      "sourceRecords": 49,
+      "withPhone": 37,
+      "withWebsite": 36,
+      "withAddress": 40,
+      "validLocation": 49,
+      "targetMet": false,
+      "sourceCounts": {
+        "overture": 32,
+        "qlever": 17
+      }
+    },
+    {
+      "city": "Niagara-on-the-Lake",
+      "countryCode": "CA",
+      "continent": "North America",
+      "beforeUnique": 0,
+      "afterUnique": 81,
+      "sourceRecords": 81,
+      "withPhone": 10,
+      "withWebsite": 17,
+      "withAddress": 28,
+      "validLocation": 81,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 81
+      }
+    },
+    {
+      "city": "Quebec City",
+      "countryCode": "CA",
+      "continent": "North America",
+      "beforeUnique": 150,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 55,
+      "withWebsite": 66,
+      "withAddress": 107,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Toronto",
+      "countryCode": "CA",
+      "continent": "North America",
+      "beforeUnique": 929,
+      "afterUnique": 929,
+      "sourceRecords": 931,
+      "withPhone": 654,
+      "withWebsite": 634,
+      "withAddress": 795,
+      "validLocation": 929,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 533,
+        "qlever": 398
+      }
+    },
+    {
+      "city": "Puerto Varas",
+      "countryCode": "CL",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 17,
+      "withWebsite": 11,
+      "withAddress": 101,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Bogotá",
+      "countryCode": "CO",
+      "continent": "South America",
+      "beforeUnique": 250,
+      "afterUnique": 250,
+      "sourceRecords": 250,
+      "withPhone": 218,
+      "withWebsite": 75,
+      "withAddress": 240,
+      "validLocation": 250,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 250
+      }
+    },
+    {
+      "city": "Medellín",
+      "countryCode": "CO",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 13,
+      "withWebsite": 14,
+      "withAddress": 35,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Villa de Leyva",
+      "countryCode": "CO",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 7,
+      "withWebsite": 4,
+      "withAddress": 26,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Berlin",
+      "countryCode": "DE",
+      "continent": "Europe",
+      "beforeUnique": 473,
+      "afterUnique": 473,
+      "sourceRecords": 473,
+      "withPhone": 220,
+      "withWebsite": 258,
+      "withAddress": 347,
+      "validLocation": 473,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 473
+      }
+    },
+    {
+      "city": "Cochem",
+      "countryCode": "DE",
+      "continent": "Europe",
+      "beforeUnique": 95,
+      "afterUnique": 95,
+      "sourceRecords": 97,
+      "withPhone": 73,
+      "withWebsite": 60,
+      "withAddress": 80,
+      "validLocation": 95,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 52,
+        "overture": 45
+      }
+    },
+    {
+      "city": "Monschau",
+      "countryCode": "DE",
+      "continent": "Europe",
+      "beforeUnique": 82,
+      "afterUnique": 82,
+      "sourceRecords": 87,
+      "withPhone": 64,
+      "withWebsite": 55,
+      "withAddress": 68,
+      "validLocation": 82,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 48,
+        "qlever": 39
+      }
+    },
+    {
+      "city": "Quedlinburg",
+      "countryCode": "DE",
+      "continent": "Europe",
+      "beforeUnique": 0,
+      "afterUnique": 117,
+      "sourceRecords": 117,
+      "withPhone": 68,
+      "withWebsite": 57,
+      "withAddress": 102,
+      "validLocation": 117,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 117
+      }
+    },
+    {
+      "city": "Guernica",
+      "countryCode": "ES",
+      "continent": "Europe",
+      "beforeUnique": 26,
+      "afterUnique": 26,
+      "sourceRecords": 26,
+      "withPhone": 4,
+      "withWebsite": 5,
+      "withAddress": 19,
+      "validLocation": 26,
+      "targetMet": false,
+      "sourceCounts": {
+        "qlever": 26
+      }
+    },
+    {
+      "city": "Ronda",
+      "countryCode": "ES",
+      "continent": "Europe",
+      "beforeUnique": 0,
+      "afterUnique": 149,
+      "sourceRecords": 150,
+      "withPhone": 16,
+      "withWebsite": 12,
+      "withAddress": 35,
+      "validLocation": 149,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Helsinki",
+      "countryCode": "FI",
+      "continent": "Europe",
+      "beforeUnique": 244,
+      "afterUnique": 244,
+      "sourceRecords": 245,
+      "withPhone": 225,
+      "withWebsite": 202,
+      "withAddress": 240,
+      "validLocation": 244,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 245
+      }
+    },
+    {
+      "city": "Colmar",
+      "countryCode": "FR",
+      "continent": "Europe",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 37,
+      "withWebsite": 32,
+      "withAddress": 49,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Paris",
+      "countryCode": "FR",
+      "continent": "Europe",
+      "beforeUnique": 250,
+      "afterUnique": 250,
+      "sourceRecords": 250,
+      "withPhone": 217,
+      "withWebsite": 174,
+      "withAddress": 249,
+      "validLocation": 250,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 250
+      }
+    },
+    {
+      "city": "Stratford-upon-Avon",
+      "countryCode": "GB",
+      "continent": "Europe",
+      "beforeUnique": 0,
+      "afterUnique": 135,
+      "sourceRecords": 138,
+      "withPhone": 27,
+      "withWebsite": 80,
+      "withAddress": 120,
+      "validLocation": 135,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 138
+      }
+    },
+    {
+      "city": "Accra",
+      "countryCode": "GH",
+      "continent": "Africa",
+      "beforeUnique": 150,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 35,
+      "withWebsite": 8,
+      "withAddress": 33,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Antigua Guatemala",
+      "countryCode": "GT",
+      "continent": "North America",
+      "beforeUnique": 150,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 10,
+      "withWebsite": 14,
+      "withAddress": 65,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Yogyakarta",
+      "countryCode": "ID",
+      "continent": "Asia",
+      "beforeUnique": 0,
+      "afterUnique": 149,
+      "sourceRecords": 150,
+      "withPhone": 27,
+      "withWebsite": 14,
+      "withAddress": 51,
+      "validLocation": 149,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Assisi",
+      "countryCode": "IT",
+      "continent": "Europe",
+      "beforeUnique": 0,
+      "afterUnique": 137,
+      "sourceRecords": 138,
+      "withPhone": 32,
+      "withWebsite": 20,
+      "withAddress": 64,
+      "validLocation": 137,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 138
+      }
+    },
+    {
+      "city": "Kamakura",
+      "countryCode": "JP",
+      "continent": "Asia",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 6,
+      "withWebsite": 3,
+      "withAddress": 6,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Kanazawa",
+      "countryCode": "JP",
+      "continent": "Asia",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 32,
+      "withWebsite": 33,
+      "withAddress": 19,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Kyoto",
+      "countryCode": "JP",
+      "continent": "Asia",
+      "beforeUnique": 150,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 3,
+      "withWebsite": 5,
+      "withAddress": 2,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Nairobi",
+      "countryCode": "KE",
+      "continent": "Africa",
+      "beforeUnique": 150,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 14,
+      "withWebsite": 16,
+      "withAddress": 21,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Essaouira",
+      "countryCode": "MA",
+      "continent": "Africa",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 16,
+      "withWebsite": 7,
+      "withAddress": 25,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Kathmandu",
+      "countryCode": "NP",
+      "continent": "Asia",
+      "beforeUnique": 150,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 63,
+      "withWebsite": 0,
+      "withAddress": 1,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Napier",
+      "countryCode": "NZ",
+      "continent": "Oceania",
+      "beforeUnique": 0,
+      "afterUnique": 149,
+      "sourceRecords": 149,
+      "withPhone": 40,
+      "withWebsite": 53,
+      "withAddress": 99,
+      "validLocation": 149,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 149
+      }
+    },
+    {
+      "city": "Baguio",
+      "countryCode": "PH",
+      "continent": "Asia",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 28,
+      "withWebsite": 5,
+      "withAddress": 78,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Lisbon",
+      "countryCode": "PT",
+      "continent": "Europe",
+      "beforeUnique": 197,
+      "afterUnique": 197,
+      "sourceRecords": 197,
+      "withPhone": 178,
+      "withWebsite": 105,
+      "withAddress": 195,
+      "validLocation": 197,
+      "targetMet": true,
+      "sourceCounts": {
+        "overture": 197
+      }
+    },
+    {
+      "city": "Óbidos",
+      "countryCode": "PT",
+      "continent": "Europe",
+      "beforeUnique": 0,
+      "afterUnique": 54,
+      "sourceRecords": 54,
+      "withPhone": 5,
+      "withWebsite": 4,
+      "withAddress": 12,
+      "validLocation": 54,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 54
+      }
+    },
+    {
+      "city": "Sintra",
+      "countryCode": "PT",
+      "continent": "Europe",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 17,
+      "withWebsite": 7,
+      "withAddress": 31,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Kigali",
+      "countryCode": "RW",
+      "continent": "Africa",
+      "beforeUnique": 150,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 20,
+      "withWebsite": 6,
+      "withAddress": 23,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Asheville",
+      "countryCode": "US",
+      "continent": "North America",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 83,
+      "withWebsite": 85,
+      "withAddress": 95,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "New York City",
+      "countryCode": "US",
+      "continent": "North America",
+      "beforeUnique": 150,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 81,
+      "withWebsite": 76,
+      "withAddress": 87,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    },
+    {
+      "city": "Savannah",
+      "countryCode": "US",
+      "continent": "North America",
+      "beforeUnique": 0,
+      "afterUnique": 150,
+      "sourceRecords": 150,
+      "withPhone": 61,
+      "withWebsite": 80,
+      "withAddress": 84,
+      "validLocation": 150,
+      "targetMet": true,
+      "sourceCounts": {
+        "qlever": 150
+      }
+    }
+  ],
+  "belowTarget": [
+    {
+      "city": "Alvarães",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 15,
+      "afterUnique": 15,
+      "sourceRecords": 15,
+      "withPhone": 2,
+      "withWebsite": 0,
+      "withAddress": 2,
+      "validLocation": 15,
+      "targetMet": false,
+      "sourceCounts": {
+        "qlever": 13,
+        "overture": 2
+      }
+    },
+    {
+      "city": "Bonito",
+      "countryCode": "BR",
+      "continent": "South America",
+      "beforeUnique": 0,
+      "afterUnique": 17,
+      "sourceRecords": 17,
+      "withPhone": 10,
+      "withWebsite": 2,
+      "withAddress": 12,
+      "validLocation": 17,
+      "targetMet": false,
+      "sourceCounts": {
+        "qlever": 17
+      }
+    },
+    {
+      "city": "Lunenburg",
+      "countryCode": "CA",
+      "continent": "North America",
+      "beforeUnique": 49,
+      "afterUnique": 49,
+      "sourceRecords": 49,
+      "withPhone": 37,
+      "withWebsite": 36,
+      "withAddress": 40,
+      "validLocation": 49,
+      "targetMet": false,
+      "sourceCounts": {
+        "overture": 32,
+        "qlever": 17
+      }
+    },
+    {
+      "city": "Guernica",
+      "countryCode": "ES",
+      "continent": "Europe",
+      "beforeUnique": 26,
+      "afterUnique": 26,
+      "sourceRecords": 26,
+      "withPhone": 4,
+      "withWebsite": 5,
+      "withAddress": 19,
+      "validLocation": 26,
+      "targetMet": false,
+      "sourceCounts": {
+        "qlever": 26
+      }
+    }
+  ],
+  "collection": {
+    "evaluatedAreas": 32,
+    "blockedAreas": [
+      {
+        "title": "Cuenca, Ecuador",
+        "countryCode": "EC",
+        "stateCode": "A",
+        "continent": "South America",
+        "status": "blocked",
+        "reason": "reciprocal_identity_mismatch"
+      },
+      {
+        "title": "Arequipa",
+        "countryCode": "PE",
+        "stateCode": "ARE",
+        "continent": "South America",
+        "status": "blocked",
+        "reason": "boundary_identity_missing_or_ambiguous"
+      },
+      {
+        "title": "Oaxaca City",
+        "countryCode": "MX",
+        "stateCode": "OAX",
+        "continent": "North America",
+        "status": "blocked",
+        "reason": "boundary_identity_missing_or_ambiguous"
+      },
+      {
+        "title": "San Cristóbal de las Casas",
+        "countryCode": "MX",
+        "stateCode": "CHP",
+        "continent": "North America",
+        "status": "blocked",
+        "reason": "boundary_identity_missing_or_ambiguous"
+      },
+      {
+        "title": "Bath, Somerset",
+        "countryCode": "GB",
+        "stateCode": "BAS",
+        "continent": "Europe",
+        "status": "blocked",
+        "reason": "boundary_identity_missing_or_ambiguous"
+      },
+      {
+        "title": "Stellenbosch",
+        "countryCode": "ZA",
+        "stateCode": "WC",
+        "continent": "Africa",
+        "status": "blocked",
+        "reason": "boundary_identity_missing_or_ambiguous"
+      },
+      {
+        "title": "Swakopmund",
+        "countryCode": "NA",
+        "stateCode": "ER",
+        "continent": "Africa",
+        "status": "blocked",
+        "reason": "boundary_identity_missing_or_ambiguous"
+      },
+      {
+        "title": "Saint-Louis, Senegal",
+        "countryCode": "SN",
+        "stateCode": "SL",
+        "continent": "Africa",
+        "status": "blocked",
+        "reason": "reciprocal_identity_mismatch"
+      },
+      {
+        "title": "Nakuru",
+        "countryCode": "KE",
+        "stateCode": "31",
+        "continent": "Africa",
+        "status": "blocked",
+        "reason": "boundary_identity_missing_or_ambiguous"
+      },
+      {
+        "title": "Bhaktapur",
+        "countryCode": "NP",
+        "stateCode": "P3",
+        "continent": "Asia",
+        "status": "blocked",
+        "reason": "boundary_identity_missing_or_ambiguous"
+      },
+      {
+        "title": "Nelson, New Zealand",
+        "countryCode": "NZ",
+        "stateCode": "NSN",
+        "continent": "Oceania",
+        "status": "blocked",
+        "reason": "boundary_identity_missing_or_ambiguous"
+      }
+    ],
+    "qleverHTTPCalls": 64,
+    "qleverBytes": 2320522,
+    "overtureAttempts": 4,
+    "overtureChargedBytes": 100663296,
+    "limits": {
+      "cities": 45,
+      "httpCalls": 100,
+      "qleverBytes": 41943040,
+      "overtureBytes": 150994944,
+      "overtureCalls": 6,
+      "durationMs": 1200000
+    },
+    "sourceErrors": [
+      {
+        "city": "Lunenburg",
+        "source": "overture",
+        "error": "overture_budget_or_source",
+        "httpStatus": 503
+      },
+      {
+        "city": "Guernica",
+        "source": "overture",
+        "error": "overture_budget_or_source",
+        "httpStatus": 503
+      },
+      {
+        "city": "Alvarães",
+        "source": "overture",
+        "error": "overture_budget_or_source",
+        "httpStatus": 503
+      },
+      {
+        "city": "Bonito",
+        "source": "overture",
+        "error": "overture_budget_or_source",
+        "httpStatus": 503
+      }
+    ]
+  },
+  "limitations": [
+    "Finite second campaign across the 24 supported niches, not a worldwide census.",
+    "Countries and reciprocal boundary identities were validated. Ambiguous or missing boundaries remained blocked; no radius or neighbouring city filled a target.",
+    "The 50-business target sums niches. Source category limits and missing public records still leave four cities below target.",
+    "The Overture extractor returned HTTP 503 in four bounded regional attempts. These failures are not proof of absence of businesses.",
+    "Published phones do not confirm WhatsApp accounts; missing websites do not establish that a business has no website.",
+    "Only additive public-catalog imports occurred. Production application code, authentication, private histories, plans and Render configuration were unchanged.",
+    "No scheduled worldwide collection was enabled. Checkpoints and prepared public data remain in the task artifacts."
+  ]
+}

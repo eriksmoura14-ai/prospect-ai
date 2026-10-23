@@ -1,5 +1,7 @@
 # Expansão do catálogo — 23/10/2026
 
+> Atualização: a [segunda rodada](GLOBAL_CATALOG_EXPANSION_ROUND2.md) elevou o catálogo para 9.667 cadastros únicos em 56 cidades/24 países; 52 cidades atingiram 50. Os resultados abaixo documentam a primeira rodada.
+
 Primeira campanha finita de ingestão no catálogo público de produção, sem publicar código na `main`, mudar a interface, ler contas privadas ou criar serviços/planos pagos. As fontes são OpenStreetMap via QLever (ODbL 1.0) e Overture Places 2026-10-21.0 (licenças e provedores preservados em cada registro).
 
 ## Resultado conferido no PostgreSQL de produção
