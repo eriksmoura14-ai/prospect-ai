@@ -18,6 +18,46 @@ class BudgetError(Exception):
     def __init__(self,message,http_status=None,retry_after=None):
         super().__init__(message);self.http_status=http_status;self.retry_after=retry_after
 
+def polygon_filter(geometry,bounds):
+    """Prepare a bounded ST_Covers-equivalent predicate for Overture Point WKB.
+
+    Filtering after LIMIT lets a dense neighbour exhaust an irregular city's
+    candidate budget. Run this predicate in DuckDB's WHERE before its LIMIT.
+    No spatial extension, Shapely, network request or arbitrary code is needed.
+    """
+    if geometry is None:return None
+    if not isinstance(geometry,dict) or geometry.get('type') not in ('Polygon','MultiPolygon'):raise ValueError('invalid_geometry')
+    if len(json.dumps(geometry).encode())>2*1024*1024:raise ValueError('geometry_size')
+    polygons=[geometry.get('coordinates')] if geometry['type']=='Polygon' else geometry.get('coordinates')
+    if not isinstance(polygons,list) or not polygons:raise ValueError('invalid_geometry')
+    south,north,west,east=bounds;vertices=0
+    for polygon in polygons:
+        if not isinstance(polygon,list) or not polygon:raise ValueError('invalid_geometry')
+        for ring in polygon:
+            if not isinstance(ring,list) or len(ring)<4 or ring[0]!=ring[-1]:raise ValueError('invalid_geometry')
+            for point in ring:
+                vertices+=1
+                if vertices>50000 or not isinstance(point,(list,tuple)) or len(point)!=2 or not all(isinstance(v,(int,float)) and not isinstance(v,bool) and math.isfinite(v) for v in point):raise ValueError('invalid_geometry')
+                x,y=point
+                if not west-1e-6<=x<=east+1e-6 or not south-1e-6<=y<=north+1e-6:raise ValueError('geometry_bounds')
+    def ring_position(x,y,ring):
+        inside=False
+        ax,ay=ring[-1]
+        for bx,by in ring:
+            cross=(x-ax)*(by-ay)-(y-ay)*(bx-ax)
+            if abs(cross)<=1e-12 and min(ax,bx)<=x<=max(ax,bx) and min(ay,by)<=y<=max(ay,by):return 0
+            if (ay>y)!=(by>y) and x<(bx-ax)*(y-ay)/(by-ay)+ax:inside=not inside
+            ax,ay=bx,by
+        return 1 if inside else -1
+    def covers(binary):
+        if not isinstance(binary,bytes) or len(binary)!=21 or binary[0] not in (0,1):raise BudgetError('non_point_geometry')
+        endian='<' if binary[0] else '>'
+        if struct.unpack(endian+'I',binary[1:5])[0]!=1:raise BudgetError('non_point_geometry')
+        x,y=struct.unpack(endian+'dd',binary[5:21])
+        if not math.isfinite(x) or not math.isfinite(y):raise BudgetError('invalid_point_geometry')
+        return any(ring_position(x,y,polygon[0])>=0 and all(ring_position(x,y,hole)<=0 for hole in polygon[1:]) for polygon in polygons)
+    return covers
+
 def extract(spec):
     started=time.monotonic()
     bounds=spec["bounds"]
@@ -29,6 +69,7 @@ def extract(spec):
     deadline=started+min(int(spec.get("timeoutSeconds",60)),75)
     categories=spec.get("categories",[])
     if not categories or not all(isinstance(v,str) and re.fullmatch(r"[a-z_]{2,100}",v) for v in categories):raise ValueError("unsupported_category")
+    covers=polygon_filter(spec.get('geometry'),bounds)
     metrics={"bytes":0,"requests":0,"files":0,"budgetBytes":maximum}
     reserved=0
     lock=threading.Lock()
@@ -116,12 +157,15 @@ def extract(spec):
     try:
         con.execute("LOAD httpfs")
         con.execute("SET http_timeout=10; SET http_retries=0; SET enable_http_metadata_cache=true")
+        if covers:con.create_function('inside_selected_area',covers,['BLOB'],'BOOLEAN')
         urls=[f"http://127.0.0.1:{gateway.server_port}/{i}.parquet" for i in range(len(assets))]
         sql="""SELECT to_json(struct_pack(id:=id,names:=names,bbox:=bbox,taxonomy:=taxonomy,basic_category:=basic_category,
           phones:=phones,websites:=websites,addresses:=addresses,confidence:=confidence,sources:=sources,operating_status:=operating_status,geometry_wkb:=hex(geometry)))
           FROM read_parquet(?,hive_partitioning=false) WHERE bbox.xmin BETWEEN ? AND ? AND bbox.ymin BETWEEN ? AND ?
           AND (list_has_any(taxonomy.hierarchy,?) OR list_contains(?,taxonomy.primary) OR list_contains(?,basic_category))
-          AND (operating_status IS NULL OR operating_status!='permanently_closed') AND (confidence IS NULL OR confidence>=0.5) LIMIT ?"""
+          AND (operating_status IS NULL OR operating_status!='permanently_closed') AND (confidence IS NULL OR confidence>=0.5)"""
+        if covers:sql+=' AND inside_selected_area(geometry)'
+        sql+=' LIMIT ?'
         values=con.execute(sql,[urls,west,east,south,north,categories,categories,categories,limit+1]).fetchall()
         rows=[json.loads(v[0]) for v in values[:limit]]
         for row in rows:
