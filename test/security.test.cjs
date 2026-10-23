@@ -211,6 +211,27 @@ test("perfis sociais são identificados como perfis sem serem lidos automaticame
   assert.equal(result.websiteVerification,"profile");assert.equal(result.status,"WEBSITE_LISTED");assert.equal(h.outbound.length,0);
 });
 
+test("site da fonte que redireciona para plataforma é identificado sem ler o perfil",async()=>{
+  const row={osmId:"node/redirect-profile",name:"Empresa Central",city:"São Paulo",phone:"",website:"https://fixture.example/",status:"WEBSITE_LISTED"};
+  const h=harness({pages:{"https://fixture.example/robots.txt":{status:404,html:""},"https://fixture.example/":{status:302,location:"https://www.ifood.com.br/delivery/fixture"}}});
+  const result=await h.verify(row);
+  assert.equal(result.websiteVerification,"profile");assert.equal(result.status,"WEBSITE_LISTED");
+  assert.equal(result.website,"https://www.ifood.com.br/delivery/fixture");
+  assert.equal(h.outbound.length,2);assert.match(result.reason,/redirecionou/);
+  assert.equal(result.phone,"");
+});
+test("perfil encontrado por domínio adivinhado não é atribuído à empresa",async()=>{
+  const row={osmId:"node/guessed-profile",name:"Empresa Central",city:"São Paulo",countryCode:"BR",phone:"",website:"",status:"UNCERTAIN"};
+  const values=require("../website-evidence.cjs").candidates(row.name,row.city,row.countryCode);
+  const missing=Object.assign(new Error("No DNS record"),{code:"ENOTFOUND"});
+  const h=harness({records:Object.fromEntries(values.slice(1).map(domain=>[domain,missing])),pages:{
+    [`https://${values[0]}/robots.txt`]:{status:404,html:""},
+    [`https://${values[0]}/`]:{status:302,location:"https://instagram.com/unrelated"}}});
+  const result=await h.verify(row);
+  assert.equal(result.website,"");assert.equal(result.websiteVerification,"not_identified");
+  assert.equal(result.status,"UNCERTAIN");assert.equal(h.outbound.length,2);
+});
+
 test("página acima de 768 KB é interrompida e limite de memória do cache provoca nova leitura",async()=>{
   const pages={"https://fixture.example/too-large":{status:200,html:"x".repeat(768*1024+1)}};
   for(let i=0;i<13;i++)pages[`https://fixture.example/page-${i}`]={status:200,html:"x".repeat(700*1024)};

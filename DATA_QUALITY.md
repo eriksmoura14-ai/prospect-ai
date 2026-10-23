@@ -52,3 +52,19 @@ Documentação: este arquivo. Nenhuma migração de banco, chave nova ou variáv
 ## Limitação restante
 
 O OpenStreetMap e o índice do Geoapify podem omitir contatos, incluir cadastros antigos ou ter cobertura desigual. Páginas podem ser indisponíveis, bloqueadas para robôs, grandes demais ou ambíguas. Nesses casos o sistema informa a incerteza. A correção melhora coleta e verificação; não cria uma base completa de telefones e sites nem comprova que todos os casos relatados foram resolvidos. Não houve acesso a novos resultados privados de clientes durante esta investigação.
+
+## Revisão de 2026-10-23
+
+Foram reproduzidos dois problemas adicionais: um campo com perfil social podia ocultar um site próprio disponível em outro campo, e uma URI `tel:` misturada a outros telefones impedia reconhecer os contatos da lista. Um link WhatsApp no campo de telefone também podia absorver o contato seguinte como parte de sua URL.
+
+- Listas de telefones agora separam URIs `tel:` e números individuais, conservando ramais e os dígitos publicados. URLs oficiais de WhatsApp fornecem apenas o número do destinatário, nunca números presentes no texto da mensagem. Não há remoção nem inclusão automática do nono dígito.
+- Sites próprios disponíveis nas fontes têm prioridade sobre perfis e plataformas reconhecidas, inclusive ao reunir cadastros duplicados da mesma empresa. A verificação continua necessária: um domínio cadastrado não é prova de propriedade.
+- WhatsApp, plataformas de pedidos/reservas e mapas reconhecidos são classificados como perfis. Um redirecionamento para esses serviços interrompe a leitura antes de consultar a plataforma. Um perfil encontrado a partir de um domínio sugerido não é atribuído à empresa.
+- `phoneFormat` é recalculado como `valid`, `needs_review` ou `not_listed`. `valid` significa que há ao menos um telefone com formato válido nos metadados de numeração; não confirma atividade, titularidade ou conta WhatsApp. Ramais podem ter formato válido e continuam impedidos de virar destinatário automático.
+- O filtro **WhatsApp informado na fonte** exige indicação explícita e um destino utilizável, sem divergência. Telefones móveis comuns continuam classificados como conta não verificada. O filtro **Formato válido, sem divergência** exclui formatos incompletos e contatos conflitantes.
+- A origem do WhatsApp acompanha o contato nas listas cifradas. CSV e JSON conservam país, formato, número de destino, estado da indicação e origem. `whatsappStatus: listed` significa publicação na fonte; não equivale a conta confirmada.
+- Novas buscas usam versões novas dos caches de descoberta e verificação. O histórico conserva seus dados originais; refaça a busca para atualizar a seleção do site.
+
+Validação local desta revisão: **313 testes da aplicação passaram**, sem falhas ou testes ignorados, usando PostgreSQL 17 descartável. Chromium passou em computador (1366 px) e celular (390 px), verificando filtros, avisos, exportação, ausência de transbordamento e destino WhatsApp com todos os dígitos. A navegação externa foi interceptada localmente; não houve consulta a contas WhatsApp nem envio de mensagens. Uma regressão com PostgreSQL real confirmou a conservação cifrada da origem e do destino ao reabrir listas, com isolamento entre contas. A interface pública compilou com sucesso. Esses testes usam empresas e contas fictícias e não comprovam precisão mundial dos cadastros.
+
+Nenhuma migração, variável nova, serviço pago ou alteração do layout do planeta é necessária.

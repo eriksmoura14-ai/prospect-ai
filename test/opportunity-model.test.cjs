@@ -26,6 +26,12 @@ test("divergent phones lose contact readiness and never rank ahead of consistent
   assert.match(conflicting.next, /Compare os telefones/);
   assert.ok(conflicting.priority < model.analyze(lead).priority);
 });
+test("invalid published phone format does not add contact readiness", () => {
+  const invalid = model.analyze({ ...lead, phone: "123", phoneFormat: "needs_review" });
+  assert.equal(invalid.contact, false);
+  assert.equal(invalid.priority, model.analyze({ ...lead, phone: "" }).priority);
+  assert.match(invalid.next, /Procure um canal/);
+});
 test("unsafe URLs are not compatible website evidence; offer text is preserved literally", () => {
   for (const website of ["javascript:alert(1)", "https://user:pass@example.test"]) {
     const plan = model.analyze({ ...lead, website, websiteVerification: "compatible" }, "website", { seller: "Erik", offer: "<img onerror=x>" });

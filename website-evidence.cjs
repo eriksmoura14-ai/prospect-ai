@@ -98,7 +98,7 @@ function analyze(page, business) {
   const matchedPhones = pageNumbers(page,business).filter(value => originals.includes(value));
   const phoneMatch = matchedPhones.length > 0;
   const parked = /\b(domain for sale|buy this domain|website coming soon|parked domain)\b/i.test(text);
-  const compatible = page.status >= 200 && page.status < 300 && !parked && nameMatch && cityMatch && (phoneMatch || addressMatch);
+  const compatible = page.status >= 200 && page.status < 300 && !contacts.isProfile(page.finalUrl) && !parked && nameMatch && cityMatch && (phoneMatch || addressMatch);
   return {title: title.slice(0,400),compatible,nameMatch,cityMatch,phoneMatch,addressMatch,
     matchedPhone:matchedPhones.length === 1 ? matchedPhones[0] : ""};
 }
@@ -151,14 +151,7 @@ function candidates(name, city, country) {
   })).filter(Boolean);
 }
 
-function isProfile(input) {
-  try {
-    const url = new URL(input), host = url.hostname;
-    return ["facebook.com","instagram.com","linkedin.com","youtube.com","tiktok.com","wa.me","linktr.ee","yelp.com","tripadvisor.com","maps.app.goo.gl","g.page"]
-      .some(value => host === value || host.endsWith("." + value)) ||
-      ((host === "google.com" || host.endsWith(".google.com")) && url.pathname.startsWith("/maps"));
-  } catch { return false; }
-}
+const isProfile = contacts.isProfile;
 
 function canonicalPath(value) {
   return value.replace(/[^\x00-\x7f]/gu, character => encodeURIComponent(character))
@@ -208,6 +201,12 @@ async function readPublicPage(input,deadline,read) {
   let current = input;
   for (let redirects = 0; redirects <= 3; redirects++) {
     const url = new URL(current);
+    if (isProfile(current)) {
+      const error = new Error("O endereço redirecionou para um perfil ou plataforma; site próprio não confirmado.");
+      error.code = "WEBSITE_PROFILE";
+      error.profileUrl = url.href;
+      throw error;
+    }
     let robots = await read(new URL("/robots.txt",url).href,deadline,-1,true);
     // A same-origin redirect can serve the policy from a different path.
     if (robots.redirect && new URL(robots.redirect).origin === url.origin) robots = await read(robots.redirect,deadline,-1,true);

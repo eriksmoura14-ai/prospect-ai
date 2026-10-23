@@ -77,6 +77,25 @@ test("perfis sociais e diretórios não comprovam site próprio",()=>{
   assert.equal(evidence.isProfile("https://instagram.com.evil.example/"),false);
   assert.equal(evidence.isProfile("https://company.example/"),false);
 });
+
+test("WhatsApp, plataformas de pedidos e mapas internacionais são perfis, com domínio exato", () => {
+  for(const input of ["https://api.whatsapp.com/send?phone=553432249090","https://www.whatsapp.com/","https://www.ifood.com.br/delivery/fixture",
+    "https://www.ubereats.com/store/fixture","https://www.doordash.com/store/fixture","https://www.booking.com/hotel/fixture",
+    "https://www.google.com.br/maps/place/fixture","https://maps.google.co.uk/?cid=1","https://maps.apple.com/?address=fixture"])
+    assert.equal(evidence.isProfile(input),true,input);
+  for(const input of ["https://ifood.com.br.evil.example/","https://www.google.com.br.evil.example/maps/","https://fixture.myshopify.com/","https://fixture.wixsite.com/","https://fixture.example/"])
+    assert.equal(evidence.isProfile(input),false,input);
+});
+
+test("redirecionamento para perfil para antes de consultar a plataforma ou confirmar o site", async () => {
+  const calls=[];
+  await assert.rejects(evidence.readPublicPage("https://fixture.example/",Date.now()+5000,async url=>{
+    calls.push(url);
+    return url.endsWith("/robots.txt") ? {status:404,html:""} : {status:302,redirect:"https://www.ifood.com.br/delivery/fixture"};
+  }),error=>error.code==="WEBSITE_PROFILE" && error.profileUrl==="https://www.ifood.com.br/delivery/fixture");
+  assert.deepEqual(calls,["https://fixture.example/robots.txt","https://fixture.example/"]);
+  assert.equal(evidence.analyze({...page(entity()),finalUrl:"https://www.ifood.com.br/delivery/fixture"},business).compatible,false);
+});
 test("robots considera caminho, wildcard, fim, grupo específico e precedência de Allow",()=>{
   const robots = "User-agent: *\nDisallow: /admin\nDisallow: /*?private=$\nAllow: /admin/public";
   assert.equal(evidence.robotsPermit(robots,"/"),true);

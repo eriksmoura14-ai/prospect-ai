@@ -33,19 +33,18 @@ function whatsappLinkNumber(value) {
 
 function phoneEntries(value, country) {
   if (typeof value !== "string" || value.length > 200) return [];
-  const linkNumber = whatsappLinkNumber(value);
-  const items = /^https?:/i.test(value.trim()) || /^tel:/i.test(value.trim()) ? [value]
-    : value.replace(/;\s*ext=(\d+)/gi, " ext. $1").split(/[;,]/u);
+  // A URL's message may contain punctuation or other numbers. Never split it.
+  const items = /^https?:/i.test(value.trim()) ? [value] : value.split(/[;,](?!\s*ext=)/iu);
   return items.flatMap(item => {
     let raw = item.trim(), linked = whatsappLinkNumber(raw);
     // Do not lose a tel URI's extension by splitting it into separate numbers.
     if (/^tel:/i.test(raw)) {
-      const match = /^tel:([+\d(). -]+)(?:;ext=(\d+))?$/i.exec(raw);
+      const match = /^tel:([+\d(). -]+)(?:;\s*ext=(\d+))?$/i.exec(raw);
       if (!match) return [];
       raw = match[1] + (match[2] ? " ext. " + match[2] : "");
-    }
-    const phone = parsePhoneNumberFromString(linked || linkNumber || raw, { defaultCountry: countryCode(country) || undefined, extract: false });
-    return phone ? [{ phone, linked: Boolean(linked || linkNumber) }] : [];
+    } else raw = raw.replace(/;\s*ext=(\d+)/gi, " ext. $1");
+    const phone = parsePhoneNumberFromString(linked || raw, { defaultCountry: countryCode(country) || undefined, extract: false });
+    return phone ? [{ phone, linked: Boolean(linked) }] : [];
   });
 }
 const contactURL = phone => "https://wa.me/" + phone.number.slice(1);
@@ -72,6 +71,22 @@ function websiteURL(value) {
   } catch { return ""; }
 }
 
+// Profiles, directories and ordering platforms are useful contacts, but do not
+// establish that a company owns a website. Match host boundaries, not substrings.
+function isProfile(input) {
+  try {
+    const url = new URL(input), host = url.hostname;
+    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) return false;
+    if (["facebook.com", "instagram.com", "linkedin.com", "youtube.com", "tiktok.com",
+      "whatsapp.com", "wa.me", "linktr.ee", "yelp.com", "tripadvisor.com", "maps.app.goo.gl", "g.page",
+      "ifood.com.br", "ubereats.com", "doordash.com", "booking.com", "opentable.com", "thefork.com", "maps.apple.com"]
+      .some(value => host === value || host.endsWith("." + value))) return true;
+    const googleDomains = ["com", "com.br", "co.uk", "de", "fr", "es", "it", "pt", "ca", "com.au", "co.nz", "co.jp", "co.in", "com.mx", "com.ar", "cl", "co.za", "com.tr", "nl", "be", "ch", "at", "ie", "pl", "se", "no", "dk", "fi", "cz", "gr", "co.kr", "com.sg", "com.hk", "com.tw", "co.id", "com.my", "co.th", "com.ph", "ae", "co.il", "com.co", "com.pe", "com.uy"];
+    return googleDomains.some(suffix => host === "maps.google." + suffix ||
+      ((host === "google." + suffix || host === "www.google." + suffix) && /^\/maps(?:\/|$)/.test(url.pathname)));
+  } catch { return false; }
+}
+
 function listedWhatsApp(value) {
   if (typeof value !== "string" || value.length > 200) return "";
   if (/^https?:/i.test(value.trim())) return whatsappLinkNumber(value);
@@ -83,28 +98,35 @@ function listedWhatsApp(value) {
 function sourceData(tags = {}, provider = {}) {
   const phoneFields = ["phone", "contact:phone", "mobile", "contact:mobile"];
   const values = [], sources = [];
+  const whatsappKey = ["contact:whatsapp", "whatsapp"].find(key => listedWhatsApp(tags[key]));
+  let whatsappPhone = whatsappKey ? listedWhatsApp(tags[whatsappKey]) : "";
+  let whatsappSource = whatsappKey ? `OpenStreetMap · ${whatsappKey}` : "";
   for (const key of phoneFields) {
     if (typeof tags[key] !== "string" || !tags[key].trim() || tags[key].length > 200) continue;
-    if (!values.includes(tags[key].trim())) values.push(tags[key].trim());
+    const linked = whatsappLinkNumber(tags[key]), value = linked || tags[key].trim();
+    if (!values.includes(value)) values.push(value);
+    if (linked && !whatsappPhone) { whatsappPhone = linked; whatsappSource = `OpenStreetMap · ${key}`; }
     sources.push(`OpenStreetMap · ${key}`);
   }
-  const whatsappPhone = listedWhatsApp(tags["contact:whatsapp"]) || listedWhatsApp(tags.whatsapp);
   if (whatsappPhone && !values.includes(whatsappPhone)) { values.push(whatsappPhone); sources.push("OpenStreetMap · WhatsApp informado"); }
   if (typeof provider.phone === "string" && provider.phone.trim() && provider.phone.length <= 200) {
-    if (!values.includes(provider.phone.trim())) values.push(provider.phone.trim());
+    const linked = whatsappLinkNumber(provider.phone), value = linked || provider.phone.trim();
+    if (!values.includes(value)) values.push(value);
+    if (linked && !whatsappPhone) { whatsappPhone = linked; whatsappSource = "Geoapify · contact.phone"; }
     sources.push("Geoapify · contact.phone");
   }
   const selected = [];
   for (const value of values) if ([...selected, value].join("; ").length <= 200) selected.push(value);
   const phone = selected.join("; ");
-  const mobileValues = [tags["contact:mobile"], tags.mobile].filter(value => typeof value === "string" && value.trim() && value.length <= 200).map(value => value.trim());
+  const mobileValues = [tags["contact:mobile"], tags.mobile].filter(value => typeof value === "string" && value.trim() && value.length <= 200).map(value => whatsappLinkNumber(value) || value.trim());
   const mobilePhone = [...new Set(mobileValues)].join("; ");
   const websiteFields = ["website", "contact:website", "url"];
   const websites = websiteFields.flatMap(key => typeof tags[key] === "string" && tags[key].length <= 2000
     ? tags[key].split(";").map(value => ({value, source: `OpenStreetMap · ${key}`})) : []);
   if (typeof provider.website === "string") websites.push({value: provider.website, source: "Geoapify · website"});
-  const listed = websites.map(item => ({...item, url: websiteURL(item.value)})).find(item => item.url);
-  return { phone, mobilePhone, whatsappPhone, phoneSource: sources.join("; ").slice(0, 1000),
+  const validWebsites = websites.map(item => ({...item, url: websiteURL(item.value)})).filter(item => item.url);
+  const listed = validWebsites.find(item => !isProfile(item.url)) || validWebsites[0];
+  return { phone, mobilePhone, whatsappPhone, whatsappSource, phoneSource: sources.join("; ").slice(0, 1000),
     phoneVerification: phone ? "listed" : "not_listed", sitePhone: "",
     website: listed?.url || "", websiteSource: listed?.source || "",
     websiteVerification: listed ? "listed" : "not_identified",
@@ -125,9 +147,11 @@ function details(company, fallbackCountry) {
     if (candidate?.isValid() && candidate.getType() === "MOBILE") { suggestion = candidate; break; }
   }
   const conflict = company?.phoneVerification === "conflict";
+  const phoneFormat = entries.some(({phone}) => phone.isValid()) ? "valid"
+    : [company?.phone, company?.mobilePhone, company?.whatsappPhone, sitePhone].some(value => typeof value === "string" && value.trim()) ? "needs_review" : "not_listed";
   const reason = conflict ? "conflict" : contact ? "" : suggestion ? "br_ninth_digit" : entries.some(({ phone }) => phone.ext) ? "extension"
     : valid.some(({ phone }) => phone.getType() === "FIXED_LINE") ? "fixed_line" : valid.length ? "special_number" : "invalid_number";
-  return { ...company, countryCode: code,
+  return { ...company, countryCode: code, phoneFormat,
     whatsappUrl: !conflict && contact ? contactURL(contact.phone) : "",
     whatsappNumber: !conflict && contact ? contact.phone.number : "",
     whatsappStatus: conflict ? "needs_review" : contact ? contact.listed ? "listed" : "unverified" : suggestion ? "needs_review" : "not_listed",
@@ -136,4 +160,4 @@ function details(company, fallbackCountry) {
     whatsappSuggestedNumber: !conflict && suggestion ? suggestion.number : "" };
 }
 
-module.exports = { countryCode, jobCountry, whatsappURL, whatsappLinkNumber, details, numbers, sourceData, websiteURL };
+module.exports = { countryCode, jobCountry, whatsappURL, whatsappLinkNumber, details, numbers, sourceData, websiteURL, isProfile };

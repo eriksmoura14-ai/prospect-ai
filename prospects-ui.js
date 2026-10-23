@@ -77,6 +77,7 @@ const prospectLists = (() => {
     };
     box.append(node("p",company.phone ? phoneNotes[company.phoneVerification] || phoneNotes.listed
       : "Telefone não informado nas fontes consultadas; isso não comprova ausência de telefone.","reason"));
+    if (company.phoneFormat === "needs_review") box.append(node("p","O formato do telefone precisa de revisão. Confira os dígitos, o código do país e o DDD na fonte.","reason"));
     if (company.sitePhone) box.append(node("p","Telefone publicado no site: " + company.sitePhone,"reason"));
     if (company.phoneSource) {
       const source = node("p","Fonte do telefone: ","reason");
@@ -92,7 +93,7 @@ const prospectLists = (() => {
       listed:"Site cadastrado na fonte; verificação ainda pendente.",
       compatible:"A página apresentou identidade compatível. Isso não comprova propriedade nem atualização do cadastro.",
       inconclusive:"Site informado na fonte; identidade ou disponibilidade não confirmadas.",
-      profile:"Este endereço é um perfil ou diretório. Site próprio não confirmado.",
+      profile:"Este endereço é um perfil, diretório ou plataforma. Site próprio não confirmado.",
       not_identified:"Site não identificado na consulta limitada. Isso não comprova ausência de site."
     };
     box.append(node("p",siteNotes[company.websiteVerification] || (company.website
