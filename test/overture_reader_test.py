@@ -1,5 +1,5 @@
 """Real DuckDB/Parquet/range reads, fictional records, mocked outbound HTTP."""
-import importlib.util,json,os,re,struct,tempfile,unittest
+import importlib.util,json,os,re,struct,tempfile,unittest,shutil,platform
 from pathlib import Path
 from unittest.mock import patch
 import duckdb
@@ -45,6 +45,16 @@ class ReaderTests(unittest.TestCase):
         self.assertLessEqual(result['metrics']['bytes'],1024*1024);self.assertTrue(self.requests)
     def test_closed_and_low_confidence_records_are_filtered(self):
         self.prepare(status='permanently_closed');self.assertEqual(self.run_extract()['rows'],[])
+    def test_extension_survives_a_different_runtime_home(self):
+        self.prepare()
+        system='linux_'+{'x86_64':'amd64','aarch64':'arm64'}[platform.machine()]
+        directory=Path('v1.4.4')/system
+        extension=Path.home()/'.duckdb/extensions'/directory/'httpfs.duckdb_extension'
+        target=self.root/'build-artifact-extensions'/directory/'httpfs.duckdb_extension'
+        target.parent.mkdir(parents=True);shutil.copyfile(extension,target)
+        runtime_home=self.root/'different-runtime-home';runtime_home.mkdir()
+        with patch.dict(os.environ,{'HOME':str(runtime_home),'DUCKDB_EXTENSION_DIRECTORY':str(self.root/'build-artifact-extensions')}):
+            self.assertEqual(len(self.run_extract()['rows']),1)
     def test_budget_refuses_remote_body_before_exceeding_limit(self):
         self.prepare()
         with self.assertRaises(Exception):self.run_extract(maxBytes=1)

@@ -15,7 +15,7 @@ O motor é **opcional e desativado por padrão**. `DISCOVERY_ENGINE=legacy` cons
 
 ## Banco separado e migração explícita
 
-O catálogo usa `DISCOVERY_DATABASE_URL`, distinto da configuração da autenticação. Não há migração automática no startup. Os testes usam PostgreSQL 17/PostGIS 3.5 descartável em loopback; o SQL é compatível com PostgreSQL/PostGIS em uma branch de desenvolvimento Neon ou projeto Supabase dedicado, sujeito aos limites do plano. A compatibilidade remota não foi testada escrevendo nessas contas.
+O catálogo usa `DISCOVERY_DATABASE_URL`, distinto da configuração da autenticação. Não há migração automática no startup. Os testes usam PostgreSQL 17/PostGIS 3.5 descartável em loopback. A migração também foi aplicada em um projeto Neon gratuito novo e isolado, com PostgreSQL 17/PostGIS 3.5.7; nenhum dado privado foi copiado da produção. Supabase não foi testado remotamente.
 
 Exemplo **somente local**, com senha fictícia:
 
@@ -45,7 +45,7 @@ Mantenha as variáveis atuais de autenticação para usar as contas. Nenhuma cha
 - `discovery_coverage`: atualização por **área exata + segmento + fonte**, completude operacional e expiração.
 - `discovery_tasks`: dono da solicitação, estado, tentativas, concessão com token, checkpoint e retomada.
 
-Índices GiST nas geometrias, índices por país/categoria/nome e unicidade de `(source, source_id)`. Registros OSM/Overture não são sobrescritos uns pelos outros. Milhões de registros são uma evolução do modelo/indexação, **não uma escala validada nem permitida pelo orçamento padrão**. O upsert atual prioriza segurança/idempotência do MVP; importações maciças exigirão ingestão em lotes e testes de carga.
+Índices GiST nas geometrias, índices por país/categoria/nome e unicidade de `(source, source_id)`. Registros OSM/Overture não são sobrescritos uns pelos outros. A gravação consulta identidades existentes uma vez e envia lotes de até 100 registros, dentro da mesma transação e dos mesmos limites/licenças/leases. Isso evita duas viagens de rede por estabelecimento. IDs repetidos conservam a observação mais recente. Milhões de registros são uma evolução do modelo/indexação, **não uma escala validada nem permitida pelo orçamento padrão**; importações maciças ainda exigirão ingestão e testes de carga próprios.
 
 O UUID identifica o registro da fonte. A resolução de entidades entre fontes é conservadora por consulta; não existe ainda um grafo mundial canônico de empresas. Favoritos antigos não são migrados ou fundidos automaticamente.
 
@@ -67,7 +67,9 @@ Um gateway **somente loopback** registra exclusivamente assets HTTPS oficiais e 
 
 Limites padrão por extração: 32 MiB de corpos, até 1.000 registros, DuckDB com 256 MiB e uma thread, prazo vinculado à consulta, saída máxima de 8 MiB. A memória inclui ainda o Python, buffers/JSON e Node; 256 MiB não é um teto de RAM do processo inteiro. Recortes grandes podem parar sem completar. O STAC imutável da release é cacheado em `.cache/overture`; dados não viram um download planetário. `OVERTURE_CACHE_DIR` pode apontar a um diretório gravável dedicado.
 
-O modo online opcional precisa de Python/dependências no host. Para Render Free, prefira executar importações regionais numa máquina de desenvolvimento e manter apenas consultas PostGIS/Node no serviço; não pressuponha recursos suficientes para Parquet no mesmo processo de hospedagem. Nenhuma instalação foi feita no Render por esta missão.
+O modo online opcional precisa de Python/dependências no host. Para Render Free, prefira executar importações regionais numa máquina de desenvolvimento e manter apenas consultas PostGIS/Node no serviço; não pressuponha recursos suficientes para qualquer recorte Parquet no mesmo processo de hospedagem. Uma instância gratuita **separada de homologação** instalou essas ferramentas para validar recortes limitados; a produção não foi alterada.
+
+Em plataformas que separam build e runtime, a extensão não pode ficar apenas no diretório pessoal da máquina de build. Configure `DUCKDB_EXTENSION_DIRECTORY=.duckdb-extensions` antes de executar `scripts/setup-discovery.py` e mantenha a mesma variável no runtime. Instalador e leitor resolvem esse caminho explicitamente; a pasta precisa estar dentro do artefato da aplicação. A extensão continua assinada, com TLS verificado e instalação explícita, sem download automático durante a consulta. O teste Python inclui troca do diretório pessoal entre build e runtime.
 
 ### Importação com checkpoint
 
@@ -128,8 +130,8 @@ Vercel/Netlify continuam hospedando arquivos públicos e encaminhando API; o bac
 
 ## Verificações executadas nesta entrega
 
-- **335 testes Node passaram**, sem falhas ou skips, com PostgreSQL/PostGIS local real e URLs exclusivas de teste. Incluem a suíte anterior, geometrias, licenças, deduplicação, limites, leases, checkpoint e retomada.
-- **6 testes Python passaram** com DuckDB/Parquet e PBF reais de fixtures fictícias; HTTP externo foi substituído por transporte controlado. Conferem ranges, orçamento, Point WKB, exclusão de campos desnecessários e rejeição de destino privado no catálogo.
+- **336 testes Node passaram**, sem falhas ou skips, com PostgreSQL/PostGIS local real e URLs exclusivas de teste. Incluem a suíte anterior, geometrias, licenças, deduplicação, limites, leases, checkpoint e retomada.
+- **7 testes Python passaram** com DuckDB/Parquet e PBF reais de fixtures fictícias; HTTP externo foi substituído por transporte controlado. Conferem ranges, orçamento, Point WKB, exclusão de campos desnecessários e rejeição de destino privado no catálogo.
 - Chromium, computador e celular: busca autenticada → geocodificação controlada → dois provedores fictícios → PostGIS → cards → CSV → lista cifrada → recarga. Outra conta recebeu 404 para jobs/tarefas privados; o catálogo público foi reutilizado sem chamadas adicionais aos provedores. A regressão anterior de contatos também passou em ambos os formatos de tela.
 - Auditoria de autenticação: **29 controles da ferramenta e 31 verificações HTTP** passaram, sem achados; apenas fixtures locais. A interface pública compilou com sucesso.
 - A coleta real e seus limites estão em `GLOBAL_DISCOVERY_BENCHMARK.md`; testes fictícios não foram contabilizados como empresas reais. Um dump local das três tabelas públicas de validação foi preservado no workspace, separado de contas, sessões e tarefas; nenhuma base foi publicada automaticamente.

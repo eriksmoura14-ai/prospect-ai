@@ -9,8 +9,9 @@ system="linux_"+architecture
 url=f"https://extensions.duckdb.org/v1.4.4/{system}/httpfs.duckdb_extension.gz"
 response=requests.get(url,timeout=30);response.raise_for_status()
 assert len(response.content)<32*1024*1024
-root=Path(os.environ.get("DUCKDB_EXTENSION_DIRECTORY",str(Path.home()/".duckdb/extensions")))/"v1.4.4"/system
+extension_root=Path(os.environ.get("DUCKDB_EXTENSION_DIRECTORY") or (Path.home()/".duckdb/extensions")).resolve()
+root=extension_root/"v1.4.4"/system
 root.mkdir(parents=True,exist_ok=True)
 (root/"httpfs.duckdb_extension").write_bytes(gzip.decompress(response.content))
-duckdb.connect().execute("LOAD httpfs") # DuckDB checks the extension signature.
+duckdb.connect(config={"extension_directory":str(extension_root)}).execute("LOAD httpfs") # DuckDB checks the extension signature.
 print("Signed httpfs extension installed; TLS verification preserved.")

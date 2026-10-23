@@ -110,7 +110,8 @@ def extract(spec):
                 with lock:reserved-=allocation
     gateway=ThreadingHTTPServer(("127.0.0.1",0),Gateway)
     threading.Thread(target=gateway.serve_forever,daemon=True).start()
-    con=duckdb.connect(config={"memory_limit":"256MB","threads":"1","enable_external_access":"true","autoinstall_known_extensions":"false","autoload_known_extensions":"false"})
+    extension_config={"extension_directory":str(Path(os.environ["DUCKDB_EXTENSION_DIRECTORY"]).resolve())} if os.environ.get("DUCKDB_EXTENSION_DIRECTORY") else {}
+    con=duckdb.connect(config={**extension_config,"memory_limit":"256MB","threads":"1","enable_external_access":"true","autoinstall_known_extensions":"false","autoload_known_extensions":"false"})
     timer=threading.Timer(max(1,deadline-time.monotonic()),con.interrupt);timer.start()
     try:
         con.execute("LOAD httpfs")

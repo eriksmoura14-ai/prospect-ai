@@ -44,6 +44,23 @@ test("real disposable PostGIS: geometry, upserts, licenses, leases, checkpoint r
       const capped=createStore({databaseUrl,local:true,maxRecords:1});
       try{assert.equal((await capped.upsert([row("9")])).rejectedByBudget,1);assert.equal((await capped.upsert([row("1")])).saved,1);}finally{await capped.close();}
     });
+    await t.test("batches preserve duplicate updates, verification invalidation and transaction rollback",async()=>{
+      const bulk=createStore({databaseUrl,local:true,maxRecords:500});
+      const rows=Array.from({length:105},(_,i)=>row("7"+i));
+      try{
+        const changed={...rows[0],phone:"+4930901821"};
+        assert.equal((await bulk.upsert([rows[0],changed,...rows.slice(1),{...changed,phone:"+4930901822"}])).saved,107);
+        assert.equal(Number((await sql.query("SELECT count(*) AS n FROM discovery_records WHERE source_id LIKE $1",['node/'+id+'7%'])).rows[0].n),105);
+        assert.equal((await sql.query("SELECT phone FROM discovery_records WHERE source_id=$1",[rows[0].sourceId])).rows[0].phone,"+4930901822");
+        await sql.query("UPDATE discovery_records SET last_verified_at=now() WHERE source_id=$1",[rows[0].sourceId]);
+        await bulk.upsert([{...changed,phone:"+4930901822"}]);
+        assert((await sql.query("SELECT last_verified_at FROM discovery_records WHERE source_id=$1",[rows[0].sourceId])).rows[0].last_verified_at);
+        await bulk.upsert([changed]);
+        assert.equal((await sql.query("SELECT last_verified_at FROM discovery_records WHERE source_id=$1",[rows[0].sourceId])).rows[0].last_verified_at,null);
+        await assert.rejects(bulk.upsert([row("81"),{...row("82"),license:{id:"unapproved"}}]),/Licença/);
+        assert.equal(Number((await sql.query("SELECT count(*) AS n FROM discovery_records WHERE source_id=$1",[row("81").sourceId])).rows[0].n),0);
+      }finally{await bulk.close();}
+    });
   }finally{
     await sql.query("DELETE FROM discovery_tasks WHERE area_key=$1",[area.key]);await sql.query("DELETE FROM discovery_coverage WHERE area_key=$1",[area.key]);await sql.query("DELETE FROM discovery_areas WHERE key=$1",[area.key]);
     await sql.query("DELETE FROM discovery_records WHERE source_id LIKE $1",['node/'+id+'%']);await store.close();await sql.end();

@@ -27,10 +27,13 @@ function createStore({databaseUrl,local=false,maxRecords=50000,maxBytes=64*1024*
     try {
       await client.query("BEGIN");await client.query("SELECT pg_advisory_xact_lock(741326953)");
       if(task&&!((await client.query("SELECT 1 FROM discovery_tasks WHERE id=$1 AND lease_token=$2 AND state='running' AND lease_until>now() FOR UPDATE",[task.id,task.token])).rowCount))throw Object.assign(new Error("Concessão de execução vencida."),{code:"lease_lost"});
-      const count=Number((await client.query("SELECT count(*)::integer AS n FROM discovery_records")).rows[0].n);
-      const bytes=Number((await client.query("SELECT pg_total_relation_size('discovery_records') AS n")).rows[0].n);
-      let byteRoom=Math.max(0,maxBytes-bytes);
-      let room=Math.max(0,maxRecords-count);
+      const budget=(await client.query("SELECT count(*)::integer AS records,pg_total_relation_size('discovery_records') AS bytes FROM discovery_records")).rows[0];
+      let byteRoom=Math.max(0,maxBytes-Number(budget.bytes)),room=Math.max(0,maxRecords-Number(budget.records));
+      // One identity lookup, then bounded batches: avoid two network round trips per row.
+      const identities=rows.map(row=>({source:row.sourceKey,source_id:row.sourceId}));
+      const known=new Set((await client.query(`SELECT d.source,d.source_id FROM discovery_records d
+        JOIN jsonb_to_recordset($1::jsonb) AS incoming(source text,source_id text) USING(source,source_id)`,[JSON.stringify(identities)])).rows.map(row=>row.source+":"+row.source_id));
+      const accepted=[];
       for(const row of rows) {
         if(!["overpass","qlever","geofabrik","overture"].includes(row.sourceKey)||!row.sourceId||!row.license||!row.provenance?.length)throw new Error("Registro sem proveniência/licença permitida.");
         const expected=row.sourceKey==="overture"?records.OVERTURE.id:records.OSM.id;
@@ -38,18 +41,28 @@ function createStore({databaseUrl,local=false,maxRecords=50000,maxBytes=64*1024*
         if(!Number.isFinite(row.latitude)||!Number.isFinite(row.longitude)||Math.abs(row.latitude)>90||Math.abs(row.longitude)>180)continue;
         const payloadBytes=Buffer.byteLength(JSON.stringify(row)),cost=payloadBytes*4+2048;
         if(payloadBytes>16384||byteRoom<cost)continue;
-        const exists=(await client.query("SELECT 1 FROM discovery_records WHERE source=$1 AND source_id=$2",[row.sourceKey,row.sourceId])).rowCount;
+        const identity=row.sourceKey+":"+row.sourceId,exists=known.has(identity);
         if(!exists&&room<=0)continue;
-        if(!exists)room--;
+        if(!exists){room--;known.add(identity);}
         byteRoom-=cost;
+        accepted.push({id:randomUUID(),source:row.sourceKey,source_id:row.sourceId,name:row.name,normalized_name:geo.normalize(row.name),category:row.category||"",
+          country_code:row.countryCode,state:row.state||"",city:row.city||"",address:row.address||"",longitude:row.longitude,latitude:row.latitude,
+          phone:row.phone||"",website:row.website||"",license:row.license,payload:row,confidence:row.sourceConfidence??null,
+          opportunity_score:row.prospectScore||0,verification_status:row.websiteClassification||"needs_verification"});
+      }
+      for(let offset=0;offset<accepted.length;offset+=100) {
+        // ON CONFLICT cannot update the same identity twice in one statement. Last observation wins,
+        // as in sequential upserts; duplicates across batches remain idempotent.
+        const batch=[...new Map(accepted.slice(offset,offset+100).map(row=>[row.source+":"+row.source_id,row])).values()];
         await client.query(`INSERT INTO discovery_records(id,source,source_id,name,normalized_name,category,country_code,state,city,address,geom,phone,website,license,payload,confidence,opportunity_score,verification_status)
-          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,ST_SetSRID(ST_MakePoint($11,$12),4326),$13,$14,$15,$16,$17,$18,$19)
+          SELECT id,source,source_id,name,normalized_name,category,country_code,state,city,address,ST_SetSRID(ST_MakePoint(longitude,latitude),4326),phone,website,license,payload,confidence,opportunity_score,verification_status
+          FROM jsonb_to_recordset($1::jsonb) AS incoming(id uuid,source text,source_id text,name text,normalized_name text,category text,country_code text,state text,city text,address text,
+            longitude double precision,latitude double precision,phone text,website text,license jsonb,payload jsonb,confidence double precision,opportunity_score integer,verification_status text)
           ON CONFLICT(source,source_id) DO UPDATE SET name=EXCLUDED.name,normalized_name=EXCLUDED.normalized_name,category=EXCLUDED.category,country_code=EXCLUDED.country_code,state=EXCLUDED.state,city=EXCLUDED.city,address=EXCLUDED.address,
           geom=EXCLUDED.geom,phone=EXCLUDED.phone,website=EXCLUDED.website,license=EXCLUDED.license,payload=EXCLUDED.payload,last_seen_at=now(),confidence=EXCLUDED.confidence,opportunity_score=EXCLUDED.opportunity_score,verification_status=EXCLUDED.verification_status,
-          last_verified_at=CASE WHEN discovery_records.website=EXCLUDED.website AND discovery_records.phone=EXCLUDED.phone THEN discovery_records.last_verified_at ELSE NULL END`,
-          [randomUUID(),row.sourceKey,row.sourceId,row.name,geo.normalize(row.name),row.category||"",row.countryCode,row.state||"",row.city||"",row.address||"",row.longitude,row.latitude,row.phone||"",row.website||"",row.license,row,row.sourceConfidence??null,row.prospectScore||0,row.websiteClassification||"needs_verification"]);
-        saved++;
+          last_verified_at=CASE WHEN discovery_records.website=EXCLUDED.website AND discovery_records.phone=EXCLUDED.phone THEN discovery_records.last_verified_at ELSE NULL END`,[JSON.stringify(batch)]);
       }
+      saved=accepted.length;
       await client.query("COMMIT");return {saved,rejectedByBudget:rows.length-saved};
     }catch(error){await client.query("ROLLBACK");throw error;}finally{client.release();}
   }
