@@ -168,6 +168,7 @@ async function resolveSelection(selection) {
   return {
     query,
     countryCode: selectedCountry.code,
+    cityId: selection.cityId,
     cityName,
     stateName,
     stateCode: selection.stateCode,

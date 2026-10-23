@@ -1,0 +1,213 @@
+{
+  "id": "coverage-20261023-final-v1",
+  "inventoryDenominator": 152970,
+  "previousUnique": 1012466,
+  "newUnique": 1205442,
+  "totalUnique": 2217908,
+  "sourceObservations": 2222478,
+  "overlaps": 4570,
+  "summary": {
+    "location_pending": 137380,
+    "at_least_50": 4592,
+    "at_least_100": 2627,
+    "at_least_200": 1305,
+    "target_met": 4592,
+    "partial": 10996,
+    "temporary_failure": 2
+  },
+  "percentages": {
+    "location_pending": 89.8085,
+    "at_least_50": 3.0019,
+    "at_least_100": 1.7173,
+    "at_least_200": 0.8531,
+    "target_met": 3.0019,
+    "partial": 7.1883,
+    "temporary_failure": 0.0013
+  },
+  "quality": {
+    "records": 2205442,
+    "public_phone": 2054689,
+    "website_or_profile": 1868508,
+    "website_identified": 1843099,
+    "public_address": 2187918,
+    "valid_coordinates": 2205442,
+    "supported_segments": 1649374
+  },
+  "countries": {
+    "AF": {
+      "source_observations": 4267,
+      "unique": 2800,
+      "overlaps": 1467
+    },
+    "AR": {
+      "source_observations": 306,
+      "unique": 306
+    },
+    "AU": {
+      "source_observations": 450,
+      "unique": 450
+    },
+    "BR": {
+      "source_observations": 2380,
+      "unique": 2377,
+      "overlaps": 3
+    },
+    "CA": {
+      "source_observations": 206654,
+      "unique": 205816,
+      "overlaps": 838,
+      "new_unique": 89890
+    },
+    "CL": {
+      "source_observations": 150,
+      "unique": 150
+    },
+    "CO": {
+      "source_observations": 550,
+      "unique": 550
+    },
+    "DE": {
+      "source_observations": 774,
+      "unique": 767,
+      "overlaps": 7
+    },
+    "ES": {
+      "source_observations": 176,
+      "unique": 175,
+      "overlaps": 1
+    },
+    "FI": {
+      "source_observations": 245,
+      "unique": 244,
+      "overlaps": 1
+    },
+    "FR": {
+      "source_observations": 400,
+      "unique": 400
+    },
+    "GB": {
+      "source_observations": 138,
+      "unique": 135,
+      "overlaps": 3
+    },
+    "GH": {
+      "source_observations": 150,
+      "unique": 150
+    },
+    "GT": {
+      "source_observations": 150,
+      "unique": 150
+    },
+    "ID": {
+      "source_observations": 150,
+      "unique": 149,
+      "overlaps": 1
+    },
+    "IT": {
+      "source_observations": 138,
+      "unique": 137,
+      "overlaps": 1
+    },
+    "JP": {
+      "source_observations": 450,
+      "unique": 450
+    },
+    "KE": {
+      "source_observations": 150,
+      "unique": 150
+    },
+    "MA": {
+      "source_observations": 150,
+      "unique": 150
+    },
+    "NP": {
+      "source_observations": 150,
+      "unique": 150
+    },
+    "NZ": {
+      "source_observations": 149,
+      "unique": 149
+    },
+    "PH": {
+      "source_observations": 150,
+      "unique": 150
+    },
+    "PT": {
+      "source_observations": 401,
+      "unique": 401
+    },
+    "RU": {
+      "source_observations": 1,
+      "unique": 1
+    },
+    "RW": {
+      "source_observations": 150,
+      "unique": 150
+    },
+    "US": {
+      "source_observations": 2003649,
+      "unique": 2001401,
+      "overlaps": 2248,
+      "new_unique": 1115552
+    }
+  },
+  "distinctAreas": {
+    "50": 4568,
+    "100": 2607,
+    "200": 1289
+  },
+  "databaseBytes": 193667072,
+  "totalParquetBytes": 310693092,
+  "rawRegionalDownloadBytes": 3842962279,
+  "sourceNormalizationMs": 576822,
+  "downloadMs": 89592,
+  "finalReconciliationMs": 120521,
+  "queue": [
+    {
+      "kind": "city_complement",
+      "state": "done",
+      "round": 1,
+      "tasks": "584"
+    },
+    {
+      "kind": "city_complement",
+      "state": "done",
+      "round": 3,
+      "tasks": "7"
+    },
+    {
+      "kind": "city_complement",
+      "state": "queued",
+      "round": 1,
+      "tasks": "10998"
+    },
+    {
+      "kind": "city_complement",
+      "state": "queued",
+      "round": 2,
+      "tasks": "1965"
+    },
+    {
+      "kind": "city_complement",
+      "state": "queued",
+      "round": 3,
+      "tasks": "1322"
+    },
+    {
+      "kind": "country_boundary_review",
+      "state": "blocked",
+      "round": 1,
+      "tasks": "223"
+    },
+    {
+      "kind": "overture_partition",
+      "state": "done",
+      "round": 1,
+      "tasks": "6"
+    }
+  ],
+  "backgroundProcessConfigured": false,
+  "productionAppChanged": false,
+  "costPlan": "Free; no billing enabled",
+  "completePackage": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/archives/20261023/coverage-complete-v1.zip"
+}

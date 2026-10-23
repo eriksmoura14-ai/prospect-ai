@@ -1,25 +1,26 @@
 "use strict";
 const {Pool}=require("pg"),{randomUUID}=require("node:crypto"),fs=require("node:fs"),path=require("node:path");
 const {databaseOptions}=require("../accounts.cjs"),geo=require("./geometry.cjs"),records=require("./records.cjs");
-function createStore({databaseUrl,local=false,maxRecords=50000,maxBytes=64*1024*1024}) {
+function createStore({databaseUrl,local=false,maxRecords=50000,maxBytes=64*1024*1024,readHttp=false}) {
   const pool=new Pool({...databaseOptions(databaseUrl,local),max:3,statement_timeout:10000});
   pool.on("error",()=>{});
-  const ready=()=>pool.query("SELECT to_regclass('discovery_records') AS records").then(({rows})=>{if(!rows[0].records)throw new Error("Execute a migração discovery.sql na base isolada antes de habilitar o motor.");});
+  const readQuery=readHttp?require("./neon-read.cjs").createRead(databaseUrl):pool.query.bind(pool);
+  const ready=()=>readQuery("SELECT to_regclass('discovery_records') AS records").then(({rows})=>{if(!rows[0].records)throw new Error("Execute a migração discovery.sql na base isolada antes de habilitar o motor.");});
   const migration=()=>pool.query(fs.readFileSync(path.join(__dirname,"../db/discovery.sql"),"utf8"));
   const saveArea=(area,locationKey)=>pool.query(`INSERT INTO discovery_areas(key,location_key,country_code,geom,payload) VALUES($1,$2,$3,ST_Multi(ST_SetSRID(ST_GeomFromGeoJSON($4),4326)),$5)
     ON CONFLICT(key) DO UPDATE SET location_key=EXCLUDED.location_key,payload=EXCLUDED.payload,updated_at=now()`,[area.key,locationKey,area.countryCode,JSON.stringify(area.geometry),area]);
-  const findArea=async key=>(await pool.query("SELECT payload FROM discovery_areas WHERE location_key=$1 AND updated_at>now()-interval '7 days' ORDER BY updated_at DESC LIMIT 1",[key])).rows[0]?.payload||null;
+  const findArea=async key=>(await readQuery("SELECT payload FROM discovery_areas WHERE location_key=$1 AND updated_at>now()-interval '7 days' ORDER BY updated_at DESC LIMIT 1",[key])).rows[0]?.payload||null;
   const getArea=async key=>(await pool.query("SELECT payload FROM discovery_areas WHERE key=$1",[key])).rows[0]?.payload||null;
   const query=async(area,niche,limit=5000)=>{
     const config=require("../niches.cjs")[niche];if(!config)throw new Error("Segmento inválido.");
     const patterns=config.tags.map(([key,value])=>({[key]:value}));
-    const result=await pool.query(`SELECT payload,discovered_at,last_seen_at,last_verified_at,verification_status FROM discovery_records WHERE country_code=$1 AND geom && ST_MakeEnvelope($2,$3,$4,$5,4326)
+    const result=await readQuery(`SELECT payload,discovered_at,last_seen_at,last_verified_at,verification_status FROM discovery_records WHERE country_code=$1 AND geom && ST_MakeEnvelope($2,$3,$4,$5,4326)
       AND ST_Covers(ST_SetSRID(ST_GeomFromGeoJSON($6),4326),geom)
       AND (category=$7 OR EXISTS(SELECT 1 FROM jsonb_array_elements($8::jsonb) pattern WHERE payload->'tags' @> pattern)
         OR normalized_name LIKE ANY($9::text[]) OR regexp_split_to_array(lower(trim(payload->'tags'->>'cuisine')),'\\s*;\\s*') && $10::text[]
         OR source='overture' AND (payload->'taxonomy'->'hierarchy' ?| $11::text[] OR payload->'taxonomy'->>'primary'=ANY($11::text[]) OR payload->>'basic_category'=ANY($11::text[])))
       ORDER BY source,source_id LIMIT $12`,[area.countryCode,area.bounds[2],area.bounds[0],area.bounds[3],area.bounds[1],JSON.stringify(area.geometry),niche,JSON.stringify(patterns),config.terms.map(t=>"%"+geo.normalize(t)+"%"),config.cuisines||[],records.groups[niche]||[],Math.min(limit,10000)+1]);
-    const rows=result.rows.slice(0,limit).map(r=>({...r.payload,discoveredAt:r.discovered_at.toISOString(),lastSeenAt:r.last_seen_at.toISOString(),lastVerifiedAt:r.last_verified_at?.toISOString()||null,previousVerificationStatus:r.verification_status}));
+    const rows=result.rows.slice(0,limit).map(r=>({...r.payload,discoveredAt:new Date(r.discovered_at).toISOString(),lastSeenAt:new Date(r.last_seen_at).toISOString(),lastVerifiedAt:r.last_verified_at?new Date(r.last_verified_at).toISOString():null,previousVerificationStatus:r.verification_status}));
     return {rows:rows.filter(r=>r.sourceKey==="overture"?records.overtureMatches(r,niche):records.osmMatches(r.tags||{},niche)).map(r=>({...r,category:niche})),truncated:result.rows.length>limit};
   };
   async function upsert(rows,task) {

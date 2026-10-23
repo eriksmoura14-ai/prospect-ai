@@ -12,7 +12,7 @@ function setup({env=process.env,run=spawnSync,log=console.log}={}) {
   const childEnv=Object.fromEntries(allowed.filter(key=>env[key]).map(key=>[key,env[key]]));
   const commands=[
     ["python3",["-m","venv",".venv-discovery"]],
-    [env.OVERTURE_PYTHON,["-m","pip","install","--disable-pip-version-check","--only-binary=:all:","duckdb==1.4.4","requests==2.32.5"]],
+    [env.OVERTURE_PYTHON,["-m","pip","install","--disable-pip-version-check","--only-binary=:all:","duckdb==1.4.4","requests==2.32.5",...(env.DISCOVERY_INSTALL_ARCHIVE==="true"?["shapely==2.1.2"]:[])]],
     [env.OVERTURE_PYTHON,["scripts/setup-discovery.py"]]
   ];
   for(const [command,args] of commands) {
