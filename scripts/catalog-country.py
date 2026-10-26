@@ -55,6 +55,14 @@ def state_code(country,properties,inventory=()):
         if len(codes)==1:return next(iter(codes))
         # Ceuta/Melilla have no app locality entries; preserve their official ISO.
         if label in ('ceuta','melilla'):return {'ceuta':'CE','melilla':'ML'}[label]
+    if country=='IT':
+        # ISTAT/geoBoundaries ADM3 are provinces, the subdivision used by the
+        # app. ADM1 are macroregions and must never stand in for these units.
+        label=normalized(properties['shapeName'])
+        aliases={'torino':'turin','genova':'genoa','milano':'milan','mantova':'mantua','bolzano':'south tyrol','trento':'trentino','venezia':'venice','padova':'padua','firenze':'florence','roma':'rome','napoli':'naples','aosta':'aosta valley','reggio nell emilia':'reggio emilia','reggio di calabria':'reggio calabria','pesaro e urbino':'pesaro and urbino','massa carrara':'massa and carrara','monza e della brianza':'monza and brianza','sud sardegna':'south sardinia'}
+        label=aliases.get(label,label)
+        codes={r['stateCode'] for r in inventory if r['countryCode']=='IT' and normalized(r['stateName'])==label}
+        if len(codes)==1:return next(iter(codes))
     code=properties['shapeISO']
     return code.split('-',1)[1] if code.startswith(country+'-') else None
 
@@ -71,7 +79,12 @@ def boundaries(args):
         'CO':{'iso3':'COL','canonical':'Unknown','states':33,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'Open Data Commons Open Database License 1.0','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'ODbL-1.0','attribution':'DANE; geoBoundaries; state crosswalk © OpenStreetMap contributors / Wambacher','source':'DANE via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
         'GT':{'iso3':'GTM','canonical':'Municipio','states':22,'cityLicense':'Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)','stateLicense':'Open Data Commons Open Database License 1.0','licenseId':'CC-BY-3.0-IGO','licenseUrl':'https://creativecommons.org/licenses/by/3.0/igo/','stateLicenseId':'ODbL-1.0','attribution':'CONRED; OCHA FISS; geoBoundaries; state crosswalk © OpenStreetMap contributors / Wambacher','source':'CONRED / OCHA FISS via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
         # The reviewed Spanish municipal source is ADM3, not provinces (ADM2).
-        'ES':{'iso3':'ESP','canonical':'MUNICIPIOS','cityLevel':'ADM3','stateLevel':'ADM2','states':52,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'National Institute of Statistics (INE) Data License','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'LicenseRef-INE-Reuse','attribution':'IGN Central Registry of Cartography; Open Data ESRI; geoBoundaries. Province crosswalk: elaboración propia con datos del INE, www.ine.es, 2018; no endorsement','source':'IGN / Open Data ESRI via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'}
+        'ES':{'iso3':'ESP','canonical':'MUNICIPIOS','cityLevel':'ADM3','stateLevel':'ADM2','states':52,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'National Institute of Statistics (INE) Data License','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'LicenseRef-INE-Reuse','attribution':'IGN Central Registry of Cartography; Open Data ESRI; geoBoundaries. Province crosswalk: elaboración propia con datos del INE, www.ine.es, 2018; no endorsement','source':'IGN / Open Data ESRI via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
+        'RO':{'iso3':'ROU','canonical':'municipalities','states':42,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'CC-BY-4.0','attribution':'ANCPI municipal units 2016; World Bank counties 2017; geoBoundaries. Original ANCPI source: OGL-ROU-1.0, data.gov.ro/dataset/unitati-administrative; not a current cadastral survey.','source':'ANCPI / World Bank via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
+        # Reviewed against ISTAT's official administrative hierarchy: the
+        # 7,901 ADM4 units are comuni; ADM3 are its 107 provinces. This explicit
+        # country profile does not authorize generic "Unknown" ADM levels.
+        'IT':{'iso3':'ITA','canonical':'Unknown','states':107,'cityLevel':'ADM4','stateLevel':'ADM3','cityLicense':'Creative Commons Attribution 3.0 License','stateLicense':'Creative Commons Attribution 3.0 License','licenseId':'CC-BY-3.0','licenseUrl':'https://creativecommons.org/licenses/by/3.0/','stateLicenseId':'CC-BY-3.0','attribution':'ISTAT, National Institute of Statistics; geoBoundaries. Comuni and provinces, 2023; not a current cadastral survey. Official hierarchy: https://www.istat.it/it/archivio/222527','source':'ISTAT via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'}
     }.get(country)
     if not reviewed or city_meta['boundaryCanonical']!=reviewed['canonical'] or city_meta['boundaryISO']!=reviewed['iso3']:raise ValueError('country_hierarchy_requires_review')
     city_level=reviewed.get('cityLevel','ADM2')

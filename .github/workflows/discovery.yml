@@ -46,3 +46,5 @@ jobs:
         run: python -m unittest discover -s test -p 'catalog_france_test.py' -v
       - name: Spatial serving preserves identities and file budgets
         run: python -m unittest discover -s test -p 'catalog_serving_test.py' -v
+      - name: Below-target exceptions require independent evidence
+        run: python -m unittest discover -s test -p 'catalog_review_test.py' -v

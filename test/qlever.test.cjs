@@ -181,6 +181,14 @@ test("global geometry query does not require relation containment/name indexes a
 test("quota response retains Retry-After for the persistent per-source cooldown",async()=>{
   await assert.rejects(qlever.discover(place,niches.Barber,{fetchImpl:async()=>new Response("quota",{status:429,headers:{"Retry-After":"3600"}})}),error=>error.httpStatus===429&&error.retryAfter==="3600");
 });
+test("official scopes retain geographic budgets and reject a response for a different area",async()=>{
+ const area={countryCode:"FR",city:"Example",bounds:[45,46,4,5],geometry:{type:"Polygon",coordinates:[[[4,45],[5,45],[5,46],[4,46],[4,45]]]}};
+ assert.throws(()=>qlever.buildAreaQuery({...area,bounds:[40,46,4,5]},niches.Restaurantes),{code:"qlever_region_unsupported"});
+ assert.throws(()=>qlever.buildAreaQuery({...area,countryCode:"invalid"},niches.Restaurantes),{code:"qlever_region_unsupported"});
+ let calls=0;
+ await assert.rejects(qlever.discoverArea(area,niches.Restaurantes,{fetchImpl:async()=>{calls++;return new Response(JSON.stringify(data([{region:uri("urn:prospect:area:"+"0".repeat(64))}])));}}),{code:"qlever_region_missing"});
+ assert.equal(calls,1);
+});
 test("Timeouts, numeric transport codes, invalid JSON and oversized responses become clear errors",async()=>{
   for(const [error,code] of [[Object.assign(new Error("timeout"),{name:"TimeoutError",code:23}),"qlever_timeout"],[new Error("connection"),"qlever_connection"]]) {
     await assert.rejects(qlever.discover(place,niches.Barber,{fetchImpl:async()=>{throw error;}}),{code});

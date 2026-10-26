@@ -16,6 +16,17 @@ test("multipolygons preserve separate islands and source coordinates",()=>{
   const a=geo.area({...place,geojson:{type:"MultiPolygon",coordinates:[[[[0,0],[.5,0],[.5,.5],[0,.5],[0,0]]],[[[1.5,1.5],[2,1.5],[2,2],[1.5,2],[1.5,1.5]]]]}});
   assert(geo.inside(a,{latitude:1.8,longitude:1.8}));assert(!geo.inside(a,{latitude:1,longitude:1}));
 });
+test("official-boundary QLever results are filtered by the actual polygon including holes",async()=>{
+ let calls=0;
+ const uri=value=>({type:"uri",value}),literal=value=>({type:"literal",value});
+ const provider=require("../discovery/providers.cjs").providers({businessMatch:records.osmMatches,fetchImpl:async(url,options)=>{
+  const query=options?.method==="POST"?new URLSearchParams(options.body).get("query"):new URL(url).searchParams.get("query");calls++;
+  if(calls===1){const scope=query.match(/urn:prospect:area:[a-f0-9]{64}/)[0];return new Response(JSON.stringify({results:{bindings:[1,2,3].map(id=>({region:uri(scope),poi:uri("https://www.openstreetmap.org/node/"+id),name:literal("Public restaurant "+id)}))}}));}
+  return new Response(JSON.stringify({results:{bindings:[1,2,3].map((id,i)=>({poi:uri("https://www.openstreetmap.org/node/"+id),field3:literal("restaurant"),wkt:literal(["POINT(.3 .3)","POINT(1 1)","POINT(4 4)"][i])}))}}));
+ }});
+ const result=await provider.qlever({...area,officialBoundary:true},"Restaurantes");
+ assert.equal(calls,2);assert.equal(result.rows.length,1);assert.equal(result.rows[0].sourceId,"node/1");assert.equal(result.rows[0].license.id,"ODbL-1.0");
+});
 test("Overture current taxonomy, confidence, licenses and public fields are preserved without emails",()=>{
   const row=records.overture({...raw(),emails:["private@example.test"]},area);
   assert(records.overtureMatches(row,"Restaurantes"));assert(!records.overtureMatches(row,"Barber"));

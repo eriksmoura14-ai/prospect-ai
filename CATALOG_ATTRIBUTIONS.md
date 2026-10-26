@@ -50,3 +50,24 @@ Os limites são cartográficos históricos, podem ter simplificação publicada 
 fonte e não representam levantamento cadastral atual. Nomes, âncoras, limites e
 licenças não confirmados permanecem pendentes. Extratos não comprovam cobertura
 integral. O catálogo não afirma ter 50 empresas em toda localidade.
+
+
+### Novos limites RO e IT, revisão de 26/10/2026
+
+Romênia: ANCPI, unidades municipais de 2016, e World Bank, condados de 2017,
+via geoBoundaries gbOpen, CC BY 4.0. Origem ANCPI sob OGL-ROU-1.0:
+https://data.gov.ro/dataset/unitati-administrative . Itália: ISTAT, províncias
+e comuni de 2023, via geoBoundaries gbOpen, CC BY 3.0
+(https://creativecommons.org/licenses/by/3.0/). A fonte oficial descreve a
+hierarquia e publica os conjuntos históricos em
+https://www.istat.it/it/archivio/222527 . São limites históricos simplificados
+pelo publicador, não um levantamento cadastral atual. Os metadados completos,
+URLs de origem, hashes e incertezas acompanham a publicação.
+
+Estabelecimentos: Overture Maps Foundation, release 2026-10-21.0. Continuam as
+licenças por registro e suas proveniências, incluindo CDLA-Permissive-2.0,
+Apache-2.0 e CC0-1.0 conforme a origem. A geometria administrativa não transforma
+a licença do registro comercial independente. Complementos OSM/QLever mantêm
+© OpenStreetMap contributors, ODbL 1.0, e seus IDs originais; nunca são
+redistribuídos como se fossem registros Overture. Coleta não verifica WhatsApp,
+atividade atual nem ausência de website.

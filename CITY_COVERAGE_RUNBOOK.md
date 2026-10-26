@@ -199,3 +199,63 @@ O inventário do aplicativo inclui departamentos, localidades antigas e comunas
 sem habitantes. Isso exige revisão explícita: não assumir que toda opção tem
 cinquenta comércios. Registrar fontes, evidência e resultado insuficiente em vez
 de completar a cota com organizações públicas, pontos turísticos ou vizinhos.
+
+
+## Romênia e Itália: hierarquia revisada
+
+Na Romênia, usar os 42 condados ADM1 World Bank (2017) e os municípios ADM2
+ANCPI (2016), ambos publicados por gbOpen sob CC BY 4.0. O conjunto original
+ANCPI em https://data.gov.ro/dataset/unitati-administrative registra
+OGL-ROU-1.0; sua proveniência permanece na atribuição. Vilas de uma comuna não
+herdam automaticamente todas as empresas dessa comuna. Nome, estado e âncora
+precisam concordar com o polígono municipal.
+
+Na Itália, a equivalência revisada é ADM3 = 107 províncias e ADM4 = 7.901
+comuni ISTAT (2023), CC BY 3.0 via gbOpen. ADM1 são macrorregiões e não servem
+como as províncias oferecidas pelo aplicativo. A hierarquia oficial está em
+https://www.istat.it/it/archivio/222527 . O campo canônico `Unknown` desses
+metadados só é aceito no perfil italiano explicitamente revisado. Os aliases
+provinciais publicados em `catalog-country.py` ligam nomes italianos aos nomes
+da lista, sem aproximação por distância. Frações não confirmadas continuam
+pendentes. Reutilizar as regiões Overture 00008/00009 para IT e 00009/00010 para
+RO; não repetir downloads por cidade.
+
+## Auditorias documentadas abaixo de 50
+
+Uma localidade com menos de 50 empresas nunca entra em `min50`, nem sai do
+denominador completo. A decisão autorizada é registrar casos excepcionais como
+`audited_below_target`, separadamente de `target_met`. O operador
+`scripts/catalog-review.py --root DIRETORIO` recebe pela entrada padrão
+`{url,reviews}`; a credencial é exclusivamente do catálogo público isolado.
+
+Exigir limite confirmado, contagem atual e duas fontes independentes bem
+sucedidas: catálogo comercial e cadastro oficial empresarial. Para localidade
+sem habitantes, também exigir cadastro oficial de população zero. Unidades
+legais não equivalem a estabelecimentos: esse limite permanece explícito e o
+perfil sem habitantes não vale para qualquer município pequeno. Uma falha,
+HTTP 429 ou catálogo vazio isolado não autoriza uma exceção. As fontes não são
+declaradas esgotadas. Revisões anteriores ficam preservadas por hash.
+
+A revisão vence em 30 dias, ou sete se alguma fonte complementar falhou. Novos
+dados, mudança da contagem ou da versão geográfica a invalidam. `queue` reabre
+essas condições as tarefas encerradas por revisão e `claim` não seleciona uma
+exceção ainda válida. Execute `queue` antes de retomar a fila. A auditoria
+completa informa `audited_below_target`, `remaining_unaudited` e as datas no CSV;
+`percent_min50` continua usando todas as 152.970 localidades. Não há worker
+mundial automático configurado.
+
+## Complementação QLever com limite oficial
+
+A busca interativa agora pode consultar OSM/QLever a partir de um polígono
+licenciado sem inventar um ID de relação OSM. O identificador `urn:prospect:area`
+é apenas um marcador de correlação da consulta. A seleção inicial usa o
+retângulo do polígono e o adaptador filtra o resultado pelo polígono inteiro,
+incluindo buracos. Os IDs dos estabelecimentos permanecem os originais OSM.
+QLever, Overpass e Geofabrik do mesmo objeto não são empresas diferentes.
+
+Permanecem os limites existentes: 45 segundos, seis MiB de resposta, 500
+candidatos e retângulo máximo de dois graus de latitude por três de longitude.
+Áreas maiores exigem recorte regional revisado; não são trocadas por raio ou
+cidade vizinha. Truncamento e indisponibilidade são explícitos. O catálogo
+existente é consultado primeiro. Essa correção do código não significa que as
+152.970 cidades já foram consultadas ou que todos os resultados OSM sejam novos.

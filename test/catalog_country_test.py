@@ -36,6 +36,13 @@ class CountryCrosswalk(unittest.TestCase):
   self.assertEqual(m.state_code('ES',{'shapeName':'Alava','shapeISO':''},registry),'VI')
   self.assertEqual(m.state_code('ES',{'shapeName':'Barcelona','shapeISO':''},registry),'B')
   self.assertIsNone(m.state_code('ES',{'shapeName':'Cataluña/Catalunya','shapeISO':''},registry))
+ def test_italian_crosswalk_uses_provinces_and_requires_unique_identity(self):
+  registry=[{'countryCode':'IT','stateCode':'TO','stateName':'Turin'},{'countryCode':'IT','stateCode':'BZ','stateName':'South Tyrol'}]
+  props={'shapeName':'Torino','shapeISO':''}
+  self.assertEqual(m.state_code('IT',props,registry),'TO')
+  self.assertEqual(m.state_code('IT',{'shapeName':'Bolzano','shapeISO':''},registry),'BZ')
+  self.assertIsNone(m.state_code('IT',{'shapeName':'Piemonte','shapeISO':''},registry))
+  self.assertIsNone(m.state_code('IT',props,registry+[{'countryCode':'IT','stateCode':'99','stateName':'Turin'}]))
 class CoverageCheckpoints(unittest.TestCase):
  def row(self,status,count):return {'coverage_status':status,'unique_supported':count,'sources':[{'source':'overture','rows':50,'release':'2026-10-21.0'}],'limitations':['source description']}
  def test_older_country_checkpoint_can_resume_without_an_association_field(self):
