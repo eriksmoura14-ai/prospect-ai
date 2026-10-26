@@ -38,3 +38,12 @@ test("an official geometry is never fabricated into an OSM identity for QLever",
 test("HTTPS catalog transport refuses mutation SQL",async()=>{
  const read=require("../discovery/neon-read.cjs").createRead("postgresql://reader:fixture@fixture.neon.tech/catalog",()=>assert.fail());await assert.rejects(read("UPDATE catalog_assets SET state='retired'"),/somente leitura/);
 });
+test("archive narrows files by geographic overlap before applying its bounded reader limit",async()=>{
+ let request;
+ const archive=createArchive({databaseUrl:"postgresql://reader:fixture@fixture.neon.tech/catalog",python:"python",fetchImpl:async(_url,options)=>{request=JSON.parse(options.body);return {ok:true,json:async()=>({rows:[]})};},reader:async()=>({rows:[],next:null,truncated:false})});
+ await archive.query({...area,bounds:[10,20,30,40]},"Padarias",10);
+ assert.deepEqual(request.params,["US",40,30,20,10]);
+ assert.match(request.query,/bounds IS NULL OR bounds='null'::jsonb/);
+ assert.ok(request.query.indexOf("bounds->>0")<request.query.indexOf("LIMIT 9"));
+ assert.match(request.query,/state='ready'/);
+});

@@ -111,3 +111,59 @@ Registrar `target_met`, `partial`, `temporary_failure`, `location_pending` ou
 `sources_below_target` conforme evidência. Não declarar 50 quando só houver 49.
 Não marcar fontes esgotadas quando apenas uma importação regional terminou.
 Não instalar varredura mundial contínua, contratar serviços ou ativar cobranças.
+
+## Arquivos de consulta por região (serving v2)
+
+O arquivo original de um milhão e as expansões permanecem imutáveis. O comando
+abaixo gera cópias para consulta; essas cópias **não** são novas empresas nem
+novas observações de fonte. `input-assets.json` contém os ativos anteriores,
+seus caminhos locais, SHA-256 e contagens. Usar todos os arquivos de áreas
+municipais já confirmadas em `--areas`, repetível:
+
+```sh
+python scripts/catalog-serving.py --input SAIDA/input-assets.json --root SAIDA \
+  --areas COBERTURA_USCA/admin-areas.ndjson --areas COBERTURA_BR/admin-areas.ndjson
+```
+
+O operador usa DuckDB limitado a 512 MiB e 3 GiB de spill. Só o índice de
+coordenadas de um país entra em memória; registros completos ficam no disco.
+Os intervalos Morton são disjuntos e não são divididos se um município conhecido
+passar do orçamento existente de oito arquivos. Identificadores, rótulos de
+cidade, contatos, licenças e datas são preservados. A comparação de todos os
+campos usa contagem e agregados inteiros de hashes, além dos hashes SHA-256 dos
+arquivos. Uma divergência impede a conclusão do manifesto.
+
+Fornecer `{root,uploads}` por stdin a `catalog-serving-upload.py`, com URLs
+assinadas recebidas pela integração. Duas transferências simultâneas, até três
+tentativas e `upload-checkpoint.json` permitem retomada. Credenciais e URLs
+assinadas nunca entram em Git, relatórios ou pacotes públicos.
+
+`catalog-serving-publish.py stage --root SAIDA` recebe `{url}` por stdin e
+registra somente arquivos de staging. Após comprovar o deploy do leitor que
+filtra por sobreposição geográfica **antes** de `LIMIT 9`, executar `activate`
+com `{url,bboxReaderLive:true}`. A troca é atômica e verifica todos os IDs,
+hashes e contagens. Os ativos anteriores passam a `retired`, seus arquivos e
+metadados continuam preservados, e o recibo registra a correspondência.
+Nunca ativar mais de oito arquivos por cidade em um backend antigo.
+
+O limite de transferência não é ilimitado: a documentação e a conta Free
+foram verificadas em 26/10/2026, com 5 GB/mês por projeto compartilhados entre
+produtos. Uma configuração anterior de 1 GiB foi ajustada para 5.000.000.000
+bytes, dentro dessa franquia, sem alteração de plano. Outras quotas e o limite
+operacional de 220 MiB permanecem iguais. Conferir consumo antes de publicar.
+
+## Espanha: municípios e províncias
+
+A lista atual usa províncias. O cruzamento revisado usa INE ADM2 (52 províncias,
+2018), com condições de reutilização comercial, atribuição, data e ausência de
+endosso em `https://www.ine.es/ss/Satellite?L=0&c=Page&cid=1254735849170&p=1254735849170&pagename=Ayuda/INELayout`.
+Não usa comunidades autônomas como se fossem as opções estaduais do aplicativo.
+Como essa fonte não publica ISO, apenas nomes exatos e cinco equivalências
+documentadas são aceitos. Os municípios IGN/Open Data ESRI de 2018 são ADM3,
+8.205 unidades, CC BY 4.0 via gbOpen. O ponto da localidade e o polígono
+municipal ainda precisam concordar com a província. Homônimos ou nomes/limites
+não confirmados permanecem pendentes. Não presumir que ADM2 seja município.
+
+Reutilizar regiões Overture 00005/00006 já baixadas e a região 00007, release
+2026-10-21.0. Não repetir download por município. A normalização e conciliação
+continuam usando somente os segmentos efetivamente suportados pelo Prospect.
