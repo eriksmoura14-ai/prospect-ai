@@ -1,5 +1,12 @@
 # Cobertura do Prospect AI — 26/10/2026
 
+> Atualização posterior: a continuação francesa acrescentou 344.426 empresas,
+> elevando o catálogo a 3.752.249 empresas após deduplicação. Agora 8.145 das
+> 152.970 localidades atingem cinquenta (5,3246%). Os números abaixo descrevem
+> a fotografia anterior preservada; a atualização e os limites do critério estão
+> em [COBERTURA_FR_20261026.md](COBERTURA_FR_20261026.md).
+
+
 A meta é **50 empresas reais e únicas para cada uma das 152.970 opções de
 localidade do aplicativo**, somando os 24 segmentos atuais. **A meta mundial
 continua incompleta: 7.075 localidades atingiram 50 (4,6251%) e 145.895 ainda
