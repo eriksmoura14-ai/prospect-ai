@@ -22,6 +22,28 @@ Mudanças posteriores ao ano da fonte e localidades sem polígono correspondente
 ficam pendentes. País, estado, nome normalizado e âncora dentro do polígono são
 exigidos; não se usa a cidade vizinha nem um raio para preencher a cota.
 
+Também foram revisados Colômbia (DANE, municípios 2020, CC BY 4.0) e Guatemala
+(CONRED/OCHA, municípios 2021, CC BY 3.0 IGO). Seus cruzamentos estaduais usam
+polígonos OSM/Wambacher sob ODbL, com atribuição preservada. O HDX `cod-ab-col`
+confirma explicitamente que os 1.122 objetos ADM2 são municípios/distritos,
+apesar de o campo canônico do gbOpen dizer `Unknown`. Essa exceção não autoriza
+níveis desconhecidos de outros países. Cruzamentos/contagens derivados de OSM
+mantêm ODbL e atribuição; os arquivos comerciais Overture independentes mantêm
+seus dados, rótulos de cidade e licenças originais, sem redistribuir geometria OSM
+como se fosse dado Overture.
+
+Na Guatemala, a lista atual usa códigos estaduais numéricos e a fonte revisada
+usa códigos ISO alfabéticos antigos. O vínculo usa o nome estadual exato e
+unívoco da lista, além de verificar cada âncora no polígono. Aliases locais
+controlados retiram o sufixo `Guatemala` e reconhecem `Guatemala City`/`Ciudad de
+Guatemala`; não há aproximação por distância nem busca de nome semelhante.
+
+As fontes gbOpen DEU/ADM3 (428 distritos/cidades independentes) e FRA/ADM3
+(320 arrondissements) não foram aceitas como limites municipais gerais.
+FRA/ADM4 tem nível canônico desconhecido e apenas 2.054 unidades; sua equivalência
+às comunas também não foi assumida. Isso mantém pendências explícitas, em vez
+de preencher uma cidade com empresas de todo o distrito.
+
 A fonte estadual mexicana rotulou o Distrito Federal com o mesmo ISO do Estado
 de México. O cruzamento revisado usa CMX para esse polígono histórico, confirma
 âncoras CMX da lista atual e o ponto central de Ciudad de México, e rejeita outras

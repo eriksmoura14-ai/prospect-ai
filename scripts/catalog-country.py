@@ -25,13 +25,26 @@ def match_city(city,candidates,states):
     if state is None or not isinstance(lat,(float,int)) or not isinstance(lon,(float,int)):return []
     point=shapely.Point(lon,lat)
     if not state.covers(point):return []
-    return [a for a in candidates if normalized(a['name'])==normalized(city['name']) and a['geom'].covers(point) and state.covers(a['geom'].representative_point())]
+    return [a for a in candidates if normalized(a['name']) in city_names(city) and a['geom'].covers(point) and state.covers(a['geom'].representative_point())]
 
-def state_code(country,properties):
+def city_names(city):
+    value=normalized(city['name']);names={value}
+    if city.get('countryCode')=='GT':
+        if value.endswith(' guatemala'):names.add(value[:-10])
+        if value in ('guatemala city','ciudad de guatemala'):names.add('guatemala')
+    return names
+
+def state_code(country,properties,inventory=()):
     # Reviewed publisher metadata collision: this historical Distrito Federal
     # polygon was tagged MX-MEX, also used by Estado de Mexico. Current app ISO
     # subdivision CMX is independently confirmed against its city anchors below.
     if country=='MX' and properties['shapeID']=='31927357B79016588373767' and properties['shapeName']=='Distrito Federal' and properties['shapeISO']=='MX-MEX':return 'CMX'
+    if country=='GT':
+        # Current app registry uses numeric department codes; the reviewed 2017
+        # source uses historical alphabetic ISO suffixes. Bridge only an exact,
+        # unambiguous department name. City anchors are still checked in polygons.
+        codes={r['stateCode'] for r in inventory if r['countryCode']==country and normalized(r['stateName'])==normalized(properties['shapeName'])}
+        if len(codes)==1:return next(iter(codes))
     code=properties['shapeISO']
     return code.split('-',1)[1] if code.startswith(country+'-') else None
 
@@ -42,7 +55,12 @@ def boundaries(args):
     if state_meta['boundaryType']!='ADM1' or city_meta['boundaryType']!='ADM2' or state_meta['boundaryISO']!=city_meta['boundaryISO']:raise ValueError('boundary_hierarchy_mismatch')
     reviewed={
         'BR':{'iso3':'BRA','canonical':'municipality','states':27,'cityLicense':'Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)','stateLicense':'Creative Commons Attribution 2.5 Generic','licenseId':'CC-BY-3.0-IGO','licenseUrl':'https://creativecommons.org/licenses/by/3.0/igo/','stateLicenseId':'CC-BY-2.5','attribution':'IBGE; OCHA ROLAC; geoBoundaries','source':'IBGE / OCHA ROLAC via geoBoundaries gbOpen','geometryField':'gjDownloadURL'},
-        'MX':{'iso3':'MEX','canonical':'municipios','states':32,'cityLicense':'Creative Commons Attribution 4.0 (CC BY 4.0)','stateLicense':'Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'CC-BY-3.0-IGO','attribution':'World Bank; INEGI; geoBoundaries','source':'World Bank / INEGI via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'}
+        'MX':{'iso3':'MEX','canonical':'municipios','states':32,'cityLicense':'Creative Commons Attribution 4.0 (CC BY 4.0)','stateLicense':'Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'CC-BY-3.0-IGO','attribution':'World Bank; INEGI; geoBoundaries','source':'World Bank / INEGI via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
+        # HDX cod-ab-col explicitly identifies these 1,122 ADM2 units as
+        # municipalities/districts; "Unknown" in gbOpen metadata is not treated
+        # as authorization to use arbitrary ADM2 units in other countries.
+        'CO':{'iso3':'COL','canonical':'Unknown','states':33,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'Open Data Commons Open Database License 1.0','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'ODbL-1.0','attribution':'DANE; geoBoundaries; state crosswalk © OpenStreetMap contributors / Wambacher','source':'DANE via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
+        'GT':{'iso3':'GTM','canonical':'Municipio','states':22,'cityLicense':'Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)','stateLicense':'Open Data Commons Open Database License 1.0','licenseId':'CC-BY-3.0-IGO','licenseUrl':'https://creativecommons.org/licenses/by/3.0/igo/','stateLicenseId':'ODbL-1.0','attribution':'CONRED; OCHA FISS; geoBoundaries; state crosswalk © OpenStreetMap contributors / Wambacher','source':'CONRED / OCHA FISS via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'}
     }.get(country)
     if not reviewed or city_meta['boundaryCanonical']!=reviewed['canonical'] or city_meta['boundaryISO']!=reviewed['iso3']:raise ValueError('country_hierarchy_requires_review')
     # Explicit review of this source and license. A new country needs its own
@@ -50,7 +68,7 @@ def boundaries(args):
     if city_meta['boundaryLicense']!=reviewed['cityLicense'] or state_meta['boundaryLicense']!=reviewed['stateLicense']:raise ValueError('unreviewed_boundary_license')
     states={}
     for feature in json.loads(Path(args.states).read_text())['features']:
-        code=state_code(country,feature['properties'])
+        code=state_code(country,feature['properties'],inventory)
         if code:
             if code in states:raise ValueError('state_identifier_collision')
             g=polygon(feature['geometry'])
@@ -70,7 +88,8 @@ def boundaries(args):
     for city in inventory:
         if city['countryCode']!=country:continue
         row={**city,'association_status':'name_state_or_anchor_not_confirmed','coverage_status':'location_pending','next_action':'review_official_country_crosswalk'}
-        matches=match_city(city,lookup[normalized(city['name'])],states)
+        candidates={a['id']:a for name in city_names(city) for a in lookup[name]}
+        matches=match_city(city,list(candidates.values()),states)
         if len(matches)==1:
             a=matches[0];geometry=mapping(a['geom'])
             if shapely.get_num_coordinates(a['geom'])>50000 or len(json.dumps(geometry).encode())>2*1024*1024:
@@ -159,7 +178,7 @@ def reconcile(args):
         rows=[{**r,'source_id':str(r['source_id']),'latitude':r['payload']['latitude'],'longitude':r['payload']['longitude']} for r in old['discovery_records'] if r['source']==source and r['country_code']==country]
         consume(rows,source,False)
     fields=['source_id','country_code','name','latitude','longitude','phone','address','category','primary_category','category_hierarchy','alternate_categories','basic_category']
-    cur=db.execute('SELECT '+','.join('CAST(source_id AS VARCHAR) AS source_id' if f=='source_id' else f for f in fields)+' FROM read_parquet(?,union_by_name=true) ORDER BY source_id',[[str(p) for p in files]])
+    cur=db.execute('SELECT '+','.join('CAST(source_id AS VARCHAR) AS source_id' if f=='source_id' else f for f in fields)+' FROM read_parquet(?,union_by_name=true) WHERE country_code=? ORDER BY source_id',[[str(p) for p in files],country])
     while True:
         batch=cur.fetchmany(5000)
         if not batch:break
@@ -169,7 +188,7 @@ def reconcile(args):
     with idsfile.open('w') as out:
         writer=csv.writer(out);writer.writerow(['source_id']);writer.writerows([v] for v in new_ids)
     output=root/'new-country-businesses.parquet';part=output.with_suffix('.partial.parquet')
-    db.execute("COPY (SELECT n.* REPLACE(CAST(n.source_id AS VARCHAR) AS source_id) FROM read_parquet(?,union_by_name=true) n JOIN read_csv(?,all_varchar=true) i ON CAST(n.source_id AS VARCHAR)=i.source_id) TO '"+str(part).replace("'","''")+"' (FORMAT PARQUET,COMPRESSION ZSTD,ROW_GROUP_SIZE 10000)",[[str(p) for p in files],str(idsfile)])
+    db.execute("COPY (SELECT n.* REPLACE(CAST(n.source_id AS VARCHAR) AS source_id) FROM read_parquet(?,union_by_name=true) n JOIN read_csv(?,all_varchar=true) i ON CAST(n.source_id AS VARCHAR)=i.source_id WHERE n.country_code=?) TO '"+str(part).replace("'","''")+"' (FORMAT PARQUET,COMPRESSION ZSTD,ROW_GROUP_SIZE 10000)",[[str(p) for p in files],str(idsfile),country])
     n,unique=db.execute('SELECT count(*),count(DISTINCT source_id) FROM read_parquet(?)',[str(part)]).fetchone()
     if n!=unique or n!=totals['new_unique']:raise RuntimeError('country_output_identity_mismatch')
     part.replace(output)

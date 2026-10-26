@@ -22,6 +22,15 @@ class CountryCrosswalk(unittest.TestCase):
  def test_reviewed_state_collision_is_not_silently_overwritten(self):
   self.assertEqual(m.state_code('MX',{'shapeID':'31927357B79016588373767','shapeName':'Distrito Federal','shapeISO':'MX-MEX'}),'CMX')
   self.assertEqual(m.state_code('MX',{'shapeID':'other','shapeName':'Mexico','shapeISO':'MX-MEX'}),'MEX')
+ def test_current_numeric_state_registry_can_match_reviewed_historical_iso(self):
+  props={'shapeID':'fixture','shapeName':'Alta Verapaz','shapeISO':'GT-AV'}
+  registry=[{'countryCode':'GT','stateCode':'16','stateName':'Alta Verapaz '}]
+  self.assertEqual(m.state_code('GT',props,registry),'16')
+  self.assertEqual(m.state_code('GT',props,registry+[{'countryCode':'GT','stateCode':'99','stateName':'Alta Verapaz'}]),'AV')
+ def test_reviewed_local_alias_keeps_the_state_and_point_requirements(self):
+  city={'name':'Chahal Guatemala','countryCode':'GT','stateCode':'16','longitude':1,'latitude':1};a={'name':'Chahal','geom':box(0,0,2,2)}
+  self.assertEqual(m.match_city(city,[a],{'16':box(-1,-1,3,3)}),[a])
+  self.assertEqual(m.match_city({**city,'longitude':8},[a],{'16':box(-1,-1,3,3)}),[])
 class CoverageCheckpoints(unittest.TestCase):
  def row(self,status,count):return {'coverage_status':status,'unique_supported':count,'sources':[{'source':'overture','rows':50,'release':'2026-10-21.0'}],'limitations':['source description']}
  def test_older_country_checkpoint_can_resume_without_an_association_field(self):
