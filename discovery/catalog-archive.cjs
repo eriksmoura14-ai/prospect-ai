@@ -26,7 +26,7 @@ function createArchive({databaseUrl,python,fetchImpl=fetch,reader=read}={}) {
   if(!records.groups[niche]||!Number.isSafeInteger(limit)||limit<1||limit>3000||typeof after!=="string"||after.length>180)throw new Error("Página de catálogo inválida.");
   if(busy)throw failure();busy=true;
   try {
-   const assets=await sql("SELECT id,url,sha256,bytes,records,source,release,license FROM catalog_assets WHERE state='ready' AND $1=ANY(countries) ORDER BY id LIMIT 9",[area.countryCode]);
+   const assets=await sql("SELECT id,url,sha256,bytes,records,source,release,license,bounds FROM catalog_assets WHERE state='ready' AND $1=ANY(countries) AND (bounds IS NULL OR bounds='null'::jsonb OR ((bounds->>0)::double precision<=$2 AND (bounds->>2)::double precision>=$3 AND (bounds->>1)::double precision<=$4 AND (bounds->>3)::double precision>=$5)) ORDER BY id LIMIT 9",[area.countryCode,area.bounds[3],area.bounds[2],area.bounds[1],area.bounds[0]]);
    for(const a of assets)if(!a.url.startsWith(ORIGIN)||!/^[a-f0-9]{64}$/.test(a.sha256)||Number(a.bytes)>256*1024*1024)throw failure();
    const snapshot=crypto.createHash("sha256").update(JSON.stringify(assets.map(a=>[a.id,a.sha256]))).digest("hex");
    if(expectedSnapshot&&expectedSnapshot!==snapshot)throw Object.assign(new Error("O catálogo foi ampliado. Reinicie a paginação para usar a nova versão."),{status:409});

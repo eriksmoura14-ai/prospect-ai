@@ -65,8 +65,9 @@ def main():
    sql("INSERT INTO catalog_ingest_tasks(id,kind,region,budgets) VALUES($1,'overture_partition',$2,$3::jsonb) ON CONFLICT(id) DO NOTHING",['overture-2026-10-21.0-'+part,part,json.dumps({'downloadBytes':900*1024*1024,'maximumSeconds':1800,'memory':'768MB','regionsPerInvocation':1})])
   print(json.dumps({'bootstrapComplete':True,'result':sql('SELECT count(*) AS inventory,count(admin_id) AS mapped FROM catalog_city_inventory'),'elapsedMs':round((time.monotonic()-started)*1000)}),flush=True)
  elif a.action=='asset':
-  asset=cfg['asset'];sql("""INSERT INTO catalog_assets(id,url,sha256,bytes,records,countries,bounds,source,release,license)
-   VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10::jsonb) ON CONFLICT(id) DO NOTHING""",[asset['id'],asset['url'],asset['sha256'],asset['bytes'],asset['records'],asset['countries'],json.dumps(asset.get('bounds')),asset['source'],asset['release'],json.dumps(asset['license'])]);print(json.dumps({'assetRegistered':asset['id']}))
+  asset=cfg['asset'];state=asset.get('state','ready');assert state in ('ready','staging')
+  sql("""INSERT INTO catalog_assets(id,url,sha256,bytes,records,countries,bounds,source,release,license,state)
+   VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10::jsonb,$11) ON CONFLICT(id) DO NOTHING""",[asset['id'],asset['url'],asset['sha256'],asset['bytes'],asset['records'],asset['countries'],json.dumps(asset.get('bounds')),asset['source'],asset['release'],json.dumps(asset['license']),state]);print(json.dumps({'assetRegistered':asset['id'],'state':state}))
  elif a.action=='coverage':
   n=0
   for batch in batches('coverage-updates.ndjson',500):
@@ -88,7 +89,8 @@ def main():
    '{"maximumSeconds":90,"maximumAttempts":3,"maximumResponseBytes":8388608,"concurrency":1}'::jsonb,
    jsonb_build_object('currentSupported',unique_supported,'priority','under_50_first')
    FROM catalog_city_inventory WHERE (admin_id IS NOT NULL OR association_status='licensed_polygon_archive') AND coalesce(unique_supported,0)<CASE WHEN $1::boolean THEN 50 ELSE 200 END
-   ON CONFLICT(id) DO UPDATE SET round=excluded.round,target=excluded.target,outcome=excluded.outcome WHERE catalog_ingest_tasks.state='queued'""",[cfg.get('minimumOnly',True)])
+   ON CONFLICT(id) DO UPDATE SET round=excluded.round,target=excluded.target,outcome=excluded.outcome WHERE catalog_ingest_tasks.state='queued'
+   AND (catalog_ingest_tasks.round,catalog_ingest_tasks.target,catalog_ingest_tasks.outcome) IS DISTINCT FROM (excluded.round,excluded.target,excluded.outcome)""",[cfg.get('minimumOnly',True)])
   sql("""INSERT INTO catalog_ingest_tasks(id,kind,region,state,budgets,outcome)
    SELECT 'country:'||country_code,'country_boundary_review',country_code,'blocked','{"maximumRegions":1,"automaticWorldScan":false}'::jsonb,
    '{"reason":"Official boundary crosswalk, source license, regional asset and resource budget must be reviewed before collection"}'::jsonb

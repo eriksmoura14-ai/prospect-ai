@@ -45,6 +45,16 @@ def state_code(country,properties,inventory=()):
         # unambiguous department name. City anchors are still checked in polygons.
         codes={r['stateCode'] for r in inventory if r['countryCode']==country and normalized(r['stateName'])==normalized(properties['shapeName'])}
         if len(codes)==1:return next(iter(codes))
+    if country=='ES':
+        # INE's province shapes publish no ISO code. Only these reviewed label
+        # differences are bridged; all other names must match exactly.
+        label=normalized(properties['shapeName'])
+        aliases={'alava':'araba','balears illes':'islas baleares','coruna':'a coruna','rioja la':'la rioja','palmas las':'las palmas'}
+        label=aliases.get(label,label)
+        codes={r['stateCode'] for r in inventory if r['countryCode']=='ES' and normalized(r['stateName'])==label}
+        if len(codes)==1:return next(iter(codes))
+        # Ceuta/Melilla have no app locality entries; preserve their official ISO.
+        if label in ('ceuta','melilla'):return {'ceuta':'CE','melilla':'ML'}[label]
     code=properties['shapeISO']
     return code.split('-',1)[1] if code.startswith(country+'-') else None
 
@@ -52,7 +62,6 @@ def boundaries(args):
     root=Path(args.root);country=args.country;begin=time.monotonic()
     inventory=json.loads(Path(args.inventory).read_text())['cities']
     state_meta=json.loads(Path(args.state_metadata).read_text());city_meta=json.loads(Path(args.city_metadata).read_text())
-    if state_meta['boundaryType']!='ADM1' or city_meta['boundaryType']!='ADM2' or state_meta['boundaryISO']!=city_meta['boundaryISO']:raise ValueError('boundary_hierarchy_mismatch')
     reviewed={
         'BR':{'iso3':'BRA','canonical':'municipality','states':27,'cityLicense':'Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)','stateLicense':'Creative Commons Attribution 2.5 Generic','licenseId':'CC-BY-3.0-IGO','licenseUrl':'https://creativecommons.org/licenses/by/3.0/igo/','stateLicenseId':'CC-BY-2.5','attribution':'IBGE; OCHA ROLAC; geoBoundaries','source':'IBGE / OCHA ROLAC via geoBoundaries gbOpen','geometryField':'gjDownloadURL'},
         'MX':{'iso3':'MEX','canonical':'municipios','states':32,'cityLicense':'Creative Commons Attribution 4.0 (CC BY 4.0)','stateLicense':'Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'CC-BY-3.0-IGO','attribution':'World Bank; INEGI; geoBoundaries','source':'World Bank / INEGI via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
@@ -60,9 +69,13 @@ def boundaries(args):
         # municipalities/districts; "Unknown" in gbOpen metadata is not treated
         # as authorization to use arbitrary ADM2 units in other countries.
         'CO':{'iso3':'COL','canonical':'Unknown','states':33,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'Open Data Commons Open Database License 1.0','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'ODbL-1.0','attribution':'DANE; geoBoundaries; state crosswalk © OpenStreetMap contributors / Wambacher','source':'DANE via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
-        'GT':{'iso3':'GTM','canonical':'Municipio','states':22,'cityLicense':'Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)','stateLicense':'Open Data Commons Open Database License 1.0','licenseId':'CC-BY-3.0-IGO','licenseUrl':'https://creativecommons.org/licenses/by/3.0/igo/','stateLicenseId':'ODbL-1.0','attribution':'CONRED; OCHA FISS; geoBoundaries; state crosswalk © OpenStreetMap contributors / Wambacher','source':'CONRED / OCHA FISS via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'}
+        'GT':{'iso3':'GTM','canonical':'Municipio','states':22,'cityLicense':'Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)','stateLicense':'Open Data Commons Open Database License 1.0','licenseId':'CC-BY-3.0-IGO','licenseUrl':'https://creativecommons.org/licenses/by/3.0/igo/','stateLicenseId':'ODbL-1.0','attribution':'CONRED; OCHA FISS; geoBoundaries; state crosswalk © OpenStreetMap contributors / Wambacher','source':'CONRED / OCHA FISS via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
+        # The reviewed Spanish municipal source is ADM3, not provinces (ADM2).
+        'ES':{'iso3':'ESP','canonical':'MUNICIPIOS','cityLevel':'ADM3','stateLevel':'ADM2','states':52,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'National Institute of Statistics (INE) Data License','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'LicenseRef-INE-Reuse','attribution':'IGN Central Registry of Cartography; Open Data ESRI; geoBoundaries. Province crosswalk: elaboración propia con datos del INE, www.ine.es, 2018; no endorsement','source':'IGN / Open Data ESRI via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'}
     }.get(country)
     if not reviewed or city_meta['boundaryCanonical']!=reviewed['canonical'] or city_meta['boundaryISO']!=reviewed['iso3']:raise ValueError('country_hierarchy_requires_review')
+    city_level=reviewed.get('cityLevel','ADM2')
+    if state_meta['boundaryType']!=reviewed.get('stateLevel','ADM1') or city_meta['boundaryType']!=city_level or state_meta['boundaryISO']!=city_meta['boundaryISO']:raise ValueError('boundary_hierarchy_mismatch')
     # Explicit review of this source and license. A new country needs its own
     # documented hierarchy/license review, not a guessed ADM2 city equivalence.
     if city_meta['boundaryLicense']!=reviewed['cityLicense'] or state_meta['boundaryLicense']!=reviewed['stateLicense']:raise ValueError('unreviewed_boundary_license')
@@ -80,7 +93,7 @@ def boundaries(args):
     lookup=defaultdict(list);all_areas=[]
     for feature in json.loads(Path(args.cities).read_text())['features']:
         prop=feature['properties']
-        if prop['shapeGroup']!=city_meta['boundaryISO'] or prop['shapeType']!='ADM2':raise ValueError('wrong_boundary_country_or_level')
+        if prop['shapeGroup']!=city_meta['boundaryISO'] or prop['shapeType']!=city_level:raise ValueError('wrong_boundary_country_or_level')
         g=polygon(feature['geometry'])
         area={'id':country+':gbOpen:'+prop['shapeID'],'country_code':country,'name':prop['shapeName'],'kind':'municipality','source':reviewed['source'],'vintage':city_meta['boundaryYearRepresented'],'license':{'id':reviewed['licenseId'],'url':reviewed['licenseUrl'],'attribution':reviewed['attribution'],'source':city_meta[reviewed['geometryField']],'stateCrosswalk':{'id':reviewed['stateLicenseId'],'attribution':state_meta['boundarySource'],'vintage':state_meta['boundaryYearRepresented']}},'geom':g}
         lookup[normalized(area['name'])].append(area);all_areas.append(area)

@@ -31,6 +31,11 @@ class CountryCrosswalk(unittest.TestCase):
   city={'name':'Chahal Guatemala','countryCode':'GT','stateCode':'16','longitude':1,'latitude':1};a={'name':'Chahal','geom':box(0,0,2,2)}
   self.assertEqual(m.match_city(city,[a],{'16':box(-1,-1,3,3)}),[a])
   self.assertEqual(m.match_city({**city,'longitude':8},[a],{'16':box(-1,-1,3,3)}),[])
+ def test_spanish_provinces_use_reviewed_names_not_autonomous_communities(self):
+  registry=[{'countryCode':'ES','stateCode':'VI','stateName':'Araba'},{'countryCode':'ES','stateCode':'B','stateName':'Barcelona'}]
+  self.assertEqual(m.state_code('ES',{'shapeName':'Alava','shapeISO':''},registry),'VI')
+  self.assertEqual(m.state_code('ES',{'shapeName':'Barcelona','shapeISO':''},registry),'B')
+  self.assertIsNone(m.state_code('ES',{'shapeName':'Cataluña/Catalunya','shapeISO':''},registry))
 class CoverageCheckpoints(unittest.TestCase):
  def row(self,status,count):return {'coverage_status':status,'unique_supported':count,'sources':[{'source':'overture','rows':50,'release':'2026-10-21.0'}],'limitations':['source description']}
  def test_older_country_checkpoint_can_resume_without_an_association_field(self):
