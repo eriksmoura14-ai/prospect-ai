@@ -2,7 +2,14 @@ import importlib.util,unittest,tempfile
 from pathlib import Path
 import numpy as np
 s=importlib.util.spec_from_file_location('serving',Path(__file__).resolve().parents[1]/'scripts/catalog-serving.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
+p=importlib.util.spec_from_file_location('publish',Path(__file__).resolve().parents[1]/'scripts/catalog-serving-publish.py');publisher=importlib.util.module_from_spec(p);p.loader.exec_module(publisher)
 class ServingPartitions(unittest.TestCase):
+ def test_publication_accepts_postgres_bigint_strings_and_rejects_record_loss(self):
+  old=[{'id':'source-a','sha256':'a'*64,'records':'100'}];new=[{'id':'serving-b','sha256':'b'*64,'records':100}]
+  manifest={'assets':new,'oldAssets':['source-a'],'records':100}
+  self.assertEqual([r['records'] for r in publisher.record_budget(manifest,old)],[100,100])
+  with self.assertRaisesRegex(ValueError,'record_identity'):publisher.record_budget({**manifest,'assets':[{**new[0],'records':99}]},old)
+  with self.assertRaisesRegex(ValueError,'record_identity'):publisher.record_budget({**manifest,'assets':[{**new[0],'id':'source-a'}]},old)
  def test_every_record_stays_in_exactly_one_interval(self):
   points=np.array([[i,i/2] for i in range(32)],dtype=float);codes=np.arange(32)
   leaves,metrics=m.plan(points,codes,[],target=3)
