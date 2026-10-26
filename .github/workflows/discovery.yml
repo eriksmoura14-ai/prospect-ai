@@ -42,5 +42,7 @@ jobs:
         run: python -m unittest discover -s test -p '*_reader_test.py' -v
       - name: Administrative identity, homonyms and polygon holes
         run: python -m unittest discover -s test -p 'catalog_country_test.py' -v
+      - name: Official French registry identity and coordinate conflict handling
+        run: python -m unittest discover -s test -p 'catalog_france_test.py' -v
       - name: Spatial serving preserves identities and file budgets
         run: python -m unittest discover -s test -p 'catalog_serving_test.py' -v

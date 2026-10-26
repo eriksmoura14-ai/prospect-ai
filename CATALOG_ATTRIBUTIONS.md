@@ -36,6 +36,15 @@ website. Não há dados de contas ou sessões de clientes nos arquivos públicos
   https://www.ine.es/ss/Satellite?L=0&c=Page&cid=1254735849170&p=1254735849170&pagename=Ayuda/INELayout.
 - **Limites anteriores:** US Census Bureau, cartografia 2024; Statistics Canada,
   limites 2021. Metadados e licenças originais acompanham as áreas preservadas.
+- **França:** IGN ADMIN EXPRESS 2026 / INSEE Code Officiel Géographique 2026,
+  generalização de 100 m publicada pela DINUM / Etalab. Municípios, arrondissements
+  municipais e communes associées/déléguées conservam códigos e limites próprios.
+  [Licence Ouverte 2.0](https://www.etalab.gouv.fr/licence-ouverte-open-licence/).
+  Evidência do produtor e licença:
+  https://www.data.gouv.fr/api/1/datasets/5808de39c751df1e0679df72/.
+  Limites COM de outras fontes não são atribuídos ao IGN e permanecem excluídos
+  deste adaptador. A hierarquia e os vínculos de antigos códigos vêm do COG,
+  não de aproximação por distância.
 
 Os limites são cartográficos históricos, podem ter simplificação publicada pela
 fonte e não representam levantamento cadastral atual. Nomes, âncoras, limites e

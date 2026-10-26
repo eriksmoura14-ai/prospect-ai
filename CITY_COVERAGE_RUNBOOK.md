@@ -167,3 +167,35 @@ não confirmados permanecem pendentes. Não presumir que ADM2 seja município.
 Reutilizar regiões Overture 00005/00006 já baixadas e a região 00007, release
 2026-10-21.0. Não repetir download por município. A normalização e conciliação
 continuam usando somente os segmentos efetivamente suportados pelo Prospect.
+
+## França: cadastro oficial e coordenadas incorretas no seletor
+
+`catalog-france.py` usa um único extrato nacional de contornos municipais
+IGN ADMIN EXPRESS 2026 generalizado a 100 m pela DINUM/Etalab, junto ao COG 2026
+de `@etalab/decoupage-administratif@6.0.0`. Conferir os SHA-256 dos downloads e
+a licença `lov2` do produtor oficial no dataset data.gouv `5808de39c751df1e0679df72`.
+COM de fontes não revisadas não entra na atribuição do IGN.
+
+Municípios delegados/associados usam seu próprio contorno; não recebem empresas
+de todo o novo município. O vínculo pai é explícito no registro COG. Uma empresa
+no distrito e no município pode atender às duas opções de localidade, mantendo
+uma única identidade global. Sobreposições entre vizinhos sem esse vínculo são
+ambíguas e não entram nas contagens.
+
+```sh
+python scripts/catalog-france.py --root SAIDA_FR --inventory INVENTARIO/inventory.json --repair-registry-coordinates
+python scripts/catalog-country.py reconcile --root SAIDA_FR --country FR --region REGIAO/normalized-FR.parquet --legacy INVENTARIO/legacy-snapshot.json --niches INVENTARIO/niches.json
+python scripts/catalog-country.py geometry --root SAIDA_FR --country FR
+```
+
+Sem a flag, a âncora deve concordar com o contorno. Com a flag revisada para esta
+fonte oficial, nome e departamento exatos que identificam **uma única** unidade
+INSEE permitem corrigir a busca mesmo quando a coordenada do seletor está em
+outro estado. O valor original não é apagado: o inventário registra
+`official_unique_name_department_registry_coordinate_conflict`. Homônimos não
+são escolhidos por aproximação. O contorno oficial determina a área consultada.
+
+O inventário do aplicativo inclui departamentos, localidades antigas e comunas
+sem habitantes. Isso exige revisão explícita: não assumir que toda opção tem
+cinquenta comércios. Registrar fontes, evidência e resultado insuficiente em vez
+de completar a cota com organizações públicas, pontos turísticos ou vizinhos.
