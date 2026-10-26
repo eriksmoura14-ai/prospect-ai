@@ -5,6 +5,17 @@ import argparse,gzip,hashlib,json,sys,time,uuid,re
 from pathlib import Path
 from urllib.parse import urlsplit
 import requests
+def external_coverage(row):
+ # Older resumable country checkpoints did not contain association_status.
+ # A numeric count is only emitted after polygon matching; pending is null.
+ n=row.get('unique_supported')
+ if row['coverage_status']!='location_pending':
+  if type(n) is not int or n<0 or row['coverage_status']=='target_met' and n<50:raise ValueError('invalid_confirmed_coverage')
+  row['association_status']='licensed_polygon_archive'
+  row['limitations']=['regional_sources_partial','historical_cartographic_boundary']
+ elif n is not None:raise ValueError('pending_is_not_zero_coverage')
+ row['sources']=[{'source':r['source'],'rows':r.get('rows',0)} for r in row['sources']]
+ return row
 def main():
  p=argparse.ArgumentParser();p.add_argument('action',choices=['bootstrap','coverage','asset','manifest','geometry_manifest','export_legacy','queue','claim','checkpoint','add_region']);p.add_argument('--root',default='.artifacts/coverage-20261023');a=p.parse_args();root=Path(a.root)
  cfg=json.loads(sys.stdin.readline());url=cfg.get('url');assert isinstance(url,str);host=urlsplit(url).hostname
@@ -62,9 +73,7 @@ def main():
    room()
    if cfg.get('externalGeometry'):
     for row in batch:
-     if row.get('association_status')=='name_state_and_anchor_inside_official_area':row['association_status']='licensed_polygon_archive'
-     row['sources']=[{'source':r['source'],'rows':r.get('rows',0)} for r in row['sources']]
-     if row['coverage_status']!='location_pending':row['limitations']=['regional_sources_partial','historical_cartographic_boundary']
+     external_coverage(row)
    sql("""UPDATE catalog_city_inventory c SET unique_supported=r.unique_supported,unique_all=r.unique_all,source_rows=r.source_rows,category_count=r.category_count,sources=r.sources,limitations=r.limitations,coverage_status=r.coverage_status,next_action=r.next_action,association_status=coalesce(r.association_status,c.association_status),updated_at=now()
     FROM jsonb_to_recordset($1::jsonb) AS r(city_key text,unique_supported int,unique_all int,source_rows int,category_count int,sources jsonb,limitations jsonb,coverage_status text,next_action text,association_status text) WHERE c.city_key=r.city_key
     AND (c.unique_supported,c.unique_all,c.source_rows,c.category_count,c.sources,c.limitations,c.coverage_status,c.next_action,c.association_status) IS DISTINCT FROM (r.unique_supported,r.unique_all,r.source_rows,r.category_count,r.sources,r.limitations,r.coverage_status,r.next_action,coalesce(r.association_status,c.association_status))""",[json.dumps(batch,separators=(',',':'))]);n+=len(batch)
