@@ -117,8 +117,9 @@ catálogo sem autenticação: HTTP 401. Nenhuma sessão privada de cliente foi u
 Validação de código: 317 testes Node aprovados; dois testes locais exigiam banco
 isolado. O CI executou autenticação e PostGIS com sucesso. Dezoito testes Python
 de catálogo passaram. Upload que falhou temporariamente foi retomado; os
-187 arquivos e os 50 blocos geográficos espanhóis terminaram publicados e
-verificados. Não há medição que permita afirmar uma taxa mundial de erro zero.
+187 arquivos terminaram publicados, com SHA-256 local e leitura pública
+confirmados. Os 50 blocos geográficos espanhóis também tiveram SHA-256 remoto
+confirmado. O leitor confere o SHA-256 dos Parquets usados em cada consulta. Não há medição que permita afirmar uma taxa mundial de erro zero.
 
 Código de consulta publicado pelo [PR 35](https://github.com/eriksmoura14-ai/prospect-ai/pull/35),
 commit de produção `81dd189d8faf3cefbd99877bf2a0c70caf228a60`.
