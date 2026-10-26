@@ -67,8 +67,9 @@ e sete unidades legais ativas. Esses números não equivalem a comércios dos
 segmentos do Prospect: em Bezonvaux o único resultado foi **COMMUNE DE BEZONVAUX**,
 atividade 84.11Z, administração pública, que não foi importada como empresa-alvo.
 Nenhuma empresa dos segmentos atuais foi encontrada nesses três limites no
-lote Overture consultado. Isso é ausência de evidência suficiente nas fontes
-consultadas; não uma afirmação universal sobre todo negócio não registrado.
+lote Overture consultado. Um teste adicional no Overpass recebeu HTTP 429;
+não houve repetição automática nem interpretação dessa falha como resultado zero.
+Isso é ausência de evidência suficiente nas fontes consultadas; não uma afirmação universal sobre todo negócio não registrado.
 
 Consulta reproduzível:
 https://recherche-entreprises.api.gouv.fr/search?code_commune=55050&etat_administratif=A&per_page=1
