@@ -55,6 +55,14 @@ def state_code(country,properties,inventory=()):
         if len(codes)==1:return next(iter(codes))
         # Ceuta/Melilla have no app locality entries; preserve their official ISO.
         if label in ('ceuta','melilla'):return {'ceuta':'CE','melilla':'ML'}[label]
+    if country=='IT':
+        # ISTAT/geoBoundaries ADM3 are provinces, the subdivision used by the
+        # app. ADM1 are macroregions and must never stand in for these units.
+        label=normalized(properties['shapeName'])
+        aliases={'torino':'turin','genova':'genoa','milano':'milan','mantova':'mantua','bolzano':'south tyrol','trento':'trentino','venezia':'venice','padova':'padua','firenze':'florence','roma':'rome','napoli':'naples','aosta':'aosta valley','reggio nell emilia':'reggio emilia','reggio di calabria':'reggio calabria','pesaro e urbino':'pesaro and urbino','massa carrara':'massa and carrara','monza e della brianza':'monza and brianza','sud sardegna':'south sardinia'}
+        label=aliases.get(label,label)
+        codes={r['stateCode'] for r in inventory if r['countryCode']=='IT' and normalized(r['stateName'])==label}
+        if len(codes)==1:return next(iter(codes))
     code=properties['shapeISO']
     return code.split('-',1)[1] if code.startswith(country+'-') else None
 
@@ -71,7 +79,12 @@ def boundaries(args):
         'CO':{'iso3':'COL','canonical':'Unknown','states':33,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'Open Data Commons Open Database License 1.0','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'ODbL-1.0','attribution':'DANE; geoBoundaries; state crosswalk © OpenStreetMap contributors / Wambacher','source':'DANE via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
         'GT':{'iso3':'GTM','canonical':'Municipio','states':22,'cityLicense':'Creative Commons Attribution 3.0 Intergovernmental Organisations (CC BY 3.0 IGO)','stateLicense':'Open Data Commons Open Database License 1.0','licenseId':'CC-BY-3.0-IGO','licenseUrl':'https://creativecommons.org/licenses/by/3.0/igo/','stateLicenseId':'ODbL-1.0','attribution':'CONRED; OCHA FISS; geoBoundaries; state crosswalk © OpenStreetMap contributors / Wambacher','source':'CONRED / OCHA FISS via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
         # The reviewed Spanish municipal source is ADM3, not provinces (ADM2).
-        'ES':{'iso3':'ESP','canonical':'MUNICIPIOS','cityLevel':'ADM3','stateLevel':'ADM2','states':52,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'National Institute of Statistics (INE) Data License','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'LicenseRef-INE-Reuse','attribution':'IGN Central Registry of Cartography; Open Data ESRI; geoBoundaries. Province crosswalk: elaboración propia con datos del INE, www.ine.es, 2018; no endorsement','source':'IGN / Open Data ESRI via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'}
+        'ES':{'iso3':'ESP','canonical':'MUNICIPIOS','cityLevel':'ADM3','stateLevel':'ADM2','states':52,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'National Institute of Statistics (INE) Data License','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'LicenseRef-INE-Reuse','attribution':'IGN Central Registry of Cartography; Open Data ESRI; geoBoundaries. Province crosswalk: elaboración propia con datos del INE, www.ine.es, 2018; no endorsement','source':'IGN / Open Data ESRI via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
+        'RO':{'iso3':'ROU','canonical':'municipalities','states':42,'cityLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','stateLicense':'Creative Commons Attribution 4.0 International (CC BY 4.0)','licenseId':'CC-BY-4.0','licenseUrl':'https://creativecommons.org/licenses/by/4.0/','stateLicenseId':'CC-BY-4.0','attribution':'ANCPI municipal units 2016; World Bank counties 2017; geoBoundaries. Original ANCPI source: OGL-ROU-1.0, data.gov.ro/dataset/unitati-administrative; not a current cadastral survey.','source':'ANCPI / World Bank via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'},
+        # Reviewed against ISTAT's official administrative hierarchy: the
+        # 7,901 ADM4 units are comuni; ADM3 are its 107 provinces. This explicit
+        # country profile does not authorize generic "Unknown" ADM levels.
+        'IT':{'iso3':'ITA','canonical':'Unknown','states':107,'cityLevel':'ADM4','stateLevel':'ADM3','cityLicense':'Creative Commons Attribution 3.0 License','stateLicense':'Creative Commons Attribution 3.0 License','licenseId':'CC-BY-3.0','licenseUrl':'https://creativecommons.org/licenses/by/3.0/','stateLicenseId':'CC-BY-3.0','attribution':'ISTAT, National Institute of Statistics; geoBoundaries. Comuni and provinces, 2023; not a current cadastral survey. Official hierarchy: https://www.istat.it/it/archivio/222527','source':'ISTAT via geoBoundaries gbOpen','geometryField':'simplifiedGeometryGeoJSON'}
     }.get(country)
     if not reviewed or city_meta['boundaryCanonical']!=reviewed['canonical'] or city_meta['boundaryISO']!=reviewed['iso3']:raise ValueError('country_hierarchy_requires_review')
     city_level=reviewed.get('cityLevel','ADM2')
@@ -127,15 +140,30 @@ def boundaries(args):
 def helper():
     s=importlib.util.spec_from_file_location('normal',Path(__file__).with_name('catalog-normalize.py'));h=importlib.util.module_from_spec(s);s.loader.exec_module(h);return h
 
+def confirmed_admin_ids(candidates):
+    """Explicit municipal parent/district membership can count for both app
+    options, while a global business is still counted once. Overlapping peers
+    or unreviewed geometric containment never authorize multiple assignments."""
+    if len(candidates)==1:return [candidates[0]['id']]
+    if len(candidates)!=2:return []
+    for child,parent in (candidates,candidates[::-1]):
+        meta=child.get('source_metadata',{})
+        if child['country_code']==parent['country_code']=='FR' and child['kind'] in ('municipal_district','delegated_municipality') and parent['kind']=='municipality' and meta.get('authority')=='IGN ADMIN EXPRESS / DINUM 2026' and meta.get('parent_admin_id')==parent['id']:
+            return [parent['id'],child['id']]
+    return []
+
 def geometry(args):
     """Content-addressed state chunks keep new full polygons out of the small
     operations DB. Native PostGIS areas already published are never removed."""
     root=Path(args.root);country=args.country
-    areas={r['id']:r for r in map(json.loads,(root/'admin-areas.ndjson').open())};states=defaultdict(list)
-    for city in map(json.loads,(root/'mapped-inventory.ndjson').open()):
-        if not city.get('admin_id'):continue
-        a=areas[city['admin_id']]
-        states[city['stateCode']].append({'city_id':city['id'],'city_key':city['key'],'name':city['name'],'country_code':country,'state_name':city['stateName'],**{k:a[k] for k in ['id','kind','source','vintage','license','bounds','area_key','geometry']}})
+    with (root/'admin-areas.ndjson').open() as source:areas={r['id']:r for r in map(json.loads,source)}
+    states=defaultdict(list);coordinate_conflicts=defaultdict(list)
+    with (root/'mapped-inventory.ndjson').open() as inventory:
+        for city in map(json.loads,inventory):
+            if not city.get('admin_id'):continue
+            a=areas[city['admin_id']]
+            if country=='FR' and city.get('association_status')=='official_unique_name_department_registry_coordinate_conflict':coordinate_conflicts[city['stateCode']].append(city['id'])
+            states[city['stateCode']].append({'city_id':city['id'],'city_key':city['key'],'name':city['name'],'country_code':country,'state_name':city['stateName'],**{k:a[k] for k in ['id','kind','source','vintage','license','bounds','area_key','geometry']}})
     folder=root/'geometry';folder.mkdir(exist_ok=True);uploads=[];manifests=[]
     for state,rows in sorted(states.items()):
         pieces=[];current=[];size=0
@@ -152,6 +180,9 @@ def geometry(args):
             key='geography/20261023/'+country+'/'+file.name;url='https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/'+key
             part={'url':url,'sha256':digest,'bytes':len(body),'cityIds':[r['city_id'] for r in rows]};parts.append(part);uploads.append({**part,'file':str(file),'key':key,'contentType':'application/json'})
         payload={'version':1,'countryCode':country,'stateCode':state,'parts':parts,'boundaryIdentity':'Name, state and anchor confirmed against reviewed licensed administrative polygons','notACurrentCadastralSurvey':True}
+        if country=='FR':
+            payload['boundaryIdentity']='Reviewed official INSEE identity by exact name and department; original app-coordinate conflicts retained and identified explicitly'
+            payload['registryCoordinateConflictCityIds']=sorted(coordinate_conflicts[state])
         manifests.append({'id':'geometry-v1:'+country+':'+state,'payload':payload})
     result={'country':country,'uploads':uploads,'manifests':manifests,'geometryBytes':sum(u['bytes'] for u in uploads),'files':len(uploads),'cities':sum(len(u['cityIds']) for u in uploads)}
     (root/'geometry-publication.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({k:v for k,v in result.items() if k not in ('uploads','manifests')}),flush=True)
@@ -164,12 +195,12 @@ def reconcile(args):
     def locate(rows):
         pairs=tree.query(shapely.points([r['longitude'] for r in rows],[r['latitude'] for r in rows]),predicate='covered_by');hits=defaultdict(list)
         for i,j in zip(*pairs):hits[int(i)].append(int(j))
-        return [ids[hits[i][0]] if len(hits[i])==1 else None for i in range(len(rows))]
+        return [confirmed_admin_ids([areas[j] for j in hits[i]]) for i in range(len(rows))]
     db=duckdb.connect(str(root/'country-reconcile.duckdb'),config={'memory_limit':'512MB','threads':'1','preserve_insertion_order':'false','temp_directory':str(root/'spill'),'max_temp_directory_size':'2GB'})
     groups=json.loads(Path(args.niches).read_text());cats={v for values in groups.values() for v in values}
     seen=h.Deduplicator();counts=defaultdict(Counter);before=defaultdict(Counter);sources=defaultdict(Counter);categories=defaultdict(set);totals=Counter();new_ids=[];aliases=[]
     def consume(rows,source,new):
-        for r,admin in zip(rows,locate(rows)):
+        for r,admins in zip(rows,locate(rows)):
             if r['country_code']!=country:raise ValueError('wrong_business_country')
             identity=('osm/' if source in ('qlever','overpass','geofabrik') else source+'/')+str(r['source_id'])
             previous=seen.accept(identity,country,r['name'],r['latitude'],r['longitude'],r.get('phone'),r.get('address'))
@@ -179,13 +210,13 @@ def reconcile(args):
             else:
                 totals['unique']+=1;totals['new_unique' if new else 'previous_unique']+=1
                 if new:new_ids.append(str(r['source_id']))
-                if admin:
+                for admin in admins:
                     counts[admin]['unique']+=1
                     if not new:before[admin]['unique']+=1
                     for niche,values in groups.items():
                         if r.get('category')==niche or set(values).intersection([r.get('primary_category'),r.get('basic_category'),*(r.get('category_hierarchy') or []),*(r.get('alternate_categories') or [])]):categories[admin].add(niche)
-            if admin:counts[admin]['source_rows']+=1;sources[admin][source]+=1
-            else:totals['unassigned_observations']+=1
+            for admin in admins:counts[admin]['source_rows']+=1;sources[admin][source]+=1
+            if not admins:totals['unassigned_observations']+=1
     old=json.loads(Path(args.legacy).read_text())
     for source in sorted({r['source'] for r in old['discovery_records'] if r['country_code']==country}):
         rows=[{**r,'source_id':str(r['source_id']),'latitude':r['payload']['latitude'],'longitude':r['payload']['longitude']} for r in old['discovery_records'] if r['source']==source and r['country_code']==country]

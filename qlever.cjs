@@ -2,6 +2,7 @@
 
 // Public OSM RDF snapshot. No API key, inference of contacts or message sending.
 const matching = require("./niche-matching.cjs");
+const {createHash} = require("node:crypto");
 const ENDPOINT = "https://qlever.dev/api/osm-planet";
 const KEY = "https://www.openstreetmap.org/wiki/Key:";
 const MAX_BUSINESSES = 500;
@@ -46,6 +47,23 @@ function geographicPattern(place, region) {
 
 function buildQuery(place, config, mode = "categories", geometryOnly = false) {
   const region = regionURI(place);
+  return scopedQuery(place, config, mode, geometryOnly, region);
+}
+
+function scopeURI(area) {
+  if (!area || !/^[A-Z]{2}$/.test(area.countryCode || "") || !["Polygon","MultiPolygon"].includes(area.geometry?.type) || !Array.isArray(area.bounds) || area.bounds.length!==4) {
+    throw failure("qlever_region_unsupported", "Limite oficial confirmado necessário para a consulta espacial.");
+  }
+  // This is a query correlation marker, never a fabricated OSM object.
+  return "urn:prospect:area:"+createHash("sha256").update(JSON.stringify([area.countryCode,area.bounds,area.geometry])).digest("hex");
+}
+
+function buildAreaQuery(area, config, mode = "categories") {
+  const region=scopeURI(area);
+  return scopedQuery({name:area.city || area.displayName || "selected official area",osm_type:"external",boundingbox:area.bounds},config,mode,true,region);
+}
+
+function scopedQuery(place, config, mode, geometryOnly, region) {
   const geography = geographicPattern(geometryOnly ? {...place,osm_type:"node"} : place, region);
   // UNION branches are planned independently by QLever. Pin the locality
   // inside every branch so name/cuisine filters cannot scan the planet first.
@@ -114,11 +132,14 @@ function point(wkt, centers = false) {
 }
 
 function extract(data, place) {
+  return extractScoped(data,regionURI(place));
+}
+
+function extractScoped(data, expected) {
   const bindings = data?.results?.bindings;
   if (data?.exception || data?.status === "ERROR" || !Array.isArray(bindings)) {
     throw failure("qlever_invalid_response", "A fonte QLever retornou uma resposta inválida ou incompleta.");
   }
-  const expected = regionURI(place);
   if (!bindings.some(row => row.region?.type === "uri" && row.region.value === expected)) {
     throw failure("qlever_region_missing", "Esta localidade não foi encontrada na base QLever. Não foi usada uma região diferente.");
   }
@@ -209,15 +230,24 @@ async function request(query, { fetchImpl, userAgent, onTrace, purpose, deadline
   } finally { onTrace({ endpoint: ENDPOINT, purpose, phase, outcome, httpStatus, bytes, elapsedMs: Date.now() - started }); }
 }
 
-async function discover(place, config, { fetchImpl = fetch, userAgent = "ProspectAI/0.7", onTrace = () => {}, geometryOnly = false, timeoutMs = 45000 } = {}) {
+async function runDiscovery(config, { fetchImpl = fetch, userAgent = "ProspectAI/0.7", onTrace = () => {}, geometryOnly = false, timeoutMs = 45000 }, makeQuery, readCandidates) {
   const options = {fetchImpl, userAgent, onTrace, deadline:Date.now() + Math.min(timeoutMs,45000)};
-  const result = extract(await request(buildQuery(place, config, "categories", geometryOnly), {...options, purpose:"candidates"}), place);
+  const result = readCandidates(await request(makeQuery("categories"), {...options, purpose:"candidates"}));
   if (!result.elements.length && config.terms.length) {
-    Object.assign(result, extract(await request(buildQuery(place, config, "names", geometryOnly), {...options, purpose:"names"}), place));
+    Object.assign(result, readCandidates(await request(makeQuery("names"), {...options, purpose:"names"})));
   }
   if (result.elements.length) enrich(result.elements,
     await request(buildDetailsQuery(result.elements), {...options, purpose:"details"}), geometryOnly);
   return result;
 }
 
-module.exports = { ENDPOINT, MAX_BUSINESSES, MAX_BYTES, buildQuery, buildDetailsQuery, extract, enrich, discover };
+async function discover(place, config, options = {}) {
+  return runDiscovery(config,options,mode=>buildQuery(place,config,mode,Boolean(options.geometryOnly)),data=>extract(data,place));
+}
+
+async function discoverArea(area, config, options = {}) {
+  const expected=scopeURI(area);
+  return runDiscovery(config,{...options,geometryOnly:true},mode=>buildAreaQuery(area,config,mode),data=>extractScoped(data,expected));
+}
+
+module.exports = { ENDPOINT, MAX_BUSINESSES, MAX_BYTES, buildQuery, buildAreaQuery, buildDetailsQuery, extract, enrich, discover, discoverArea };
