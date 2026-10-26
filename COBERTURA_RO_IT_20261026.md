@@ -127,3 +127,38 @@ rodando: não há coletor mundial autônomo configurado. Restam os cruzamentos d
 países ainda pendentes e a complementação das cidades abaixo de 50, com revisão
 de fontes, licenças e recursos antes de cada lote. O arquivo completo de todas
 as localidades, contagens e motivos acompanha a publicação de evidências.
+
+
+## Publicação verificável
+
+[Baixar evidências e inventário completo (ZIP, 91.701.054 bytes)](https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/archives/20261026/coverage-ro-it-review-v1.zip).
+SHA-256: `c89ee9acf4069b763c7f6cb560acfd98c7f754cc1537e761a6f76d112338aa0d`.
+O pacote usa lista explícita de arquivos públicos; não contém credenciais de
+contas, URLs assinadas nem dados privados de clientes. Metadados anteriores e
+arquivos de origem continuam preservados. Recibo durável:
+`coverage-progress-ro-it-20261026-v1` no catálogo operacional público isolado.
+
+O PR [#38](https://github.com/eriksmoura14-ai/prospect-ai/pull/38) passou nos
+workflows de autenticação e geoespacial, incluindo PostGIS. A correção está live
+no staging gratuito existente, commit `1acc6248bcd181965ebc0cc542767ff854975f20`,
+deploy `dep-dbfpb5qjnfac73fpsb9g`. Após a implantação, RO e IT retornaram páginas
+de cinco restaurantes a partir dos novos arquivos. `/health` retornou 200 e o
+catálogo sem autenticação retornou 401 em staging e produção. O código de
+produção e a branch principal permanecem sem alteração nesta rodada.
+
+O bucket público existente mediu 2.581.243.165 bytes em 591 objetos, incluindo
+arquivos anteriores mantidos. O consumo mensal informado pela plataforma é
+atrasado; não assumir franquia ilimitada. O limite interno de 220 MiB do banco
+operacional continua valendo para a próxima expansão.
+
+
+A validação adicional do adaptador real resolveu o limite oficial de Trévoux,
+leu 19 registros de restaurantes do arquivo e aceitou oito observações OSM
+geograficamente válidas, com licença ODbL e IDs originais. Foi somente leitura;
+essas observações não entram no incremento de empresas nem nas metas auditadas.
+A primeira chamada manual omitiu `cityName` e foi rejeitada pela checagem de
+identidade; com a seleção completa funcionou sem alteração de código. As regras
+conservadoras de combinação preservam casos de correspondência incerta.
+
+[Recibo público dos testes após implantação](https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/validation/20261026/coverage-ro-it-4a9daa012b1f3798.json),
+SHA-256 `4a9daa012b1f37983a764af9266c26cb35015da4cf4701cf98d8473c3ac3508c`.
