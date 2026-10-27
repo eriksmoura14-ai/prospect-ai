@@ -39,6 +39,16 @@ espaço do banco. Upserts idempotentes e checkpoints permitem retomar uma falha
 sem registrar o mesmo estabelecimento novamente. Em um mesmo arquivo regional,
 agrupar `--country-code` reduz leituras repetidas por país.
 
+Na taxonomia publicada pela Overture, `locality` é um lugar povoado e
+`localadmin` é uma administração que pode conter localidades. Se ambos tiverem
+o nome solicitado, país/subdivisão e âncora já confirmados, uma única locality
+inteiramente contida em todos os localadmins homônimos pode resolver a escolha
+de escopo. Os IDs administrativos alternativos ficam registrados. Localidades
+concorrentes ou limites que se cruzam continuam pendentes. Um vínculo publicado
+anteriormente permanece prioritário enquanto sua identidade e geometria forem
+reproduzidas. Definição da fonte:
+https://docs.overturemaps.org/schema/reference/divisions/types/division_subtype/.
+
 ## Rodadas e retomada
 
 `catalog-ops.py queue` cria por padrão apenas novas tarefas abaixo de 50.

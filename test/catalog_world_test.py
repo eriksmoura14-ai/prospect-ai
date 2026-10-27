@@ -51,6 +51,13 @@ class WorldIdentity(unittest.TestCase):
   self.assertIsNone(world.preserve_mapping({},old,[other,area]))
   with self.assertRaisesRegex(ValueError,'not_reproduced'):world.preserve_mapping(previous,old,[other])
   with self.assertRaisesRegex(ValueError,'identity_changed'):world.preserve_mapping(previous,old,[{**area,'geom':box(0,0,4,4)}])
+ def test_unique_populated_place_inside_homonymous_localadmin_keeps_the_narrower_scope(self):
+  city={'countryCode':'AR','stateCode':'K','name':'Example'};locality={'id':'place','kind':'locality','geom':box(1,1,2,2)};admin={'id':'municipality','kind':'localadmin','geom':box(0,0,3,3)}
+  self.assertIs(world.contained_named_locality(city,[admin,locality]),locality)
+  self.assertIsNone(world.contained_named_locality(city,[admin,locality,{**locality,'id':'another-place'}]))
+  self.assertIsNone(world.contained_named_locality(city,[{**admin,'geom':box(1.5,1.5,3,3)},locality]))
+  self.assertIsNone(world.contained_named_locality(city,[{**admin,'kind':'county'},locality]))
+  self.assertIsNone(world.contained_named_locality({'countryCode':'DK','name':'Example Kommune'},[admin,locality]))
  def test_source_common_names_keep_country_subdivision_and_polygon_constraints(self):
   city={'countryCode':'DE','stateCode':'BY','name':'Munich','latitude':1,'longitude':1};area={'geom':box(0,0,2,2)}
   lookup={('DE-BY',name):[area] for name in world.names({'primary':'München','common':{'en':'Munich'}})}

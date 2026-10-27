@@ -51,6 +51,17 @@ def requested_county_policy(city):
  if city['countryCode']=='DK' and name.endswith(' kommune'):return 'explicit_registry_danish_municipality'
  return None
 
+def contained_named_locality(city,hits):
+ # Overture defines locality as a populated place and localadmin as an
+ # administrative unit containing populated places. A unique named locality
+ # wholly inside all matching localadmins resolves that scope distinction.
+ # Never choose between competing localities or expand to an enclosing admin.
+ if requested_county_policy(city) or len(hits)<2:return None
+ localities=[a for a in hits if a['kind']=='locality'];admins=[a for a in hits if a['kind']=='localadmin']
+ if len(localities)!=1 or len(admins)!=len(hits)-1:return None
+ selected=localities[0]
+ return selected if all(a['geom'].covers(selected['geom']) for a in admins) else None
+
 def preserve_mapping(previous,old_areas,hits):
  """A reviewed published identity wins over newly introduced ambiguity only
  while that exact source polygon and all original location constraints agree.
@@ -132,6 +143,15 @@ def main():
   preserved=preserve_mapping(previous[city['key']],old_areas,hits) if city['key'] in previous else None
   if preserved:
    hits=[preserved];counts['previousConfirmedMappingsPreserved']+=1
+  elif len(hits)>1:
+   selected=contained_named_locality(city,hits)
+   if selected:
+    meta=selected['source_metadata'];alternatives={v['id']:v for v in meta.get('containing_homonymous_localadmins',[])}
+    for other in hits:
+     if other is selected:continue
+     alternatives[other['id']]={'id':other['id'],'divisionId':other['source_metadata']['division_id'],'name':other['name'],'subtype':other['kind'],'relation':'fully_contains_selected_named_locality'}
+    meta.update(scope_resolution='unique_named_locality_fully_contained_by_matching_localadmins',scope_definition='https://docs.overturemaps.org/schema/reference/divisions/types/division_subtype/',containing_homonymous_localadmins=sorted(alternatives.values(),key=lambda v:v['id']))
+    row['scope_resolution']=meta['scope_resolution'];hits=[selected];counts['containedLocalityScopesResolved']+=1
   if len(hits)==1:
    row.update(admin_id=hits[0]['id'],association_status='source_iso_name_and_anchor_inside_territorial_polygon',coverage_status='partial',next_action='collect_supported_segments_until_50_or_document_source_limits');used[hits[0]['id']]=hits[0]
    if city['stateCode'] in hits[0]['source_metadata'].get('subdivision_hierarchy_proofs',{}):row['association_status']='published_subdivision_hierarchy_name_and_anchor_inside_territorial_polygon'
