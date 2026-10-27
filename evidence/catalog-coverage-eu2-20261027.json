@@ -1,0 +1,4522 @@
+{
+  "asOf": "2026-10-27T09:40:55.4415+00:00",
+  "isolatedDatabase": "catalog_ops",
+  "databaseBytes": 229048320,
+  "fullInventory": {
+    "inventory": 152970,
+    "minimum50": 12131,
+    "minimum100": 6420,
+    "minimum200": 3045
+  },
+  "percentMinimum50": 7.9303,
+  "uniqueBusinesses": 4979881,
+  "sourceObservations": 4990876,
+  "overlaps": 10995,
+  "readyArchiveRecords": 4967415,
+  "netLegacyAdditional": 12466,
+  "allCountryCoverageFingerprintsComparedLocally": true,
+  "countryFingerprints": [
+    {
+      "min50": 0,
+      "cities": 10,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "86002427f420d80d4500d3b31c0ed18b",
+      "country_code": "AD",
+      "location_pending": 10,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 30,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "a4ffb87e7d7aa615b6f3a32479284237",
+      "country_code": "AE",
+      "location_pending": 30,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 100,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "d429000fb956ff9060eb5f1d38bc5748",
+      "country_code": "AF",
+      "location_pending": 100,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 9,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "df5be83cc5dc64c0f15be3c87c08aba2",
+      "country_code": "AG",
+      "location_pending": 9,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 143,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b17d97968a1fd803f69211163bd5fbed",
+      "country_code": "AL",
+      "location_pending": 143,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 308,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "77f2dbe82c5041ceedad057ca7a6b3a9",
+      "country_code": "AM",
+      "location_pending": 308,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 72,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "e15bfbad9d23e7d8d40e51475d80d809",
+      "country_code": "AO",
+      "location_pending": 72,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 1136,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "d2b27622c29d741cfa8d9a98ba04c2d9",
+      "country_code": "AR",
+      "location_pending": 1136,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 14,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "78eb668eeb9d5ec5a80ff49bf5d499c7",
+      "country_code": "AS",
+      "location_pending": 14,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 93,
+      "cities": 2360,
+      "min100": 24,
+      "min200": 2,
+      "partial": 1446,
+      "fingerprint": "0d0c21b690d91eca210ef709780fd150",
+      "country_code": "AT",
+      "location_pending": 821,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 1483
+    },
+    {
+      "min50": 0,
+      "cities": 4147,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "ae7fcc46e37664bbdf7bfed42b388cfa",
+      "country_code": "AU",
+      "location_pending": 4147,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 12,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "83ca3ce0f0cd9bbeefbeb548080189fa",
+      "country_code": "AW",
+      "location_pending": 12,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 12,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "8e5dcd8376a26c153b8dd3ca85420d38",
+      "country_code": "AX",
+      "location_pending": 12,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 180,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "c6508949ca67ad511b36e7a3ab8567a5",
+      "country_code": "AZ",
+      "location_pending": 180,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 232,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "dde27e903348d5c4fd348aa473c07e7e",
+      "country_code": "BA",
+      "location_pending": 232,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 7,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "e1e183085dbce3aa22801cc1f3516bd7",
+      "country_code": "BB",
+      "location_pending": 7,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 64,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b7750d91a434acfc9d6b85c203f2040a",
+      "country_code": "BD",
+      "location_pending": 64,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 260,
+      "cities": 549,
+      "min100": 122,
+      "min200": 39,
+      "partial": 219,
+      "fingerprint": "ff3369de5dbeee6027bd569e1af063a1",
+      "country_code": "BE",
+      "location_pending": 70,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 443
+    },
+    {
+      "min50": 0,
+      "cities": 92,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "606b98303f54d58248567c4d6aa2f80b",
+      "country_code": "BF",
+      "location_pending": 92,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 504,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "fdba47f5080aa58209ead0b0266a0ef1",
+      "country_code": "BG",
+      "location_pending": 504,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 9,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "eec67a17fc713dd8b998c532b146eaf1",
+      "country_code": "BH",
+      "location_pending": 9,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 17,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "29c5a0b3d62a94470cac3de358aa2a89",
+      "country_code": "BI",
+      "location_pending": 17,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 36,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "48112e8674a48d75c64f534371d825af",
+      "country_code": "BJ",
+      "location_pending": 36,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 1,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "707debc19d3ee3dec64ad73b20fc505f",
+      "country_code": "BL",
+      "location_pending": 1,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 9,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "a2b9a51adaa667e2e51b5f8c9e8c1781",
+      "country_code": "BM",
+      "location_pending": 9,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 9,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "a4ce94a9a635895881875628cd2032b2",
+      "country_code": "BN",
+      "location_pending": 9,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 228,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "58a4c382632e4016523333216a9f1661",
+      "country_code": "BO",
+      "location_pending": 228,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 8,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "71de0def9a3257b2512fb3e423ed86ad",
+      "country_code": "BQ",
+      "location_pending": 8,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 1018,
+      "cities": 5629,
+      "min100": 623,
+      "min200": 355,
+      "partial": 4372,
+      "fingerprint": "c17b6cd336ef3ecaeca19a0dc8bca3d7",
+      "country_code": "BR",
+      "location_pending": 239,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 5027
+    },
+    {
+      "min50": 0,
+      "cities": 21,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "bbf94d7694077c5250d8671a4438fd26",
+      "country_code": "BS",
+      "location_pending": 21,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 57,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "e5c49689b8203927f5c3945e3584faf5",
+      "country_code": "BT",
+      "location_pending": 57,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 75,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "10769d8d9025fef22cd158c72ada2960",
+      "country_code": "BW",
+      "location_pending": 75,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 329,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "2952c1274597b925353295b1bc4baeea",
+      "country_code": "BY",
+      "location_pending": 329,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 13,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "402342d9648d031da812840ce0794713",
+      "country_code": "BZ",
+      "location_pending": 13,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 256,
+      "cities": 1080,
+      "min100": 154,
+      "min200": 86,
+      "partial": 478,
+      "fingerprint": "a8596904239c9caf0db2a09ee9c36778",
+      "country_code": "CA",
+      "location_pending": 344,
+      "temporary_failure": 2,
+      "cities_with_confirmed_records": 712
+    },
+    {
+      "min50": 0,
+      "cities": 67,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "d63a6194d8bb6a6d419b120e1fa4268e",
+      "country_code": "CD",
+      "location_pending": 67,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 42,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f2724977d388403fcce69a3af453da84",
+      "country_code": "CF",
+      "location_pending": 42,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 17,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "456eafee1f50e11c6f6762bd7da32c8f",
+      "country_code": "CG",
+      "location_pending": 17,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 147,
+      "cities": 1507,
+      "min100": 64,
+      "min200": 22,
+      "partial": 745,
+      "fingerprint": "3ef6223a3c027a648d9adf30765820b7",
+      "country_code": "CH",
+      "location_pending": 615,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 875
+    },
+    {
+      "min50": 0,
+      "cities": 95,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "5f7093ee1ab25a3622c914920c2d1211",
+      "country_code": "CI",
+      "location_pending": 95,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 300,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "bca29973501b4a6600257e91a5d23402",
+      "country_code": "CL",
+      "location_pending": 300,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 139,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "8a45d7ef169511fd6d79b1da80ae1ee9",
+      "country_code": "CM",
+      "location_pending": 139,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 4133,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "d74ad4cc0b983f91f135131083b45bbe",
+      "country_code": "CN",
+      "location_pending": 4133,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 137,
+      "cities": 1122,
+      "min100": 75,
+      "min200": 50,
+      "partial": 907,
+      "fingerprint": "f59a8b748f1cd9860718c06ab71d4e61",
+      "country_code": "CO",
+      "location_pending": 78,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 883
+    },
+    {
+      "min50": 0,
+      "cities": 159,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "cabcf346fb8d6834238e74294cd04949",
+      "country_code": "CR",
+      "location_pending": 159,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 187,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "a16f713b1a8a3c75ea85a074fa0bbbdf",
+      "country_code": "CU",
+      "location_pending": 187,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 28,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "00b2b0532e73681cfbfe702b3662ab93",
+      "country_code": "CV",
+      "location_pending": 28,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 95,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "7ee39242720dfd660ce842a93fc2fa51",
+      "country_code": "CY",
+      "location_pending": 95,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 70,
+      "cities": 1355,
+      "min100": 29,
+      "min200": 9,
+      "partial": 985,
+      "fingerprint": "067f749c4e2070ca6d35bda850637242",
+      "country_code": "CZ",
+      "location_pending": 300,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 969
+    },
+    {
+      "min50": 1270,
+      "cities": 7104,
+      "min100": 555,
+      "min200": 183,
+      "partial": 4779,
+      "fingerprint": "bc7983e85d736983d168e323fe491806",
+      "country_code": "DE",
+      "location_pending": 1055,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 5378
+    },
+    {
+      "min50": 0,
+      "cities": 12,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "9f2b8d2be611e49783b43161c04dc4de",
+      "country_code": "DJ",
+      "location_pending": 12,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 430,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "848ca8e950c43947618e1e001d9b1dfa",
+      "country_code": "DK",
+      "location_pending": 430,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 17,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "15f9d19e1e6f92f4b8c62c52011cfe10",
+      "country_code": "DM",
+      "location_pending": 17,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 207,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "bcfb507743ec0174fa4c3a3a27a1f559",
+      "country_code": "DO",
+      "location_pending": 207,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 293,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "aeadf391827aa19d2fafb270ebbe3b88",
+      "country_code": "DZ",
+      "location_pending": 293,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 114,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "a480acccd66f05bc628270370e16e12a",
+      "country_code": "EC",
+      "location_pending": 114,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 162,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "789cb3bd153c755b72a87e2b09860162",
+      "country_code": "EE",
+      "location_pending": 162,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 163,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "badaba2f96dedcaff80edd77e4e8e2c9",
+      "country_code": "EG",
+      "location_pending": 163,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 11,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f9a9d7f37e06c9e47f7979593ddcbba3",
+      "country_code": "ER",
+      "location_pending": 11,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 731,
+      "cities": 8405,
+      "min100": 431,
+      "min200": 214,
+      "partial": 7078,
+      "fingerprint": "ab0d27f91dd8aa37ba2e4d0adb82203a",
+      "country_code": "ES",
+      "location_pending": 596,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 5455
+    },
+    {
+      "min50": 0,
+      "cities": 144,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "2cdb68c624a6e5328b971fc2d8a8b25b",
+      "country_code": "ET",
+      "location_pending": 144,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 437,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f6768196a412fda852707c6428b56049",
+      "country_code": "FI",
+      "location_pending": 437,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 20,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "158eff2719860b4dca95ee0e27bea022",
+      "country_code": "FJ",
+      "location_pending": 20,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 80,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "19019d6ef5bb2687f46cf86b26aab9cc",
+      "country_code": "FM",
+      "location_pending": 80,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 27,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "9d9b2755e5569fe037f0d2a2236862e3",
+      "country_code": "FO",
+      "location_pending": 27,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 1070,
+      "cities": 10534,
+      "min100": 478,
+      "min200": 207,
+      "partial": 9078,
+      "fingerprint": "e3736960c3409e7bd380596254b02a0a",
+      "country_code": "FR",
+      "location_pending": 386,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 9069
+    },
+    {
+      "min50": 0,
+      "cities": 28,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "e62b5c38c76150bbd436fd3da1fb7f9d",
+      "country_code": "GA",
+      "location_pending": 28,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 3879,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "827a0bde9128786d8eca28f98f83b04c",
+      "country_code": "GB",
+      "location_pending": 3879,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 7,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "1da697d966aaa25453c1bf7be86432ab",
+      "country_code": "GD",
+      "location_pending": 7,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 110,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "7c40642dfd4f58372258412c961513a9",
+      "country_code": "GE",
+      "location_pending": 110,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 22,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "403730cddd51576f7339eaf9360dcb9a",
+      "country_code": "GF",
+      "location_pending": 22,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 5,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b63a5cc86fa4ec55be04573d3547738f",
+      "country_code": "GG",
+      "location_pending": 5,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 121,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "cd218d5af42a958991f907a3f6d939c0",
+      "country_code": "GH",
+      "location_pending": 121,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 18,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "186fb24ab9f3ca9277148b4239e83ab0",
+      "country_code": "GL",
+      "location_pending": 18,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 104,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "bc0b00bbee55951cefe63781294a54e4",
+      "country_code": "GM",
+      "location_pending": 104,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 54,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "9dac31347b35cee6e6ce4ec8211e88b2",
+      "country_code": "GN",
+      "location_pending": 54,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 32,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "37cfe09a46f14d595e3222b8f63b0622",
+      "country_code": "GP",
+      "location_pending": 32,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 26,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "e81640ffac74fc2c71ba6f7570ea2cbc",
+      "country_code": "GQ",
+      "location_pending": 26,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 1103,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "2f25bedc5ac1fcb78951c8f0ec3feda4",
+      "country_code": "GR",
+      "location_pending": 1103,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 36,
+      "cities": 382,
+      "min100": 17,
+      "min200": 4,
+      "partial": 266,
+      "fingerprint": "67693d783dd681eb860226adfdf16a29",
+      "country_code": "GT",
+      "location_pending": 80,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 272
+    },
+    {
+      "min50": 0,
+      "cities": 25,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "422f5ebfa0ff9addb483eb876605624b",
+      "country_code": "GU",
+      "location_pending": 25,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 15,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "4f7eee1de9f51d63acd0c6fdf6464e22",
+      "country_code": "GW",
+      "location_pending": 15,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 14,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "7cb0f9e82b2762eaaefc99342dddbe38",
+      "country_code": "GY",
+      "location_pending": 14,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 27,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "4f9d577240991e2fd0676cb005a3b607",
+      "country_code": "HK",
+      "location_pending": 27,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 545,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "9788c56ca1cba593e144b9cb58b72190",
+      "country_code": "HN",
+      "location_pending": 545,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 29,
+      "cities": 663,
+      "min100": 14,
+      "min200": 5,
+      "partial": 461,
+      "fingerprint": "f1f6aa90c500c48d3f34e12ee51eae3d",
+      "country_code": "HR",
+      "location_pending": 173,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 404
+    },
+    {
+      "min50": 0,
+      "cities": 124,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "c1a40c7536f4998339799469ed14a299",
+      "country_code": "HT",
+      "location_pending": 124,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 68,
+      "cities": 1074,
+      "min100": 33,
+      "min200": 12,
+      "partial": 805,
+      "fingerprint": "644a0254344cc84786cb409846ee0914",
+      "country_code": "HU",
+      "location_pending": 201,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 779
+    },
+    {
+      "min50": 0,
+      "cities": 799,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b65be9f0c3c24542faeb8dcb25abf2d6",
+      "country_code": "ID",
+      "location_pending": 799,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 370,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "0cf74001fc97f9ee8ba71853bcf4c8ff",
+      "country_code": "IE",
+      "location_pending": 370,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 150,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "6038066f48d38040e83e6d7bd8571bcd",
+      "country_code": "IL",
+      "location_pending": 150,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 16,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "09f5e72352db48a6a70be6648a512f4f",
+      "country_code": "IM",
+      "location_pending": 16,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 4198,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b667c65608d4edeffbba68d26f108abc",
+      "country_code": "IN",
+      "location_pending": 4198,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 135,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "665222f71caee9671f8e4a033a21dded",
+      "country_code": "IQ",
+      "location_pending": 135,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 1847,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "2f5aa5299a29ffcf2d7408b1a2b96163",
+      "country_code": "IR",
+      "location_pending": 1847,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 73,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b597a116abf9b5c5ff49f3354b05b3ea",
+      "country_code": "IS",
+      "location_pending": 73,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 1350,
+      "cities": 9852,
+      "min100": 619,
+      "min200": 258,
+      "partial": 6028,
+      "fingerprint": "7168c8347b2a6efff043a69d29b56f11",
+      "country_code": "IT",
+      "location_pending": 2474,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 7170
+    },
+    {
+      "min50": 0,
+      "cities": 51,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "d845ad13dfd15bfc2105f1eb8765d2bd",
+      "country_code": "JE",
+      "location_pending": 51,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 837,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "586489d9ddbde85a676cb4df2886dc26",
+      "country_code": "JM",
+      "location_pending": 837,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 82,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "2e66c2ab4910812725c817db530e27cd",
+      "country_code": "JO",
+      "location_pending": 82,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 1655,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "aaa26644dce1dae465585449cfbbed80",
+      "country_code": "JP",
+      "location_pending": 1655,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 145,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "6105a9f89116089c95ed031c9db1258c",
+      "country_code": "KE",
+      "location_pending": 145,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 53,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "e54d6e026ae60f873ad596ad9f14aba7",
+      "country_code": "KG",
+      "location_pending": 53,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 107,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "7c80253139d88b62633adc86fa026e67",
+      "country_code": "KH",
+      "location_pending": 107,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 37,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "0638b792d1c87c47a1b601a63e535bc3",
+      "country_code": "KI",
+      "location_pending": 37,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 88,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "40e4cbc7f302854dc94e2dc6d4a299d1",
+      "country_code": "KM",
+      "location_pending": 88,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 13,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "181747995d78f2f4d81557c5188331d1",
+      "country_code": "KN",
+      "location_pending": 13,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 80,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f56ebee4e1ec8d35f99af56a3531cc7f",
+      "country_code": "KP",
+      "location_pending": 80,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 308,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "17d3f1cb557a39a1a412eb349b2c0427",
+      "country_code": "KR",
+      "location_pending": 308,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 25,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "621ad2f6f0d65acf798e5c7edbc4a40d",
+      "country_code": "KW",
+      "location_pending": 25,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 7,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "255f6c7483fb2984255a63b902743afb",
+      "country_code": "KY",
+      "location_pending": 7,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 259,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "46ef0568915abd666187e37297205e1b",
+      "country_code": "KZ",
+      "location_pending": 259,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 76,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "84dabd464e873c9b0de9c7040ac504c0",
+      "country_code": "LA",
+      "location_pending": 76,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 26,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "806435615921838a33f91389f65c4b60",
+      "country_code": "LB",
+      "location_pending": 26,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 479,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "dbfbba6e8bb46c22c73961f584a1195b",
+      "country_code": "LC",
+      "location_pending": 479,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 11,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b1a060235f658a2304a313861869bf30",
+      "country_code": "LI",
+      "location_pending": 11,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 147,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "6deeb18bcea6212da60713dc549b568f",
+      "country_code": "LK",
+      "location_pending": 147,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 18,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "70850f76bb68bcb3a7030bbef8f31a69",
+      "country_code": "LR",
+      "location_pending": 18,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 12,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b89fe6516dc2c165d97d61ffcbfaad0f",
+      "country_code": "LS",
+      "location_pending": 12,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 128,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "e13865672c3cac4b519b7c897aa74456",
+      "country_code": "LT",
+      "location_pending": 128,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 144,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "941d5832f8b5ec97cdac452ef531d8e0",
+      "country_code": "LU",
+      "location_pending": 144,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 125,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "6fe6d5833a4aebb74b2ac2619e0ba7fa",
+      "country_code": "LV",
+      "location_pending": 125,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 54,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "dfd6673473303dfce05e77fc0c5a5c41",
+      "country_code": "LY",
+      "location_pending": 54,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 222,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "13888bde1c54f69e58ad95139b3bdb45",
+      "country_code": "MA",
+      "location_pending": 222,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 17,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "73b6aa442447fe5c5a1caf0a8b935f00",
+      "country_code": "MC",
+      "location_pending": 17,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 72,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "2d55f6ecbd6d31dfed1aca84d2b0140f",
+      "country_code": "MD",
+      "location_pending": 72,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 40,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "0df786fa4d6224865c94b067ee6f491b",
+      "country_code": "ME",
+      "location_pending": 40,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 1,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "1ee4d1a995d975aff9fa4b53f573c6bb",
+      "country_code": "MF",
+      "location_pending": 1,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 9,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "7e1e707601b96211841250bae960b57c",
+      "country_code": "MG",
+      "location_pending": 9,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 26,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "31f1a88ad6c7ff329c4e33fa10e6e647",
+      "country_code": "MH",
+      "location_pending": 26,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 194,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "db777141a5ab265ab997f38c3b22256d",
+      "country_code": "MK",
+      "location_pending": 194,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 47,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f09a9c83908152b418b9e7411b0ba14b",
+      "country_code": "ML",
+      "location_pending": 47,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 74,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "aa63250379eea039193995d5c4c64949",
+      "country_code": "MM",
+      "location_pending": 74,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 40,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f2826161763f25560d282511a49f6ce9",
+      "country_code": "MN",
+      "location_pending": 40,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 34,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b07e137ee65f29cae1f25c1175860f5f",
+      "country_code": "MQ",
+      "location_pending": 34,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 42,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "9288b006f1cb466494c259714503ec46",
+      "country_code": "MR",
+      "location_pending": 42,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 87,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "024358c4a0eba7346407f2aa3db05dcc",
+      "country_code": "MT",
+      "location_pending": 87,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 168,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "cf2b9f59e235e5faef4607fd7975127f",
+      "country_code": "MU",
+      "location_pending": 168,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 21,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "cdf16c1ba526950a3c68126ca148e822",
+      "country_code": "MV",
+      "location_pending": 21,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 61,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "3352218dc043e7a2296048239508f084",
+      "country_code": "MW",
+      "location_pending": 61,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 561,
+      "cities": 9321,
+      "min100": 363,
+      "min200": 230,
+      "partial": 1368,
+      "fingerprint": "ed5431f11de3d93315ff5b470d3eeec8",
+      "country_code": "MX",
+      "location_pending": 7392,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 1695
+    },
+    {
+      "min50": 0,
+      "cities": 223,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "c4d1ba57461e1a6f0c4354aeceb953ec",
+      "country_code": "MY",
+      "location_pending": 223,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 38,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "0ab4cb4869d8c1bdbf64159cb9206462",
+      "country_code": "MZ",
+      "location_pending": 38,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 48,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "5e939129abd96619c400c4f8b9d94f63",
+      "country_code": "NA",
+      "location_pending": 48,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 10,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "e85a1ca847fd3ff928070d4542a01fca",
+      "country_code": "NC",
+      "location_pending": 10,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 71,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "cc14bf317fe59350e2018ebdff4ca911",
+      "country_code": "NE",
+      "location_pending": 71,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 491,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "693cd15c1424dd01b34e6e329bc48591",
+      "country_code": "NG",
+      "location_pending": 491,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 155,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "46b037630791984548b7d0a644cee693",
+      "country_code": "NI",
+      "location_pending": 155,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 262,
+      "cities": 1644,
+      "min100": 134,
+      "min200": 54,
+      "partial": 817,
+      "fingerprint": "442e23ad550cb19353cc2b90f9431e91",
+      "country_code": "NL",
+      "location_pending": 565,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 1066
+    },
+    {
+      "min50": 0,
+      "cities": 666,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "c306ca680636d0dec4193cb140f09cae",
+      "country_code": "NO",
+      "location_pending": 666,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 77,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "74ba220ed896844da89fff7d59e8be8f",
+      "country_code": "NP",
+      "location_pending": 77,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 7,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "2e9ad0ffe9653b9a7e0a664283df2730",
+      "country_code": "NR",
+      "location_pending": 7,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 160,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "fd7caceea2bbb97ac8f8697068d01f22",
+      "country_code": "NZ",
+      "location_pending": 160,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 28,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "5ed0a69ad2e8de2f52c8be60d20b1195",
+      "country_code": "OM",
+      "location_pending": 28,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 551,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "4341e5d7e1c4b5677313e25bd3b78c70",
+      "country_code": "PA",
+      "location_pending": 551,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 485,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "c48fe42738db241524aafa1c7f9e3b39",
+      "country_code": "PE",
+      "location_pending": 485,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 48,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "7f0bc7a3e4b3455a5ab6c5d71fa2c95d",
+      "country_code": "PF",
+      "location_pending": 48,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 100,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "d12ef4da5bd397695ac1e18e9e8c8aa7",
+      "country_code": "PG",
+      "location_pending": 100,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 5357,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "5c9bce86b49a0f700466b350ac32047a",
+      "country_code": "PH",
+      "location_pending": 5357,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 456,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "cf8786e0ba1eea4b14f01f41c391ec99",
+      "country_code": "PK",
+      "location_pending": 456,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 256,
+      "cities": 2810,
+      "min100": 112,
+      "min200": 45,
+      "partial": 2184,
+      "fingerprint": "16f62f79505a185ee83bf0c066376387",
+      "country_code": "PL",
+      "location_pending": 370,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 1862
+    },
+    {
+      "min50": 0,
+      "cities": 2,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f1a586b892946209e954bfd543ab23ca",
+      "country_code": "PM",
+      "location_pending": 2,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 78,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "d8e9d5655e1d9991cc0a7721729b49e6",
+      "country_code": "PR",
+      "location_pending": 78,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 132,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "8ebe4e9d0c3f0ea8b8ad3731d3b2ed88",
+      "country_code": "PS",
+      "location_pending": 132,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 1296,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "14a3728b6dac3dc92cad81d2d26f8f62",
+      "country_code": "PT",
+      "location_pending": 1296,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 15,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "bb4a15143b238cca0262dbaacd667393",
+      "country_code": "PW",
+      "location_pending": 15,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 152,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "12e257f97938ccd9842ed0fb3d15ae99",
+      "country_code": "PY",
+      "location_pending": 152,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 15,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "faf034ea9ef0cf1db0e916492792076b",
+      "country_code": "QA",
+      "location_pending": 15,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 24,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "7f201e05f5608c3763b4dae486865209",
+      "country_code": "RE",
+      "location_pending": 24,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 84,
+      "cities": 7949,
+      "min100": 43,
+      "min200": 29,
+      "partial": 2889,
+      "fingerprint": "85e5d2f7692ededd8ae4383fc887a695",
+      "country_code": "RO",
+      "location_pending": 4976,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 1686
+    },
+    {
+      "min50": 0,
+      "cities": 379,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "d81ee853d4edfe28da592db5b1fdf046",
+      "country_code": "RS",
+      "location_pending": 379,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 5523,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "45083b57e5110d07dde47c448c9f0cee",
+      "country_code": "RU",
+      "location_pending": 5523,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 12,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "10069705d42b48ace1d19ca5472930e0",
+      "country_code": "RW",
+      "location_pending": 12,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 399,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f3b46650adff10929117730e556bf8ad",
+      "country_code": "SA",
+      "location_pending": 399,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 7,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "6e72db68a8f3ba38dcae601662595086",
+      "country_code": "SB",
+      "location_pending": 7,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 9,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "0f36526af798ef25c186181c17b6899c",
+      "country_code": "SC",
+      "location_pending": 9,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 71,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f40e6c72a9a5db6b248009e5614c6713",
+      "country_code": "SD",
+      "location_pending": 71,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 800,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "29741e397667889c1d51243b2992ada4",
+      "country_code": "SE",
+      "location_pending": 800,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 26,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "7f75788cab8ea80040fa73ab2a172567",
+      "country_code": "SG",
+      "location_pending": 26,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 2,
+      "cities": 312,
+      "min100": 1,
+      "min200": 0,
+      "partial": 14,
+      "fingerprint": "f2c89d1192d7b2352fb9ac737d0c9fac",
+      "country_code": "SI",
+      "location_pending": 296,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 13
+    },
+    {
+      "min50": 95,
+      "cities": 233,
+      "min100": 56,
+      "min200": 22,
+      "partial": 126,
+      "fingerprint": "6bb27f929c523bcc3263e87fe42c786c",
+      "country_code": "SK",
+      "location_pending": 12,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 217
+    },
+    {
+      "min50": 0,
+      "cities": 91,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "97079cb9d4070180370b63d9efa321ae",
+      "country_code": "SL",
+      "location_pending": 91,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 9,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "49db6eb418fdd8cb2fed06c9d3578405",
+      "country_code": "SM",
+      "location_pending": 9,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 73,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "83e0f9a0228d5966d8afb23b9a91ef23",
+      "country_code": "SN",
+      "location_pending": 73,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 51,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "eacb9574d45293dacc0eb52ce57a911a",
+      "country_code": "SO",
+      "location_pending": 51,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 13,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "3c5c466d8b3e9330ce3a3a8d39418fd3",
+      "country_code": "SR",
+      "location_pending": 13,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 1,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "e308cad4d4b5da0c48e28c8168bd1f92",
+      "country_code": "SS",
+      "location_pending": 1,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 7,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "0b8b121f985dfbddc30119ac93b48ba9",
+      "country_code": "ST",
+      "location_pending": 7,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 100,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "512e5acb6af5496ef95d5d04dc31982b",
+      "country_code": "SV",
+      "location_pending": 100,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 142,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "6c77b62aea4237f5daa4ad55bba5c634",
+      "country_code": "SY",
+      "location_pending": 142,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 34,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "e17dd09b96a159b286bc8482087de4e3",
+      "country_code": "SZ",
+      "location_pending": 34,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 49,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "5e324eb9160fdffa744530e3a585445f",
+      "country_code": "TD",
+      "location_pending": 49,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 5,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "d11e79f187cbea2ed9b91b537103d646",
+      "country_code": "TF",
+      "location_pending": 5,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 22,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "2ece016a86dee6afe49a3fdb2549d94d",
+      "country_code": "TG",
+      "location_pending": 22,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 1241,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "178f231ba1d6f2b14e150c1a4c0b51aa",
+      "country_code": "TH",
+      "location_pending": 1241,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 71,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "6ac8562be03e21690d8699498acfa7cb",
+      "country_code": "TJ",
+      "location_pending": 71,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 55,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "0bc4a0a1160f019b8ce4f1daaa689621",
+      "country_code": "TL",
+      "location_pending": 55,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 30,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "547c544bfd94e9f960238829ad333c24",
+      "country_code": "TM",
+      "location_pending": 30,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 165,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f738a86ca6d6b777929693bb2117f5d1",
+      "country_code": "TN",
+      "location_pending": 165,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 8,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "a4fa32c6c5375945a5b1e44bf308818b",
+      "country_code": "TO",
+      "location_pending": 8,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 980,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "7f6e567655c49095118604743078407c",
+      "country_code": "TR",
+      "location_pending": 980,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 25,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "5061aaa7c43cb842e7c2492db0b7ebbc",
+      "country_code": "TT",
+      "location_pending": 25,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 9,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "3afb3cdb8f7f4b173f08bffa8c442d27",
+      "country_code": "TV",
+      "location_pending": 9,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 40,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b85d127cc128700cf0b96a90632ff419",
+      "country_code": "TW",
+      "location_pending": 40,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 303,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b69164472ff5f9184a860da6f0f64df0",
+      "country_code": "TZ",
+      "location_pending": 303,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 1819,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "a1bef9445725a20ed955b357b0a3f6dd",
+      "country_code": "UA",
+      "location_pending": 1819,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 91,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "725480e7367823558c477fc6efffc613",
+      "country_code": "UG",
+      "location_pending": 91,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 4336,
+      "cities": 16731,
+      "min100": 2473,
+      "min200": 1219,
+      "partial": 10518,
+      "fingerprint": "0900f7041b5b411986ec4cec9f7b233d",
+      "country_code": "US",
+      "location_pending": 1877,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 14244
+    },
+    {
+      "min50": 0,
+      "cities": 2010,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "799031aa1b16f3d79517aab3d4d2a412",
+      "country_code": "UY",
+      "location_pending": 2010,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 135,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "a94094dc1ab2350251031f88c59fcb46",
+      "country_code": "UZ",
+      "location_pending": 135,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 9,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "6ec61a6f91cd061e5a5ce2190eb38c6f",
+      "country_code": "VC",
+      "location_pending": 9,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 136,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "f9859830c905b613d3480a18189d7601",
+      "country_code": "VE",
+      "location_pending": 136,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 20,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "1ebdc120dc3830206417e1df56253d56",
+      "country_code": "VI",
+      "location_pending": 20,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 488,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "cdaf251d237b62b2e79001457acbdbad",
+      "country_code": "VN",
+      "location_pending": 488,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 7,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "13ddf1d08de3cb0baee147cc3f036c23",
+      "country_code": "VU",
+      "location_pending": 7,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 3,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "8d7eda19e41047a2707fc3a79f9a0d7c",
+      "country_code": "WF",
+      "location_pending": 3,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 20,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "de83edc5db7023a1399de35ce74d00fc",
+      "country_code": "WS",
+      "location_pending": 20,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 59,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "a7ae607fdb1507716c7b305e221fe058",
+      "country_code": "XK",
+      "location_pending": 59,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 339,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "8de5c3f1978b151b6b707af9692c4021",
+      "country_code": "YE",
+      "location_pending": 339,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 57,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "1be8a6ec814c3081ac5f1632162990f0",
+      "country_code": "YT",
+      "location_pending": 57,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 314,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "fb20211b7b2f93a626d7a2ea9d17e206",
+      "country_code": "ZA",
+      "location_pending": 314,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 71,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "b7075786208f13402aeef65b2fd044ae",
+      "country_code": "ZM",
+      "location_pending": 71,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    },
+    {
+      "min50": 0,
+      "cities": 109,
+      "min100": 0,
+      "min200": 0,
+      "partial": 0,
+      "fingerprint": "bc53a38b75e3dcda408f7266efc59f9f",
+      "country_code": "ZW",
+      "location_pending": 109,
+      "temporary_failure": 0,
+      "cities_with_confirmed_records": 0
+    }
+  ],
+  "activeAssetIdentities": [
+    {
+      "id": "country-at-min50-20261027",
+      "sha256": "b4c411909f859642cb79326510d1e8bd38fb80de33f500bb97b1d659b49cfdd6",
+      "records": 45994,
+      "countries": [
+        "AT"
+      ],
+      "bytes": 5877031
+    },
+    {
+      "id": "country-be-min50-20261026",
+      "sha256": "407388d62191ce57ec26bc079d9e8aef5eeb74db3609b9117ef277f8053a0b99",
+      "records": 74791,
+      "countries": [
+        "BE"
+      ],
+      "bytes": 9038493
+    },
+    {
+      "id": "country-ch-min50-20261027",
+      "sha256": "c816da0d3d6c11046b5ba14acad353cc8cbbfa0824f103be1c80f607e9bb3619",
+      "records": 51999,
+      "countries": [
+        "CH"
+      ],
+      "bytes": 6482139
+    },
+    {
+      "id": "country-cz-min50-20261027",
+      "sha256": "b459fc40571580ff562d8508b880a8fd7c0914602e6a5524a0c42c6f4fe453d3",
+      "records": 30814,
+      "countries": [
+        "CZ"
+      ],
+      "bytes": 3649958
+    },
+    {
+      "id": "country-de-min50-20261026",
+      "sha256": "41f38d76d61a0d247ed43199f7305907e4ef68c86a00f28c0fd763cc9776666e",
+      "records": 410562,
+      "countries": [
+        "DE"
+      ],
+      "bytes": 55066464
+    },
+    {
+      "id": "country-es-min50-20261026",
+      "sha256": "2d56496b09047f20576719a02f8031b22917bdc4ff06c02d51477ba38c3e82ea",
+      "records": 266194,
+      "countries": [
+        "ES"
+      ],
+      "bytes": 33390279
+    },
+    {
+      "id": "country-fr-min50-20261026",
+      "sha256": "95a5aad8e2544e1f9cce1da4a5a3399c3559532702649ef5ba5f9e9e20296eb9",
+      "records": 344426,
+      "countries": [
+        "FR"
+      ],
+      "bytes": 45156071
+    },
+    {
+      "id": "country-hr-min50-20261027",
+      "sha256": "4fa75d34e74d8dc8fcbb9c1d90a1c292baf074b366d53eab04fbb180386ff739",
+      "records": 12833,
+      "countries": [
+        "HR"
+      ],
+      "bytes": 1343433
+    },
+    {
+      "id": "country-hu-min50-20261027",
+      "sha256": "707d8ec3dc85a310cda321f504a8c7c0bd9d47123c50500d08b8454437b25257",
+      "records": 24460,
+      "countries": [
+        "HU"
+      ],
+      "bytes": 2772779
+    },
+    {
+      "id": "country-it-min50-20261026",
+      "sha256": "9e7c74f1677146d197b9ae9344fa89d0d6403982566c7627a98cc477ad05f914",
+      "records": 373800,
+      "countries": [
+        "IT"
+      ],
+      "bytes": 48819564
+    },
+    {
+      "id": "country-nl-min50-20261026-v2",
+      "sha256": "af775ca81dbea572b905641c643a037e3b1f1a498028b4742e70c75f5267130f",
+      "records": 83151,
+      "countries": [
+        "NL"
+      ],
+      "bytes": 10679902
+    },
+    {
+      "id": "country-pl-min50-20261027",
+      "sha256": "6df4fe2f42c8397cb542078b817b56cff4aea125cb77b710819881870ab53202",
+      "records": 74624,
+      "countries": [
+        "PL"
+      ],
+      "bytes": 8950832
+    },
+    {
+      "id": "country-ro-min50-20261026",
+      "sha256": "7e8a1f477e37b6ae416d647a3a750c2b1d927d26a99bd351315f5768af28dfee",
+      "records": 28290,
+      "countries": [
+        "RO"
+      ],
+      "bytes": 3135540
+    },
+    {
+      "id": "country-si-min50-20261027",
+      "sha256": "4b02f00402317b1f98449da6928ea79ea39a6aa327ebee326b79c44b935773e2",
+      "records": 4659,
+      "countries": [
+        "SI"
+      ],
+      "bytes": 500806
+    },
+    {
+      "id": "country-sk-min50-20261027",
+      "sha256": "361109d96a28474e5d833a006c8a9aba2a769c9f2a4fd5985e5072a1e6db4358",
+      "records": 11655,
+      "countries": [
+        "SK"
+      ],
+      "bytes": 1304475
+    },
+    {
+      "id": "serving-v2-BR-0000-43b105a69484a80a",
+      "sha256": "43b105a69484a80a1a4e12d7b1b5ca6af085391ca7ee5a0bc9d908a293a26015",
+      "records": 14216,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1592403
+    },
+    {
+      "id": "serving-v2-BR-0001-378820bcfe186857",
+      "sha256": "378820bcfe1868577cccab51d3ae8f7438a3d633d3111aea67f60fbbd22a0f35",
+      "records": 14230,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1600408
+    },
+    {
+      "id": "serving-v2-BR-0002-c31ec4b7fcb9ad98",
+      "sha256": "c31ec4b7fcb9ad98e93182739c796ae92bf8a2e38ab7a06d63be392dd7bccaf6",
+      "records": 14222,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1621189
+    },
+    {
+      "id": "serving-v2-BR-0003-37c83a03b18d1388",
+      "sha256": "37c83a03b18d1388af3cf2d29521583e0fc80424b1e53593a86a79737375c6bf",
+      "records": 14224,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1631611
+    },
+    {
+      "id": "serving-v2-BR-0004-3b8c0252e3b30719",
+      "sha256": "3b8c0252e3b30719b874438a0b5823a0eeafe58c5216eeec7fa911d5feaf6a38",
+      "records": 14222,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1635258
+    },
+    {
+      "id": "serving-v2-BR-0005-395ff7494783e2fe",
+      "sha256": "395ff7494783e2feb4dc34403684f0334f2be81d2cf4b8091445b971de190ea3",
+      "records": 14227,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1626084
+    },
+    {
+      "id": "serving-v2-BR-0006-55ac1f72abfbc1c4",
+      "sha256": "55ac1f72abfbc1c420da4738ac36173a07e7384ec1de863b9de46a2f2636ad3f",
+      "records": 14224,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1604619
+    },
+    {
+      "id": "serving-v2-BR-0007-1b030a5821fff48b",
+      "sha256": "1b030a5821fff48b965d2e2b846307cc12d4f7c9554244e14d298a77633c0dd4",
+      "records": 14226,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1625607
+    },
+    {
+      "id": "serving-v2-BR-0008-84a1f5b5f1ada9f5",
+      "sha256": "84a1f5b5f1ada9f52d52447113ef36c986bda63ff76b6d4bbb68bba4f9ba9b67",
+      "records": 14200,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1635141
+    },
+    {
+      "id": "serving-v2-BR-0009-bc8df482ff7b837e",
+      "sha256": "bc8df482ff7b837ea293e96dd5925fedfec8ccc6195c713c0f7bf7a048d25efa",
+      "records": 14220,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1657565
+    },
+    {
+      "id": "serving-v2-BR-0010-1c94a49db08fcbb1",
+      "sha256": "1c94a49db08fcbb135c1bab392ffae8a3fb407870271f1ac61a303cfddf923e4",
+      "records": 14211,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1651440
+    },
+    {
+      "id": "serving-v2-BR-0011-7c853dffe4aca268",
+      "sha256": "7c853dffe4aca26810a70de2293e2b6f79205db0c27399a6903f2ab5cc15e170",
+      "records": 14216,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1636325
+    },
+    {
+      "id": "serving-v2-BR-0012-f4ff0c457cc4493e",
+      "sha256": "f4ff0c457cc4493e434c0c6a605c4ae966fa3c91d3aaec51d75700b759864c6c",
+      "records": 14219,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1624818
+    },
+    {
+      "id": "serving-v2-BR-0013-7fd32138b8b127eb",
+      "sha256": "7fd32138b8b127ebbbd15f7060df360e89715b8bec0976e70864d508c9d86cdd",
+      "records": 14254,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1661120
+    },
+    {
+      "id": "serving-v2-BR-0014-76d7a79d0b0d63ba",
+      "sha256": "76d7a79d0b0d63ba76f6cfd7e350eba596db8b371d1a918526a8a6b9ea08fecc",
+      "records": 14226,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1650483
+    },
+    {
+      "id": "serving-v2-BR-0015-2fcc776c04d4c383",
+      "sha256": "2fcc776c04d4c383d372a74e52086d26801847d9b74483b41276829d7d7c3809",
+      "records": 14247,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1659484
+    },
+    {
+      "id": "serving-v2-BR-0016-ca5bf1bd7b6ddcff",
+      "sha256": "ca5bf1bd7b6ddcff233e51be3a9ee548ddd4778d89e7438d1a1578c438644dc3",
+      "records": 14222,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1630701
+    },
+    {
+      "id": "serving-v2-BR-0017-1e5454473176218d",
+      "sha256": "1e5454473176218d13bcaef20d28be147d1cc8e7bfcd9a208baea226e198d73c",
+      "records": 14225,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1633179
+    },
+    {
+      "id": "serving-v2-BR-0018-d9c80d086ed4bd67",
+      "sha256": "d9c80d086ed4bd6794a75b89fa88665a4f018090710322ea5c0f768e9bee4468",
+      "records": 14226,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1627801
+    },
+    {
+      "id": "serving-v2-BR-0019-4237ed4c4cf9f7d0",
+      "sha256": "4237ed4c4cf9f7d006ebd594c40262134cab3db99a5627055692a8f9349bb038",
+      "records": 14229,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1634287
+    },
+    {
+      "id": "serving-v2-BR-0020-5b861285d07819e8",
+      "sha256": "5b861285d07819e856d6f5a8d8c963aeb763e6a732417d4188e2d1f92099849d",
+      "records": 14224,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1637394
+    },
+    {
+      "id": "serving-v2-BR-0021-117482ae0a7ff635",
+      "sha256": "117482ae0a7ff6356fcc1474e53c9c4f12930bfa3f30141863555466cdfe62ba",
+      "records": 14228,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1655863
+    },
+    {
+      "id": "serving-v2-BR-0022-911793cfc0cc20cf",
+      "sha256": "911793cfc0cc20cf13c041bf493f72518fc4b8e0eb322a64b7316ec4761431e1",
+      "records": 14221,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1684366
+    },
+    {
+      "id": "serving-v2-BR-0023-9d5b532d7a49a653",
+      "sha256": "9d5b532d7a49a65331ac873a9bf3658f3adbdf981eff64e7e7bec1cc80b2c3fb",
+      "records": 14231,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1686189
+    },
+    {
+      "id": "serving-v2-BR-0024-ec01a48269ef5d80",
+      "sha256": "ec01a48269ef5d8078e153c7445cdb38efd6292a11a3756a70da25e1d09984bf",
+      "records": 14224,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1622253
+    },
+    {
+      "id": "serving-v2-BR-0025-40fffcbc197b4240",
+      "sha256": "40fffcbc197b42400ffe50ac33a072507f5fa2000c5a4e62ba7ef1d5ad717a3a",
+      "records": 14224,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1650498
+    },
+    {
+      "id": "serving-v2-BR-0026-ab71f5d239291bfa",
+      "sha256": "ab71f5d239291bfaf38498ca1fe631fc054eec57d3abe4cd85ce568c7089adda",
+      "records": 14214,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1647873
+    },
+    {
+      "id": "serving-v2-BR-0027-88ec4145abfe5f06",
+      "sha256": "88ec4145abfe5f06649fd3ca4958a761fb8ded7c02bb6c995591abea53f827e8",
+      "records": 14241,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1648720
+    },
+    {
+      "id": "serving-v2-BR-0028-701d125ba5e78f69",
+      "sha256": "701d125ba5e78f696e08c84d197d59aa907cfa2eac39ed460c7d07a045ae9d6a",
+      "records": 14213,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1672220
+    },
+    {
+      "id": "serving-v2-BR-0029-48372aca708336ca",
+      "sha256": "48372aca708336ca3604816e1911f34041d3f81a19a9a12d28dcd45b33f6cce4",
+      "records": 14213,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1626817
+    },
+    {
+      "id": "serving-v2-BR-0030-0cafa1255586d186",
+      "sha256": "0cafa1255586d1869ba8345d089f49d9f44fad10fb2890fb5aa5421ba5368d2d",
+      "records": 14224,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1632584
+    },
+    {
+      "id": "serving-v2-BR-0031-c012cb1cd6099042",
+      "sha256": "c012cb1cd609904206cdfd390c5303a4ccd1af6fb0bab40b8448b94a4c3c405f",
+      "records": 14254,
+      "countries": [
+        "BR"
+      ],
+      "bytes": 1620094
+    },
+    {
+      "id": "serving-v2-CA-0000-baa6a58ff58f180c",
+      "sha256": "baa6a58ff58f180c5ff693418c2fd982d8cab6f98a63c27da65da7766080527d",
+      "records": 12777,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1583464
+    },
+    {
+      "id": "serving-v2-CA-0001-1f7646cc49f94995",
+      "sha256": "1f7646cc49f949955228945b951b03008ebf2f0540abc1c7b5f8bf4321353ba9",
+      "records": 12778,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1592758
+    },
+    {
+      "id": "serving-v2-CA-0002-244a86bcf7174db5",
+      "sha256": "244a86bcf7174db58a8d06cee37ba71c1378a375d1c6ffc4fda7f772e12c0d8b",
+      "records": 12753,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1550644
+    },
+    {
+      "id": "serving-v2-CA-0003-d3c7dd2b852d5ec6",
+      "sha256": "d3c7dd2b852d5ec6204b116da87d6438cc8b80f6480a8bb109968d56f80f4ef2",
+      "records": 12802,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1646921
+    },
+    {
+      "id": "serving-v2-CA-0004-ed061cd23a1e08e6",
+      "sha256": "ed061cd23a1e08e6933e2429a49a8facbe3c9849477c83080e13b17471e8c6e7",
+      "records": 12744,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1693736
+    },
+    {
+      "id": "serving-v2-CA-0005-029fdd70f487cca0",
+      "sha256": "029fdd70f487cca04e9d899534da0aa72fdfa589d4a803b6ac3e04c2677065fd",
+      "records": 12813,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1669164
+    },
+    {
+      "id": "serving-v2-CA-0006-0fc13f9e74bed0ce",
+      "sha256": "0fc13f9e74bed0ced8ee11f58fd86945f2371ad29c15e46c76aa02e81c6eacff",
+      "records": 12777,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1665966
+    },
+    {
+      "id": "serving-v2-CA-0007-3f379cde4e3b61a9",
+      "sha256": "3f379cde4e3b61a91b686db38855a582c7d5cf026570c607d1f105db50070743",
+      "records": 12783,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1704148
+    },
+    {
+      "id": "serving-v2-CA-0008-505623a3806c982a",
+      "sha256": "505623a3806c982a630ca2f1a2b0eca0eb4314854744a864f38dc8d9c008607f",
+      "records": 12782,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1664412
+    },
+    {
+      "id": "serving-v2-CA-0009-c30065d34195bc8c",
+      "sha256": "c30065d34195bc8c0afd0a2d4ddd4ad36ca15a9a87ca07299a66c5b9389a6767",
+      "records": 12783,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1698723
+    },
+    {
+      "id": "serving-v2-CA-0010-fed58053ac2c2514",
+      "sha256": "fed58053ac2c2514a1c508a7efbd9b25f950d43e1ea8b02b81b7d8ebc913e41b",
+      "records": 12783,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1675239
+    },
+    {
+      "id": "serving-v2-CA-0011-5cf7662fa6b2ba5a",
+      "sha256": "5cf7662fa6b2ba5a6d8f97dd6e7317d2b7491ca12870729fdbb946217e51d16a",
+      "records": 12783,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1679795
+    },
+    {
+      "id": "serving-v2-CA-0012-f2c1ae6a437fcec4",
+      "sha256": "f2c1ae6a437fcec45d41ef7612e4e0782b582ba625cd020221b52366a91232c1",
+      "records": 12763,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1703636
+    },
+    {
+      "id": "serving-v2-CA-0013-1edcc97d555ed4d2",
+      "sha256": "1edcc97d555ed4d2821de18de6f464d7c9a6db3da04e5cb0d212e57bd5441127",
+      "records": 12768,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1647225
+    },
+    {
+      "id": "serving-v2-CA-0014-a233cc0672dbfd52",
+      "sha256": "a233cc0672dbfd52769aad0aed3ab1e42b999746719977568b2b645bbff00c14",
+      "records": 12789,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1595447
+    },
+    {
+      "id": "serving-v2-CA-0015-5b78e3496dab7abb",
+      "sha256": "5b78e3496dab7abb526bcbc101fb9196b826a1203ac5cbfc527d347920edd353",
+      "records": 12812,
+      "countries": [
+        "CA"
+      ],
+      "bytes": 1637312
+    },
+    {
+      "id": "serving-v2-CO-0000-b55e031325450195",
+      "sha256": "b55e031325450195535b40acb3001c6e109687ce9b294739db957b93816aef60",
+      "records": 15516,
+      "countries": [
+        "CO"
+      ],
+      "bytes": 1725451
+    },
+    {
+      "id": "serving-v2-CO-0001-92cf5cb8fc57c018",
+      "sha256": "92cf5cb8fc57c0181c66a17d3ca511d271199ae9dc72edc4a20c2fbd746ef6b5",
+      "records": 15520,
+      "countries": [
+        "CO"
+      ],
+      "bytes": 1721686
+    },
+    {
+      "id": "serving-v2-CO-0002-8888b0f3e1ac6cc0",
+      "sha256": "8888b0f3e1ac6cc0f7cc60471ac76991bbdd1fff97bf0fe49a45da0d401af907",
+      "records": 15527,
+      "countries": [
+        "CO"
+      ],
+      "bytes": 1742187
+    },
+    {
+      "id": "serving-v2-CO-0003-f99c10a4ce664fe3",
+      "sha256": "f99c10a4ce664fe347c8bbe29062498c86c47b6a5a6aa1936244d0feaef4b8ff",
+      "records": 15535,
+      "countries": [
+        "CO"
+      ],
+      "bytes": 1747586
+    },
+    {
+      "id": "serving-v2-GT-0000-cf7dbed6a4975469",
+      "sha256": "cf7dbed6a49754692a4cf19ee69fee8ddc3e9aecaafe803d1a0c14b9315bd24e",
+      "records": 10136,
+      "countries": [
+        "GT"
+      ],
+      "bytes": 1098378
+    },
+    {
+      "id": "serving-v2-MX-0000-d9735effb3535646",
+      "sha256": "d9735effb353564638888865943ec9632741a8c9f2f25eb0f30bc5ca1970dd9f",
+      "records": 24764,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2734895
+    },
+    {
+      "id": "serving-v2-MX-0001-63cedf6d4caa5145",
+      "sha256": "63cedf6d4caa51457a585facd9e9463eda063df793395a0379a255a569db7fa5",
+      "records": 24769,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2692082
+    },
+    {
+      "id": "serving-v2-MX-0002-ab7fecf563b8ad3a",
+      "sha256": "ab7fecf563b8ad3a346855b0978f149b6c65c1e713c4b9ea67a35915041716cd",
+      "records": 24767,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2674708
+    },
+    {
+      "id": "serving-v2-MX-0003-5d3e51da680b8924",
+      "sha256": "5d3e51da680b89240b8cf66ab2ad29147611f9b023033faa3fae9a52cf802b48",
+      "records": 24772,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2711369
+    },
+    {
+      "id": "serving-v2-MX-0004-c7a8e34688cac835",
+      "sha256": "c7a8e34688cac8358dbd96f4470b6755aac0bac8335f7c79f09a2546249f9da4",
+      "records": 24764,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2728818
+    },
+    {
+      "id": "serving-v2-MX-0005-88fff39729fd572d",
+      "sha256": "88fff39729fd572d151974c7c1229aa5fe039db691d8c87e274a0b73c25f77f0",
+      "records": 24771,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2735830
+    },
+    {
+      "id": "serving-v2-MX-0006-f2cfd9fac6d962ac",
+      "sha256": "f2cfd9fac6d962ac0abe44e8cd53b7c9b99d9b975b3cc8369cdc7a9a78ae744c",
+      "records": 24667,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2695843
+    },
+    {
+      "id": "serving-v2-MX-0007-f3a88926c456d728",
+      "sha256": "f3a88926c456d72898b7e399dac21c2fa2b412f431c9949cc451492b0cb8172c",
+      "records": 24871,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2703860
+    },
+    {
+      "id": "serving-v2-MX-0008-4d00e458d0dd7702",
+      "sha256": "4d00e458d0dd77025ac1541f1a54e886dd09cb81041aa0f5b8f7ff8e3274c656",
+      "records": 49529,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 5541946
+    },
+    {
+      "id": "serving-v2-MX-0009-4722edfffb1be269",
+      "sha256": "4722edfffb1be269dae14ba85a3b6e0c29c715879cd00cd29aae28b5d8123bbe",
+      "records": 24770,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2711341
+    },
+    {
+      "id": "serving-v2-MX-0010-6c638eaa3cb66632",
+      "sha256": "6c638eaa3cb666320a53703e4bd6e70c8836356243c60cfd12456c64b29279e5",
+      "records": 24771,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2734699
+    },
+    {
+      "id": "serving-v2-MX-0011-03f1e5acf3305def",
+      "sha256": "03f1e5acf3305def3630256e1e517273250d579615af14fa54889a109bdbfc16",
+      "records": 24766,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2645174
+    },
+    {
+      "id": "serving-v2-MX-0012-f2af680dcb377359",
+      "sha256": "f2af680dcb377359ebb369b8972eeb5c60abfeb90c40c8109ff90d2e7b258c7d",
+      "records": 24771,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2618469
+    },
+    {
+      "id": "serving-v2-MX-0013-f9f5d94211330540",
+      "sha256": "f9f5d94211330540645728c8fdb29e568686475fe692502729b8a2f5998646f3",
+      "records": 24769,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2690960
+    },
+    {
+      "id": "serving-v2-MX-0014-fd95154b14e6cd7c",
+      "sha256": "fd95154b14e6cd7c53a8183492677903a9c531a47cc27744535e5574ebeffba5",
+      "records": 24769,
+      "countries": [
+        "MX"
+      ],
+      "bytes": 2745412
+    },
+    {
+      "id": "serving-v2-RU-0000-79b424ffd4704cd1",
+      "sha256": "79b424ffd4704cd1490d0e6142ec43e4fe7ed2be2c3a0fafabb36713c5fd19e7",
+      "records": 1,
+      "countries": [
+        "RU"
+      ],
+      "bytes": 7361
+    },
+    {
+      "id": "serving-v2-US-0000-f5c2d9ec326e2d23",
+      "sha256": "f5c2d9ec326e2d23cfafeeeaf15f8c62125e7c4a6ee4428fa8ed75fdb3cf073b",
+      "records": 15627,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2231579
+    },
+    {
+      "id": "serving-v2-US-0001-b0093ebeea7dc152",
+      "sha256": "b0093ebeea7dc15227d9d60c49ee206c2e0bc5bbe4f5666e1afebc1018317a0a",
+      "records": 15631,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2232000
+    },
+    {
+      "id": "serving-v2-US-0002-8fae0c6fd4e9a91f",
+      "sha256": "8fae0c6fd4e9a91f18b53456377b3243fe84aec3ef7316e75c341515a4bf3ae4",
+      "records": 15634,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2208019
+    },
+    {
+      "id": "serving-v2-US-0003-abb6f5218c5cfbbe",
+      "sha256": "abb6f5218c5cfbbe9db3e9b78dc247db536e9cde398ea1e6463337de3dfee7ab",
+      "records": 15635,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2241325
+    },
+    {
+      "id": "serving-v2-US-0004-10133ba013fd6eee",
+      "sha256": "10133ba013fd6eeeea06b62c43c5349110b72351bebb35e449a0e0faaac44bb5",
+      "records": 15632,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2225989
+    },
+    {
+      "id": "serving-v2-US-0005-258e2757311fc9f5",
+      "sha256": "258e2757311fc9f52c65e1da1c9c30e6e631cce74885abf1047dac061eba8ae1",
+      "records": 15632,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2219685
+    },
+    {
+      "id": "serving-v2-US-0006-b4a6d14b343e3b72",
+      "sha256": "b4a6d14b343e3b72af70c395888ae7a437a3e2d292fbbd3e5b095bb011da5f81",
+      "records": 15632,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2258232
+    },
+    {
+      "id": "serving-v2-US-0007-feec94f202446254",
+      "sha256": "feec94f20244625411744a7a63677c51845f2ff8e9e0ac2e8bb261b7e9f1a25f",
+      "records": 15632,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2250475
+    },
+    {
+      "id": "serving-v2-US-0008-2d6405182d5365d4",
+      "sha256": "2d6405182d5365d4c502186350f1edc4eb3cf55d3abeeb6f113ce97f0383ff9c",
+      "records": 15630,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2204616
+    },
+    {
+      "id": "serving-v2-US-0009-e8996533c45d7238",
+      "sha256": "e8996533c45d723835eefd419f54b20bdada2ac0bea1dac8b6a6975719679cfe",
+      "records": 15630,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2230770
+    },
+    {
+      "id": "serving-v2-US-0010-de024cf327178e58",
+      "sha256": "de024cf327178e58e513a82040d179be5cd6e87bab407c92002308e5b26ae909",
+      "records": 31264,
+      "countries": [
+        "US"
+      ],
+      "bytes": 4558117
+    },
+    {
+      "id": "serving-v2-US-0011-15d2e810885e2f6a",
+      "sha256": "15d2e810885e2f6a8b48a78303535aca4df9013628689a6c5c3ace339edfe759",
+      "records": 15629,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2242854
+    },
+    {
+      "id": "serving-v2-US-0012-ab016fc467b4f55c",
+      "sha256": "ab016fc467b4f55c45f1719d984b9dcdb090b80d2ec51b02706eeb5f25cbe7d7",
+      "records": 15638,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2251400
+    },
+    {
+      "id": "serving-v2-US-0013-b3887faa15175e44",
+      "sha256": "b3887faa15175e44c341c2eaf722596acedc1923bd028524100698f282e41cda",
+      "records": 15618,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2242847
+    },
+    {
+      "id": "serving-v2-US-0014-0b7178f034771022",
+      "sha256": "0b7178f0347710227001ea187fe9e3f6c47937da8ae5e805f33189b136762916",
+      "records": 15649,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2213560
+    },
+    {
+      "id": "serving-v2-US-0015-6f496f5d320058f0",
+      "sha256": "6f496f5d320058f0643d097d5883a69d1a1ce1ecde258ef588c54e60ab497913",
+      "records": 15605,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2198596
+    },
+    {
+      "id": "serving-v2-US-0016-2d17da1b8eee3d50",
+      "sha256": "2d17da1b8eee3d503de322602dc49a1d5fca802a1d5843da877a3f298dc589e8",
+      "records": 15646,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2297814
+    },
+    {
+      "id": "serving-v2-US-0017-46c426c6fa752728",
+      "sha256": "46c426c6fa75272815d252cb4f38c33a05b92269afefb88a96e0fcf523cfefcd",
+      "records": 15625,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2319816
+    },
+    {
+      "id": "serving-v2-US-0018-30a46814e4504f72",
+      "sha256": "30a46814e4504f723f9e000173e509ff0120245bbc244db7977f762f3d1bc710",
+      "records": 15655,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2226878
+    },
+    {
+      "id": "serving-v2-US-0019-05ebb59dc473d750",
+      "sha256": "05ebb59dc473d7504010b39e73ce084fa493261eb86795ed26ddca6626a3adc1",
+      "records": 15596,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2314618
+    },
+    {
+      "id": "serving-v2-US-0020-8ff11e5e8a3efe97",
+      "sha256": "8ff11e5e8a3efe978dc81618925feeb0bbc2ef26af65c8fd7cbfe2f27b4a9bc3",
+      "records": 15668,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2302965
+    },
+    {
+      "id": "serving-v2-US-0021-b000174b887c4172",
+      "sha256": "b000174b887c417227fd197cad4ba77ab7931d96e5c29dc5a97d7f4e0a587a26",
+      "records": 15607,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2339811
+    },
+    {
+      "id": "serving-v2-US-0022-1fff217925811638",
+      "sha256": "1fff217925811638d37cc28daf7b211fc5f8762fcb1e907f715629af325aef09",
+      "records": 15660,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2269463
+    },
+    {
+      "id": "serving-v2-US-0023-6a3f4b7e05466ec7",
+      "sha256": "6a3f4b7e05466ec7249077be5700fa4c08917d45afef3b1e3d8b83d32ddf4b25",
+      "records": 15606,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2310554
+    },
+    {
+      "id": "serving-v2-US-0024-eb7c95f15cc8a4b7",
+      "sha256": "eb7c95f15cc8a4b7c50f8d4ed9fccabdc4d4b4e288e5149b22c8eaa9d9a44ee5",
+      "records": 15645,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2331207
+    },
+    {
+      "id": "serving-v2-US-0025-afa5f2269c63e62b",
+      "sha256": "afa5f2269c63e62bc83c1f2241bd7b70921e6210b19dbdf5f78950617ded70e0",
+      "records": 15632,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2331736
+    },
+    {
+      "id": "serving-v2-US-0026-acd0d3b2e048389e",
+      "sha256": "acd0d3b2e048389efb89ad08ec7f8775bfd104eccdceecb607a05593864aa81a",
+      "records": 15642,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2335919
+    },
+    {
+      "id": "serving-v2-US-0027-e3870ea5069c4cee",
+      "sha256": "e3870ea5069c4ceec111b4108597dcb927cffc28fa778394c88f2916b40591bf",
+      "records": 15633,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2347325
+    },
+    {
+      "id": "serving-v2-US-0028-50dd8de76daf3a0b",
+      "sha256": "50dd8de76daf3a0bc880a65661604587c8918c3520645bf98f36b237408fb6df",
+      "records": 15635,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2328833
+    },
+    {
+      "id": "serving-v2-US-0029-757bc4ff9360cf02",
+      "sha256": "757bc4ff9360cf023a77c46350c53f300864580699b58dd5332f9711281702d0",
+      "records": 31269,
+      "countries": [
+        "US"
+      ],
+      "bytes": 4825504
+    },
+    {
+      "id": "serving-v2-US-0030-db2d88087691c330",
+      "sha256": "db2d88087691c330c18b3b87a834e9162751fc871b7d107b5aa20987ddbdd724",
+      "records": 15609,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2348104
+    },
+    {
+      "id": "serving-v2-US-0031-a562f68abfaaa251",
+      "sha256": "a562f68abfaaa2510ddc5c76a72de287b7cd872b82d60a3b9b0abef530540c8b",
+      "records": 15635,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2355150
+    },
+    {
+      "id": "serving-v2-US-0032-7d60c230833c6915",
+      "sha256": "7d60c230833c6915632d67495e4cdbf973bb9c4fe7af9e3f2b2a690fab077340",
+      "records": 15623,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2345015
+    },
+    {
+      "id": "serving-v2-US-0033-fbfd4c803cf4d343",
+      "sha256": "fbfd4c803cf4d343536bc211f8cf8e73df680b8dc8246040605a7d8715d665f6",
+      "records": 15623,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2370314
+    },
+    {
+      "id": "serving-v2-US-0034-95a3d99e3f32f6ac",
+      "sha256": "95a3d99e3f32f6acd4bbf6b27759c1018f6a86deb4512316784aa92dbecd1c6c",
+      "records": 15627,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2374841
+    },
+    {
+      "id": "serving-v2-US-0035-8816ac71966ba3da",
+      "sha256": "8816ac71966ba3dab0d5d615389d410f79778b51b42d611cef220d55d3b47932",
+      "records": 15633,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2310886
+    },
+    {
+      "id": "serving-v2-US-0036-bb9e26b87763b67b",
+      "sha256": "bb9e26b87763b67b0b6d96b4e64b37c78a1eccc170601f56e13a802a8da6c8b7",
+      "records": 31267,
+      "countries": [
+        "US"
+      ],
+      "bytes": 4755376
+    },
+    {
+      "id": "serving-v2-US-0037-e3a163f58071bc1b",
+      "sha256": "e3a163f58071bc1bf0d9659358734bbcd86bee0617b6f1bf30a426c177eef364",
+      "records": 62548,
+      "countries": [
+        "US"
+      ],
+      "bytes": 9689913
+    },
+    {
+      "id": "serving-v2-US-0038-c5be57af55166adb",
+      "sha256": "c5be57af55166adbc85f1df82ba83909589e594a9e1619081fbe86b323d86c2d",
+      "records": 15575,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2376231
+    },
+    {
+      "id": "serving-v2-US-0039-9972d25577ce39a3",
+      "sha256": "9972d25577ce39a3bdef3b04075a14ff2a8c84d9806ef7c0a50a0fdc93cb2c02",
+      "records": 15652,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2366853
+    },
+    {
+      "id": "serving-v2-US-0040-660c9ea141022245",
+      "sha256": "660c9ea141022245b768dce0fee64b74cbb23d5e9af9486c97dcd247452a88be",
+      "records": 15632,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2360984
+    },
+    {
+      "id": "serving-v2-US-0041-047e2ec38e925233",
+      "sha256": "047e2ec38e9252339630dda1ff19994fb79d0f3b5c3e3673df243d76b7ed00ad",
+      "records": 15694,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2344402
+    },
+    {
+      "id": "serving-v2-US-0042-f1c6d39bdf519c66",
+      "sha256": "f1c6d39bdf519c669ef4faa37119bce298536efb5a8eee88934f1dbb995c10e7",
+      "records": 15605,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2364275
+    },
+    {
+      "id": "serving-v2-US-0043-e90865c834ef7fae",
+      "sha256": "e90865c834ef7fae83ddf585ab32e84333a3e74576424f416c854b74d41de7be",
+      "records": 15659,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2320924
+    },
+    {
+      "id": "serving-v2-US-0044-e9845aa590128238",
+      "sha256": "e9845aa590128238207fc0d589723ac7f48d3cbc13fd7f48e4e39ae406bb27e5",
+      "records": 15630,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2354495
+    },
+    {
+      "id": "serving-v2-US-0045-c27024964911c48f",
+      "sha256": "c27024964911c48fbdfa25506af74f4eab898368cd2a118cb2157548c2ea23c3",
+      "records": 15635,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2369632
+    },
+    {
+      "id": "serving-v2-US-0046-73d248e5e6004e63",
+      "sha256": "73d248e5e6004e6340b2c7e2ebd200725d4651c2a29d0fca67986b977fbfa973",
+      "records": 15627,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2342736
+    },
+    {
+      "id": "serving-v2-US-0047-62f9ea26e090026f",
+      "sha256": "62f9ea26e090026fd4ae52a064184ad9a02c521eb3c924f71a113ee4d8d48747",
+      "records": 15638,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2371017
+    },
+    {
+      "id": "serving-v2-US-0048-9c1719465b2d3d91",
+      "sha256": "9c1719465b2d3d91f4087bbaf0be667113e2bfbd9f64c921d966d4f5163785a5",
+      "records": 15632,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2353405
+    },
+    {
+      "id": "serving-v2-US-0049-20c0ad6a3535e960",
+      "sha256": "20c0ad6a3535e9602dd4a7214d5b57faa78fa05c6cfb1bacfa4fdde17445e908",
+      "records": 15633,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2357661
+    },
+    {
+      "id": "serving-v2-US-0050-e78d6a49da3d88fa",
+      "sha256": "e78d6a49da3d88fa21e89f3003106fe8c7c9ae02c4eb139c40cde617e1aff4e2",
+      "records": 15603,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2381227
+    },
+    {
+      "id": "serving-v2-US-0051-050eaa99f6145081",
+      "sha256": "050eaa99f6145081732d88123d729d7d1874272fb5bca060825b641e0e0931e3",
+      "records": 15661,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2349943
+    },
+    {
+      "id": "serving-v2-US-0052-88b8f4dcac9be391",
+      "sha256": "88b8f4dcac9be39121773e7e22ea07169b951085fcf600c25f6f067efa536a20",
+      "records": 15633,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2382850
+    },
+    {
+      "id": "serving-v2-US-0053-9e76096fc097657a",
+      "sha256": "9e76096fc097657ad940580855c5dd7f7d31a85ea3f09c5be26be068f75abf6d",
+      "records": 15633,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2191597
+    },
+    {
+      "id": "serving-v2-US-0054-f4a87430ee090910",
+      "sha256": "f4a87430ee090910e379c092978f6e06074b461f68672c24dea31392a2f1366f",
+      "records": 15632,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2230335
+    },
+    {
+      "id": "serving-v2-US-0055-ae8cfc30d561d6cb",
+      "sha256": "ae8cfc30d561d6cb8972773636de4503e9ed0b1eaa5d7041ee6bcf3e4b3e133b",
+      "records": 15633,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2253303
+    },
+    {
+      "id": "serving-v2-US-0056-786d46ed11151469",
+      "sha256": "786d46ed11151469d3914ed68c0e86ecd3d6838b5d6b664e4bd187acd9f5569a",
+      "records": 15624,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2269498
+    },
+    {
+      "id": "serving-v2-US-0057-e7c3eacdf9febc79",
+      "sha256": "e7c3eacdf9febc79d3259ec46794bb767ac91a9ed25c106804d50522f28eafa2",
+      "records": 15642,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2288296
+    },
+    {
+      "id": "serving-v2-US-0058-9ce010f9d8d493c6",
+      "sha256": "9ce010f9d8d493c6ae1898b70aa07ed1eb615fe33930ee49c315b55f2a1c31f5",
+      "records": 15618,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2249858
+    },
+    {
+      "id": "serving-v2-US-0059-198a050732cb6490",
+      "sha256": "198a050732cb64906c7b0cb8ec67879f6007f9e6927c5d2f7a6b4e23e6006046",
+      "records": 15627,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2245723
+    },
+    {
+      "id": "serving-v2-US-0060-a6150af82e02898a",
+      "sha256": "a6150af82e02898a3676300ac3db145922a8db7426dedc479c59f674d8dea524",
+      "records": 15637,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2246461
+    },
+    {
+      "id": "serving-v2-US-0061-2aa922c95c5dcf0a",
+      "sha256": "2aa922c95c5dcf0a307165779fba6ee7636377390f4633a4591b1d3425afbf0c",
+      "records": 15640,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2261236
+    },
+    {
+      "id": "serving-v2-US-0062-14f8aad5fb0a77f4",
+      "sha256": "14f8aad5fb0a77f4b404cba95b5731f7d18e317e2973133c9445d46838bced37",
+      "records": 31247,
+      "countries": [
+        "US"
+      ],
+      "bytes": 4686456
+    },
+    {
+      "id": "serving-v2-US-0063-0d30f876376fce8c",
+      "sha256": "0d30f876376fce8c4a551c5f993a2d5f313dd44deb4fc39f4db2e22f779688eb",
+      "records": 15635,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2286194
+    },
+    {
+      "id": "serving-v2-US-0064-88fe933795d3d16f",
+      "sha256": "88fe933795d3d16fdfd7c1afd1a218c1010ef7ed6d89463539255cb8b898d804",
+      "records": 15641,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2331188
+    },
+    {
+      "id": "serving-v2-US-0065-24fed8afb660994d",
+      "sha256": "24fed8afb660994d9b2be7d8bd119f59d7d1db1cc322205e40fd236fb3b1f351",
+      "records": 31267,
+      "countries": [
+        "US"
+      ],
+      "bytes": 4592384
+    },
+    {
+      "id": "serving-v2-US-0066-af6fc31406dd60e8",
+      "sha256": "af6fc31406dd60e8fd2a68f066cdac0efe9c36e34cc36df0ab99b84391d5ec4c",
+      "records": 15625,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2262410
+    },
+    {
+      "id": "serving-v2-US-0067-c23c77c0c462796e",
+      "sha256": "c23c77c0c462796e61df50b72b49d93f1a3ac415cd684c64ffb0d96bbd33db90",
+      "records": 15643,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2258447
+    },
+    {
+      "id": "serving-v2-US-0068-3092b537bcd2bbdd",
+      "sha256": "3092b537bcd2bbdd2af646832d55d6694d1bb28a85e837de1edb6753c273c7dd",
+      "records": 15619,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2250800
+    },
+    {
+      "id": "serving-v2-US-0069-f410f49a1ff78926",
+      "sha256": "f410f49a1ff7892651bf1b651e685ac3adc2ec816d7f250d49e8d45313f45750",
+      "records": 15646,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2344159
+    },
+    {
+      "id": "serving-v2-US-0070-30eb6e51918de913",
+      "sha256": "30eb6e51918de9137c5a1facdfb6cf2d4988b4c34ee2f14de6891f4784a4b9eb",
+      "records": 15633,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2331553
+    },
+    {
+      "id": "serving-v2-US-0071-a0d6db6f1f0e15ab",
+      "sha256": "a0d6db6f1f0e15ab48ab6f3dbfa3ec4978253364eaf752212dc406a27335fe7c",
+      "records": 15637,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2270903
+    },
+    {
+      "id": "serving-v2-US-0072-a7075a4b82be360e",
+      "sha256": "a7075a4b82be360ec3f03353f168f5c55dd64609bf03a3326f5984d58fe03cd6",
+      "records": 15616,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2282655
+    },
+    {
+      "id": "serving-v2-US-0073-8a4b9501131ed598",
+      "sha256": "8a4b9501131ed5987a312b4e4a10042f09283cbae980a244897bf6c2a7634f71",
+      "records": 15621,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2252603
+    },
+    {
+      "id": "serving-v2-US-0074-80b3a94001513976",
+      "sha256": "80b3a9400151397658e8f5bd400c60416dd7d8604dda2646800878b175e589c0",
+      "records": 15616,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2279253
+    },
+    {
+      "id": "serving-v2-US-0075-555103cb56a55fc5",
+      "sha256": "555103cb56a55fc5f5501c8811fbd72da02d2a743e39b34d3c6f494924f58710",
+      "records": 15646,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2241279
+    },
+    {
+      "id": "serving-v2-US-0076-3a7ba7910ecd1abd",
+      "sha256": "3a7ba7910ecd1abd8614f54d5398a18ae393ac50dd06effc28a59b383cc84042",
+      "records": 15635,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2253613
+    },
+    {
+      "id": "serving-v2-US-0077-303e8e6e1c90518f",
+      "sha256": "303e8e6e1c90518f1e58dff0583e076a0dd11868c4e0534e3c872e29150e4283",
+      "records": 15638,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2367912
+    },
+    {
+      "id": "serving-v2-US-0078-b1bf347d9e3499f5",
+      "sha256": "b1bf347d9e3499f5500a4747ccb5c90a22401cbaf0ff685e31ae9f24418aae1d",
+      "records": 15636,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2311459
+    },
+    {
+      "id": "serving-v2-US-0079-eb29b74188bcca25",
+      "sha256": "eb29b74188bcca251bd878d8dca10672b5525903e9261a2ca949dd8094e57029",
+      "records": 15637,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2362690
+    },
+    {
+      "id": "serving-v2-US-0080-111112da71d58521",
+      "sha256": "111112da71d58521877d4f5780280b01a50bb3894ac4e86af4758dee71e90975",
+      "records": 15630,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2307566
+    },
+    {
+      "id": "serving-v2-US-0081-78ac4d9f5deac45f",
+      "sha256": "78ac4d9f5deac45fec21a3973deb280a328010f6558b80088efce3e1813d40af",
+      "records": 15637,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2347956
+    },
+    {
+      "id": "serving-v2-US-0082-5b3761d7a2931892",
+      "sha256": "5b3761d7a29318920352a31fac4c67fb0dce18e8e667572645b347181d8f37ed",
+      "records": 31267,
+      "countries": [
+        "US"
+      ],
+      "bytes": 4610336
+    },
+    {
+      "id": "serving-v2-US-0083-79b2b08e576c7f64",
+      "sha256": "79b2b08e576c7f6446003dbfa92baa0a2920fbbd9101e4ed6719d0f65eda04f8",
+      "records": 15634,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2274061
+    },
+    {
+      "id": "serving-v2-US-0084-4cc5dd453d31c9a3",
+      "sha256": "4cc5dd453d31c9a37b38458cc223ca85cd0f07d7b1214c15ded3c1ba33cdf8b2",
+      "records": 15636,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2277069
+    },
+    {
+      "id": "serving-v2-US-0085-5b078f1f17c4a632",
+      "sha256": "5b078f1f17c4a6328119713ac4d030ab62f609436c8e55953bb51c7332ced5ca",
+      "records": 31270,
+      "countries": [
+        "US"
+      ],
+      "bytes": 4737597
+    },
+    {
+      "id": "serving-v2-US-0086-c730a9da353107fd",
+      "sha256": "c730a9da353107fd93e5d20e6feb19fc89d0ee46d93266ac3fd74c40601909b2",
+      "records": 15624,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2371017
+    },
+    {
+      "id": "serving-v2-US-0087-286a9b3e1272e9f9",
+      "sha256": "286a9b3e1272e9f9ffbda14f74c1524f556829c0adc5add92e29df4496dd4921",
+      "records": 15626,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2348230
+    },
+    {
+      "id": "serving-v2-US-0088-2596763635fef1b9",
+      "sha256": "2596763635fef1b9ab5bd7a54e9de673166d8983900f97f07e4c48f01499434b",
+      "records": 15626,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2364277
+    },
+    {
+      "id": "serving-v2-US-0089-edd0cbb0f803a000",
+      "sha256": "edd0cbb0f803a0002031909b82200301976100f8279255b1bf45a0f7b526aded",
+      "records": 15641,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2329350
+    },
+    {
+      "id": "serving-v2-US-0090-a73bee6305e85841",
+      "sha256": "a73bee6305e85841e279fb0576d269f7f9613ede84ac591c6d4d273959341ceb",
+      "records": 15618,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2242098
+    },
+    {
+      "id": "serving-v2-US-0091-fde4705e9a8dd4ba",
+      "sha256": "fde4705e9a8dd4ba9440148f05ffd9670d480ea6e36b57565e3b6b305bfb9f7c",
+      "records": 15618,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2295176
+    },
+    {
+      "id": "serving-v2-US-0092-8a193bd0e32c5cd6",
+      "sha256": "8a193bd0e32c5cd649f9db1b651d2181a43039e250dfb6ad2c360826bbef5d9a",
+      "records": 15621,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2290721
+    },
+    {
+      "id": "serving-v2-US-0093-277b57a35cac878d",
+      "sha256": "277b57a35cac878d801b97defc434cf3f54838db77bc8e27f0a6a08f2d5a40e6",
+      "records": 15678,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2268669
+    },
+    {
+      "id": "serving-v2-US-0094-c3043348c8012ae3",
+      "sha256": "c3043348c8012ae3b15a77728c3674b346706dc847e6e8ca3a5c77b0532de846",
+      "records": 15620,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2272369
+    },
+    {
+      "id": "serving-v2-US-0095-c088f9d7e7b6eb2c",
+      "sha256": "c088f9d7e7b6eb2cc4f62a270d54bc3437079d048a1cee6be2724972508c22af",
+      "records": 15623,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2200395
+    },
+    {
+      "id": "serving-v2-US-0096-9245a642484066c5",
+      "sha256": "9245a642484066c59e07d0e84bfcfb752539a2ab736d9a65b2a1f73e86cdf38e",
+      "records": 15555,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2164247
+    },
+    {
+      "id": "serving-v2-US-0097-3fdb63048421882b",
+      "sha256": "3fdb63048421882bbad484acf134025ce4e16d9ab3c44052b0a817ea01ff5ae0",
+      "records": 15729,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2171575
+    },
+    {
+      "id": "serving-v2-US-0098-6ffd50ed48ee5b0f",
+      "sha256": "6ffd50ed48ee5b0f5b62f8f69271e4f914a55eac29547179810665b7191ebc64",
+      "records": 15627,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2263880
+    },
+    {
+      "id": "serving-v2-US-0099-f77f8c81bd5e0ba8",
+      "sha256": "f77f8c81bd5e0ba8bc0a44db5b674fbc71026fc5165cfe9e1e2f0a3999c52cc9",
+      "records": 15631,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2243290
+    },
+    {
+      "id": "serving-v2-US-0100-44eabcf61ea95771",
+      "sha256": "44eabcf61ea957712d93d0c116a18491513a44eb806f0b0360868200e547624c",
+      "records": 15631,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2224929
+    },
+    {
+      "id": "serving-v2-US-0101-a96425cb3297ba29",
+      "sha256": "a96425cb3297ba29ed0e9c005d78f25fd82658eda386466cf81a1b92e9d070f0",
+      "records": 15638,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2274831
+    },
+    {
+      "id": "serving-v2-US-0102-3191ad99f244a6b0",
+      "sha256": "3191ad99f244a6b0f9eaabcedf196a9693fa55ecec29a66352437a493b9ad95f",
+      "records": 15625,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2248880
+    },
+    {
+      "id": "serving-v2-US-0103-280800ea7d184346",
+      "sha256": "280800ea7d184346b236f0b9be4b664f4e797399d4ced55f0b19f5bdf16aa726",
+      "records": 15626,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2270478
+    },
+    {
+      "id": "serving-v2-US-0104-e0412c1fc317a1e6",
+      "sha256": "e0412c1fc317a1e6c6bfbf0084ea162cb9dcbe54924f13663a84a4f182a1e606",
+      "records": 15628,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2259486
+    },
+    {
+      "id": "serving-v2-US-0105-af63fc69fdf3191e",
+      "sha256": "af63fc69fdf3191e6757839518607ed1f20a1d9490295b5a7e761f44584d6e04",
+      "records": 15629,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2240377
+    },
+    {
+      "id": "serving-v2-US-0106-69b5b1ddc2d388b9",
+      "sha256": "69b5b1ddc2d388b9fdfe0f77a9ce9b896da4d99d6ac99bd4ae0120978a17602e",
+      "records": 15632,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2256688
+    },
+    {
+      "id": "serving-v2-US-0107-745e65fee28db4ec",
+      "sha256": "745e65fee28db4ec1709347bdc3c31de5b60e39ee718173c20cd309a575b6e37",
+      "records": 15633,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2360566
+    },
+    {
+      "id": "serving-v2-US-0108-2ccb9e897f47d79b",
+      "sha256": "2ccb9e897f47d79b4b3b2d69f9b4decf6fd54ed56f674efd2f8ce87f0c6758ae",
+      "records": 15623,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2330518
+    },
+    {
+      "id": "serving-v2-US-0109-5d8b4bf5da7097fc",
+      "sha256": "5d8b4bf5da7097fc622d6ffb127025f3763d7eed637ec48011b831b7073eb6a3",
+      "records": 15657,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2371410
+    },
+    {
+      "id": "serving-v2-US-0110-8611328a5cc63078",
+      "sha256": "8611328a5cc630783fae1f063dc0c528a77eac22d8dae076cea121fb65e07fae",
+      "records": 15626,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2370321
+    },
+    {
+      "id": "serving-v2-US-0111-3a0f2e15b492d1c2",
+      "sha256": "3a0f2e15b492d1c2c4b20e3a567448b70a3cc04504212bb8bafe5613473e3408",
+      "records": 15639,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2332493
+    },
+    {
+      "id": "serving-v2-US-0112-1c18f6314b9f0390",
+      "sha256": "1c18f6314b9f03909fc5ee379e763b00feaf358ddb49195844ddc770edcd7ef8",
+      "records": 15636,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2356309
+    },
+    {
+      "id": "serving-v2-US-0113-8070902dfcf22b07",
+      "sha256": "8070902dfcf22b07490ec3729a5762e4916b21b0b372f67cf093d562a2d612e0",
+      "records": 15636,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2368887
+    },
+    {
+      "id": "serving-v2-US-0114-2e85a8527a3080ef",
+      "sha256": "2e85a8527a3080ef437f53ef22a6a0d6ddc9bf47b5c45929b4e0c6793135c7e7",
+      "records": 15636,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2377937
+    },
+    {
+      "id": "serving-v2-US-0115-0add8099873663bb",
+      "sha256": "0add8099873663bb60a25b3b25ee0d1ce49aaa0666ba0a12cbe048ec3979e77a",
+      "records": 15637,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2371766
+    },
+    {
+      "id": "serving-v2-US-0116-1e4158ce511a8252",
+      "sha256": "1e4158ce511a8252024b66269951213da66e8f0c9c11b008cdfa37dec417ff50",
+      "records": 15636,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2388597
+    },
+    {
+      "id": "serving-v2-US-0117-43826ad00e0eb0ed",
+      "sha256": "43826ad00e0eb0ed388d1078955c2beebe913c7ef57f9b3c77cb63bff452c35c",
+      "records": 15637,
+      "countries": [
+        "US"
+      ],
+      "bytes": 2390232
+    }
+  ],
+  "previousPublicEvidence": {
+    "url": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/archives/20261027/coverage-world-v1.zip",
+    "sha256": "a37efe28757c6ef7a6501f4cbd65254def9891a12d5035047297c5bf48ec54d3"
+  },
+  "britishPreparedDataIsNotIncludedInTotals": true,
+  "backgroundWorkerConfigured": false
+}
