@@ -7,6 +7,10 @@ from urllib.parse import urlsplit
 import requests
 _review_spec=importlib.util.spec_from_file_location('catalog_review_policy',Path(__file__).with_name('catalog-review.py'));_review_module=importlib.util.module_from_spec(_review_spec);_review_spec.loader.exec_module(_review_module)
 ACTIVE_REVIEW=_review_module.ACTIVE_REVIEW
+def queue_slots(size,pending):
+ # Existing tasks remain intact. The full city inventory is the durable backlog;
+ # materialize only a small ready batch instead of duplicating it without bound.
+ return max(0,min(250,50000-pending,(220*1024*1024-size)//4096))
 def external_coverage(row):
  # Older resumable country checkpoints did not contain association_status.
  # A numeric count is only emitted after polygon matching; pending is null.
@@ -93,20 +97,30 @@ def main():
    WHERE t.id='city:'||c.city_key AND (t.state='queued' OR t.state='done' AND t.checkpoint->>'stage'='documented_below_target' AND t.outcome->>'revisitAfter' IS DISTINCT FROM v.payload->>'revisitAfter') AND ("""+ACTIVE_REVIEW+")")
   sql("""UPDATE catalog_ingest_tasks t SET state='done',checkpoint=jsonb_build_object('stage','target_met_by_regional_import','uniqueSupported',c.unique_supported),outcome=jsonb_build_object('target',t.target,'notACensus',true),updated_at=now()
    FROM catalog_city_inventory c WHERE t.id='city:'||c.city_key AND (t.state='queued' OR t.checkpoint->>'stage'='documented_below_target') AND c.unique_supported>=t.target""")
-  sql("""INSERT INTO catalog_ingest_tasks(id,kind,region,round,target,state,budgets,outcome)
+  sql("""UPDATE catalog_ingest_tasks t SET round=CASE WHEN c.unique_supported>=100 THEN 3 WHEN c.unique_supported>=50 THEN 2 ELSE 1 END,
+   target=CASE WHEN c.unique_supported>=100 THEN 200 WHEN c.unique_supported>=50 THEN 100 ELSE 50 END,
+   outcome=jsonb_build_object('currentSupported',c.unique_supported,'priority','under_50_first')
+   FROM catalog_city_inventory c WHERE t.id='city:'||c.city_key AND t.state='queued'
+   AND (c.admin_id IS NOT NULL OR c.association_status='licensed_polygon_archive') AND coalesce(c.unique_supported,0)<CASE WHEN $1::boolean THEN 50 ELSE 200 END
+   AND (t.round,t.target,t.outcome) IS DISTINCT FROM
+   (CASE WHEN c.unique_supported>=100 THEN 3 WHEN c.unique_supported>=50 THEN 2 ELSE 1 END,CASE WHEN c.unique_supported>=100 THEN 200 WHEN c.unique_supported>=50 THEN 100 ELSE 50 END,jsonb_build_object('currentSupported',c.unique_supported,'priority','under_50_first'))""",[cfg.get('minimumOnly',True)])
+  budget=sql("SELECT pg_database_size(current_database()) AS bytes,count(*) FILTER(WHERE state IN ('queued','running')) AS pending FROM catalog_ingest_tasks")[0]
+  slots=queue_slots(int(budget['bytes']),int(budget['pending']))
+  added=sql("""INSERT INTO catalog_ingest_tasks(id,kind,region,round,target,state,budgets,outcome)
    SELECT 'city:'||city_key,'city_complement',city_key,CASE WHEN unique_supported>=100 THEN 3 WHEN unique_supported>=50 THEN 2 ELSE 1 END,
    CASE WHEN unique_supported>=100 THEN 200 WHEN unique_supported>=50 THEN 100 ELSE 50 END,'queued',
    '{"maximumSeconds":90,"maximumAttempts":3,"maximumResponseBytes":8388608,"concurrency":1}'::jsonb,
    jsonb_build_object('currentSupported',unique_supported,'priority','under_50_first')
    FROM catalog_city_inventory c WHERE (admin_id IS NOT NULL OR association_status='licensed_polygon_archive') AND coalesce(unique_supported,0)<CASE WHEN $1::boolean THEN 50 ELSE 200 END
    AND NOT EXISTS(SELECT 1 FROM catalog_manifests v WHERE v.id='review-v1:'||c.city_key AND ("""+ACTIVE_REVIEW+"""))
-   ON CONFLICT(id) DO UPDATE SET round=excluded.round,target=excluded.target,outcome=excluded.outcome WHERE catalog_ingest_tasks.state='queued'
-   AND (catalog_ingest_tasks.round,catalog_ingest_tasks.target,catalog_ingest_tasks.outcome) IS DISTINCT FROM (excluded.round,excluded.target,excluded.outcome)""",[cfg.get('minimumOnly',True)])
+   AND NOT EXISTS(SELECT 1 FROM catalog_ingest_tasks t WHERE t.id='city:'||c.city_key)
+   ORDER BY coalesce(unique_supported,0),city_key LIMIT $2
+   ON CONFLICT(id) DO NOTHING RETURNING id""",[cfg.get('minimumOnly',True),slots])
   sql("""INSERT INTO catalog_ingest_tasks(id,kind,region,state,budgets,outcome)
    SELECT 'country:'||country_code,'country_boundary_review',country_code,'blocked','{"maximumRegions":1,"automaticWorldScan":false}'::jsonb,
    '{"reason":"Official boundary crosswalk, source license, regional asset and resource budget must be reviewed before collection"}'::jsonb
    FROM catalog_city_inventory WHERE coverage_status='location_pending' GROUP BY country_code ON CONFLICT(id) DO NOTHING""")
-  print(json.dumps({'queue':sql('SELECT kind,state,round,count(*) AS tasks FROM catalog_ingest_tasks GROUP BY 1,2,3 ORDER BY 1,2,3')}))
+  print(json.dumps({'queue':sql('SELECT kind,state,round,count(*) AS tasks FROM catalog_ingest_tasks GROUP BY 1,2,3 ORDER BY 1,2,3'),'newCityTasks':len(added),'maximumActiveTasks':50000,'batchSlots':slots,'unmaterializedCitiesRemainInInventory':True}))
  elif a.action=='add_region':
   part=cfg['region'];assert re.fullmatch('[0-9]{5}',part);room()
   sql("INSERT INTO catalog_ingest_tasks(id,kind,region,budgets) VALUES($1,'overture_partition',$2,$3::jsonb) ON CONFLICT(id) DO NOTHING",['overture-2026-10-21.0-'+part,part,json.dumps({'downloadBytes':900*1024*1024,'maximumSeconds':1800,'memory':'768MB','concurrency':2,'automaticWorldScan':False})]);print(json.dumps({'queuedRegion':part}))

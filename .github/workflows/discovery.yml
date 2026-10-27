@@ -48,3 +48,5 @@ jobs:
         run: python -m unittest discover -s test -p 'catalog_serving_test.py' -v
       - name: Below-target exceptions require independent evidence
         run: python -m unittest discover -s test -p 'catalog_review_test.py' -v
+      - name: Global boundary identities, resumable ranges and immutable country assets
+        run: python -m unittest discover -s test -p 'catalog_world_test.py' -v

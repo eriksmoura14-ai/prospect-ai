@@ -140,6 +140,24 @@ def boundaries(args):
 def helper():
     s=importlib.util.spec_from_file_location('normal',Path(__file__).with_name('catalog-normalize.py'));h=importlib.util.module_from_spec(s);s.loader.exec_module(h);return h
 
+def freeze_output(db,root,temporary,output):
+    """A geography recount must not rewrite a planned/published immutable asset.
+    Compare all fields independently of row order before reusing the original.
+    Changed source records need a separate version/delta publication.
+    """
+    receipt=root/'published-asset.json'
+    if not receipt.exists():temporary.replace(output);return False
+    asset=json.loads(receipt.read_text())
+    if not output.is_file() or output.stat().st_size!=asset['bytes']:raise RuntimeError('immutable_country_asset_changed')
+    with output.open('rb') as file:digest=hashlib.file_digest(file,'sha256').hexdigest()
+    if digest!=asset['sha256']:raise RuntimeError('immutable_country_asset_changed')
+    columns=[r[0] for r in db.execute('DESCRIBE SELECT * FROM read_parquet(?)',[str(output)]).fetchall()]
+    other=[r[0] for r in db.execute('DESCRIBE SELECT * FROM read_parquet(?)',[str(temporary)]).fetchall()]
+    if columns!=other:raise RuntimeError('country_delta_requires_separate_asset')
+    query='SELECT count(*),sum(h::HUGEINT)::VARCHAR,bit_xor(h)::VARCHAR FROM (SELECT hash('+','.join('"'+c.replace('"','""')+'"' for c in columns)+') AS h FROM read_parquet(?))'
+    if db.execute(query,[str(output)]).fetchone()!=db.execute(query,[str(temporary)]).fetchone():raise RuntimeError('country_delta_requires_separate_asset')
+    temporary.unlink();return True
+
 def confirmed_admin_ids(candidates):
     """Explicit municipal parent/district membership can count for both app
     options, while a global business is still counted once. Overlapping peers
@@ -232,10 +250,10 @@ def reconcile(args):
     with idsfile.open('w') as out:
         writer=csv.writer(out);writer.writerow(['source_id']);writer.writerows([v] for v in new_ids)
     output=root/'new-country-businesses.parquet';part=output.with_suffix('.partial.parquet')
-    db.execute("COPY (SELECT n.* REPLACE(CAST(n.source_id AS VARCHAR) AS source_id) FROM read_parquet(?,union_by_name=true) n JOIN read_csv(?,all_varchar=true) i ON CAST(n.source_id AS VARCHAR)=i.source_id WHERE n.country_code=?) TO '"+str(part).replace("'","''")+"' (FORMAT PARQUET,COMPRESSION ZSTD,ROW_GROUP_SIZE 10000)",[[str(p) for p in files],str(idsfile),country])
+    db.execute("COPY (SELECT n.* REPLACE(CAST(n.source_id AS VARCHAR) AS source_id) FROM read_parquet(?,union_by_name=true) n JOIN read_csv(?,all_varchar=true) i ON CAST(n.source_id AS VARCHAR)=i.source_id WHERE n.country_code=? ORDER BY n.source_id) TO '"+str(part).replace("'","''")+"' (FORMAT PARQUET,COMPRESSION ZSTD,ROW_GROUP_SIZE 10000)",[[str(p) for p in files],str(idsfile),country])
     n,unique=db.execute('SELECT count(*),count(DISTINCT source_id) FROM read_parquet(?)',[str(part)]).fetchone()
     if n!=unique or n!=totals['new_unique']:raise RuntimeError('country_output_identity_mismatch')
-    part.replace(output)
+    immutable_reused=freeze_output(db,root,part,output)
     with gzip.open(root/'overlap-aliases.ndjson.gz','wt') as out:
         for row in aliases:out.write(json.dumps(row)+'\n')
     summary=Counter();baseline=Counter();examples=[];inventory=[json.loads(line) for line in (root/'mapped-inventory.ndjson').open()]
@@ -254,7 +272,7 @@ def reconcile(args):
             update={'city_key':city['key'],'association_status':city['association_status'],'unique_supported':n,'unique_all':n,'source_rows':counts[admin]['source_rows'] if admin else None,'category_count':len(categories[admin]) if admin else None,'sources':consulted,'limitations':[reason],'coverage_status':status,'next_action':'retain_city_data_and_prioritize_other_under_50_cities' if n is not None and n>=50 else 'complement_permitted_regional_sources_for_under_50' if admin else 'review_official_country_crosswalk'}
             out.write(json.dumps(update,separators=(',',':'))+'\n');writer.writerow([country,city['stateCode'],city['name'],city['key'],admin or '',prev,n,len(categories[admin]) if admin else '',status])
     quality=dict(zip(['records','phone','website','address','valid_location'],db.execute("SELECT count(*),count(*) FILTER(WHERE phone<>''),count(*) FILTER(WHERE website<>''),count(*) FILTER(WHERE address<>''),count(*) FILTER(WHERE latitude BETWEEN -90 AND 90 AND longitude BETWEEN -180 AND 180) FROM read_parquet(?)",[str(output)]).fetchone()))
-    result={'country':country,'inventoryDenominator':152970,'countryInventoryCities':len(inventory),'counts':dict(totals),'countrySummary':dict(summary),'baselineCountrySummary':dict(baseline),'newAsset':{**quality,'file':str(output),'bytes':output.stat().st_size,'sha256':hashlib.file_digest(output.open('rb'),'sha256').hexdigest()},'examples':sorted(examples,key=lambda r:r['after'])[:100],'elapsedMs':round((time.monotonic()-start)*1000),'backgroundProcessConfigured':False,'targetPerCity':50,'sourcesAreNotVerifiedBusinesses':True}
+    result={'country':country,'inventoryDenominator':152970,'countryInventoryCities':len(inventory),'counts':dict(totals),'countrySummary':dict(summary),'baselineCountrySummary':dict(baseline),'newAsset':{**quality,'file':str(output),'bytes':output.stat().st_size,'sha256':hashlib.file_digest(output.open('rb'),'sha256').hexdigest()},'immutableOutputReused':immutable_reused,'examples':sorted(examples,key=lambda r:r['after'])[:100],'elapsedMs':round((time.monotonic()-start)*1000),'backgroundProcessConfigured':False,'targetPerCity':50,'sourcesAreNotVerifiedBusinesses':True}
     (root/'country-report.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({k:v for k,v in result.items() if k!='examples'}),flush=True)
 
 def main():

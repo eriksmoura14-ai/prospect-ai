@@ -259,3 +259,54 @@ candidatos e retângulo máximo de dois graus de latitude por três de longitude
 cidade vizinha. Truncamento e indisponibilidade são explícitos. O catálogo
 existente é consultado primeiro. Essa correção do código não significa que as
 152.970 cidades já foram consultadas ou que todos os resultados OSM sejam novos.
+
+## Limites Overture globais, consulta regional e retomada
+
+O adaptador `catalog-world-boundaries.py` usa a release 2026-10-21.0 do tema
+Overture divisions, publicada sob ODbL 1.0, derivada de OpenStreetMap e
+geoBoundaries. Conservar a atribuição e as licenças por feição; os contornos e
+contagens derivados são ODbL. Os registros comerciais Overture independentes
+continuam com suas proveniências e licenças originais.
+
+`catalog-division-read.py` consulta **uma** partição e um país por execução,
+filtrando `locality`/`localadmin`, país e `is_territorial=true`. A consulta usa
+um gateway local de intervalos; as requisições públicas mantêm proxy e TLS.
+Limites: 128 MiB novos por execução, 180 segundos, 512 MiB de DuckDB e no máximo
+32 MiB por intervalo. Não baixa todas as partições mundiais. Fragmentos ficam
+com URL e SHA-256 para retomada; `--offline` só usa intervalos já verificados.
+`--metadata` expõe os grupos físicos, e `--first-row`/`--last-row` permitem
+recuperar grupos completos já armazenados sem chamadas externas. A segmentação
+física não altera limites geográficos nem autoriza empresas vizinhas.
+
+O cruzamento exige país, ISO 3166-2 correspondente à subdivisão do seletor,
+nome primário/comum normalizado exato e âncora dentro do polígono. Ambiguidades,
+polígonos fora do orçamento e fontes não revisadas permanecem pendentes.
+Não usa condados como se fossem cidades. A auditoria completa anterior é
+obrigatória: um país com cruzamento já confirmado exige mesclagem explícita;
+o adaptador não pode sobrescrevê-lo com a nova fonte.
+
+```sh
+python scripts/catalog-division-read.py --root SAIDA_DIV --assets SAIDA_DIV/assets.json --asset 00003 --country DE
+python scripts/catalog-world-boundaries.py --root SAIDA_DE --inventory INVENTARIO/inventory.json --coverage-audit AUDITORIA/all-city-coverage.csv --country DE --region SAIDA_DIV/DE-00002.parquet --region SAIDA_DIV/DE-00003.parquet
+```
+
+Os extratos novos usam grupos Parquet de 2.048 registros para limitar a memória
+na leitura de polígonos grandes. Se um extrato antigo tiver grupo excessivo,
+reparticioná-lo em outro arquivo, verificar todos os campos por agregados de
+hashes e conservar o original e seu recibo. Não elevar o limite de memória para
+ignorar a falha. Falhas do túnel do ambiente são separadas de erros das fontes;
+nenhuma delas equivale a uma cidade vazia.
+
+A fila materializa até 250 novas tarefas por chamada, com até 50.000 ativas e
+margem conservadora de 4 KiB por nova tarefa dentro dos 220 MiB operacionais.
+As demais cidades continuam no inventário persistente; tarefas existentes não
+são apagadas. Repetir `queue` ao consumir a fila, não criar outra cópia de todo o
+inventário. Uma recontagem geográfica preserva o Parquet imutável descrito em
+`published-asset.json`: mudança em qualquer campo exige publicação separada.
+
+Para geometrias novas, `catalog-geometry-upload.py` aceita `gzip:true` no JSON
+privado de entrada. Preserva os bytes e SHA-256 do JSON descomprimido no manifesto
+e grava o objeto com `Content-Encoding:gzip`. Requests e o fetch Node decodificam
+o transporte; a validação continua usando tamanho e hash descomprimidos. Um
+objeto real foi verificado pelos dois clientes antes de habilitar essa opção.
+Os hashes/geometrias antigos e os limites do leitor permanecem válidos.
