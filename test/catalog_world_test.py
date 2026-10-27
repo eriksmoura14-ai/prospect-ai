@@ -60,6 +60,20 @@ class WorldIdentity(unittest.TestCase):
   self.assertEqual(ops.queue_slots(200*1024*1024,50000),0)
   self.assertEqual(ops.queue_slots(220*1024*1024,100),0)
   self.assertEqual(ops.queue_slots(220*1024*1024-8192,100),2)
+class GeographicWriteBatching(unittest.TestCase):
+ def manifest(self,state):
+  return {'id':'geometry-v1:GB:'+state,'payload':{'version':1,'countryCode':'GB','stateCode':state,'parts':[{'url':'https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/geography/fixture.json','sha256':'a'*64,'bytes':123}]}}
+ def test_many_subdivisions_keep_their_identity_and_use_bounded_batches(self):
+  items=[self.manifest(str(i)) for i in range(106)];batches=ops.geometry_manifest_batches(items)
+  self.assertEqual([len(v) for v in batches],[50,50,6]);self.assertEqual([v['id'] for b in batches for v in b],[v['id'] for v in items])
+  self.assertTrue(all(row['payload']==item['payload'] for row,item in zip([r for b in batches for r in b],items)))
+ def test_duplicate_or_unapproved_last_manifest_rejects_the_whole_request(self):
+  first=self.manifest('A');last=self.manifest('B');last['payload']['parts'][0]['url']='https://unapproved.example/geography.json'
+  with self.assertRaisesRegex(ValueError,'manifest_part'):ops.geometry_manifest_batches([first,last])
+  with self.assertRaisesRegex(ValueError,'manifest_identity'):ops.geometry_manifest_batches([first,first])
+ def test_individual_manifest_cannot_exceed_the_request_byte_budget(self):
+  item=self.manifest('A');item['payload']['untrustedNotes']='x'*(3*1024*1024)
+  with self.assertRaisesRegex(ValueError,'batch_budget'):ops.geometry_manifest_batches([item])
 class Transport(unittest.TestCase):
  def test_hierarchy_layer_requires_explicit_opt_in_and_remains_on_reviewed_public_source(self):
   with tempfile.TemporaryDirectory() as root:

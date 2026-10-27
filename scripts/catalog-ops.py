@@ -11,6 +11,25 @@ def queue_slots(size,pending):
  # Existing tasks remain intact. The full city inventory is the durable backlog;
  # materialize only a small ready batch instead of duplicating it without bound.
  return max(0,min(250,50000-pending,(220*1024*1024-size)//4096))
+def geometry_manifest_batches(items):
+ # Validate the entire request before any write. Keep the existing identities,
+ # hashes and per-part limits, but avoid two DB round trips for every state.
+ prepared=[];seen=set()
+ for item in items:
+  data=item['payload'];identity=item['id']
+  if not re.fullmatch(r'geometry-v1:[A-Z]{2}:[A-Z0-9-]+',identity) or identity in seen:raise ValueError('geometry_manifest_identity')
+  if identity!='geometry-v1:'+data['countryCode']+':'+data['stateCode'] or data['version']!=1 or not 0<len(data['parts'])<=200:raise ValueError('geometry_manifest_country')
+  for part in data['parts']:
+   if not part['url'].startswith('https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/geography/') or not re.fullmatch('[a-f0-9]{64}',part['sha256']) or not 0<part['bytes']<=2*1024*1024:raise ValueError('geometry_manifest_part')
+  prepared.append({'id':identity,'payload':data,'sha256':hashlib.sha256(json.dumps(data,separators=(',',':'),sort_keys=True).encode()).hexdigest()});seen.add(identity)
+ batches=[];current=[];size=2
+ for item in prepared:
+  n=len(json.dumps(item,ensure_ascii=False,separators=(',',':')).encode())+1
+  if n+2>3*1024*1024:raise ValueError('geometry_manifest_batch_budget')
+  if current and (len(current)>=50 or size+n>3*1024*1024):batches.append(current);current=[];size=2
+  current.append(item);size+=n
+ if current:batches.append(current)
+ return batches
 def external_coverage(row):
  # Older resumable country checkpoints did not contain association_status.
  # A numeric count is only emitted after polygon matching; pending is null.
@@ -139,14 +158,10 @@ def main():
  elif a.action=='manifest':
   data=cfg.get('manifest') or json.loads((root/'publication-manifest.json').read_text());digest=hashlib.sha256(json.dumps(data,separators=(',',':'),sort_keys=True).encode()).hexdigest();sql('INSERT INTO catalog_manifests(id,payload,sha256) VALUES($1,$2::jsonb,$3) ON CONFLICT(id) DO NOTHING',[data['id'],json.dumps(data),digest]);print(json.dumps({'manifestSaved':data['id']}))
  elif a.action=='geometry_manifest':
-  for item in cfg['manifests']:
-   data=item['payload'];identity=item['id'];assert re.fullmatch(r'geometry-v1:[A-Z]{2}:[A-Z0-9-]+',identity)
-   assert identity=='geometry-v1:'+data['countryCode']+':'+data['stateCode'] and data['version']==1 and 0<len(data['parts'])<=200
-   for part in data['parts']:
-    assert part['url'].startswith('https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/geography/') and re.fullmatch('[a-f0-9]{64}',part['sha256']) and 0<part['bytes']<=2*1024*1024
-   digest=hashlib.sha256(json.dumps(data,separators=(',',':'),sort_keys=True).encode()).hexdigest();room()
-   sql('INSERT INTO catalog_manifests(id,payload,sha256) VALUES($1,$2::jsonb,$3) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,sha256=excluded.sha256 WHERE catalog_manifests.sha256 IS DISTINCT FROM excluded.sha256',[identity,json.dumps(data),digest])
-  print(json.dumps({'geometryManifestsSaved':len(cfg['manifests'])}))
+  batches=geometry_manifest_batches(cfg['manifests'])
+  for batch in batches:
+   room();sql('INSERT INTO catalog_manifests(id,payload,sha256) SELECT id,payload,sha256 FROM jsonb_to_recordset($1::jsonb) AS r(id text,payload jsonb,sha256 text) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,sha256=excluded.sha256 WHERE catalog_manifests.sha256 IS DISTINCT FROM excluded.sha256',[json.dumps(batch,ensure_ascii=False,separators=(',',':'))])
+  print(json.dumps({'geometryManifestsSaved':len(cfg['manifests']),'databaseWriteBatches':len(batches)}))
  elif a.action=='export_legacy':
   result={}
   for table in ['discovery_records','discovery_areas','discovery_coverage']:
