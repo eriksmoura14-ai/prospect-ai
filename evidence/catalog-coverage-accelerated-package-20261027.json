@@ -1,0 +1,16 @@
+{
+  "file": ".artifacts/catalog-audit-accelerated-20261027/final/coverage-accelerated-v2.zip",
+  "bytes": 7154318,
+  "sha256": "b47e18d68575cdf47ff466e5a83952641a851d057263504ee91acac8a90085d6",
+  "md5": "f9f0a08bcd5ec7e0e974bd32cbc563c7",
+  "files": 180,
+  "url": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/archives/20261027/coverage-accelerated-v2.zip",
+  "containsFullAppInventory": true,
+  "privateMaterialScanPassed": true,
+  "uploaded": true,
+  "publicHeadVerified": true,
+  "singlePutEtagMatchesLocalMd5": true,
+  "publicETag": "f9f0a08bcd5ec7e0e974bd32cbc563c7",
+  "remoteFullSha256Downloaded": false,
+  "verifiedAt": "2026-10-27T14:22:41Z"
+}

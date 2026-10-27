@@ -1,5 +1,7 @@
 # Cobertura confirmada e retomada — 27/10/2026
 
+Estado posterior desta rodada: [expansão acelerada e publicação concluída dos lotes preparados](COBERTURA_ACCELERADA_20261027.md). Este documento conserva o snapshot anterior.
+
 A meta continua sendo **50 empresas únicas por cada uma das 152.970 localidades** do aplicativo, somando os segmentos suportados. Esta rodada não concluiu a meta mundial. O código de produção e o acervo original continuam preservados.
 
 ## Publicação confirmada no catálogo público
