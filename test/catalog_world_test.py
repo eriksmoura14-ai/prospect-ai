@@ -1,7 +1,7 @@
 import importlib.util,tempfile,unittest,json,hashlib
 from pathlib import Path
 from unittest.mock import patch
-from shapely.geometry import Polygon,MultiPolygon,box
+from shapely.geometry import Polygon,MultiPolygon,box,mapping
 
 def module(name,file):
  spec=importlib.util.spec_from_file_location(name,Path(__file__).resolve().parents[1]/'scripts'/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
@@ -17,6 +17,13 @@ class RegionalSourcePlan(unittest.TestCase):
   tiles=[{'id':'island','bbox':[-66,16,-63,19]},{'id':'mainland','bbox':[0,50,10,55]},{'id':'empty_between','bbox':[-40,30,-30,40]}]
   self.assertEqual([r['id'] for r in planner.required_parts(country,tiles)],['island','mainland'])
 class WorldIdentity(unittest.TestCase):
+ def test_confirmed_scope_is_preserved_when_new_sources_add_an_ambiguous_name(self):
+  previous={'admin_id':'original'};area={'id':'original','country_code':'CZ','state_code':'20','geom':box(0,0,2,2)};old={'original':{**{k:v for k,v in area.items() if k!='geom'},'geometry':mapping(area['geom'])}}
+  other={**area,'id':'another','geom':box(0,0,3,3)}
+  self.assertIs(world.preserve_mapping(previous,old,[other,area]),area)
+  self.assertIsNone(world.preserve_mapping({},old,[other,area]))
+  with self.assertRaisesRegex(ValueError,'not_reproduced'):world.preserve_mapping(previous,old,[other])
+  with self.assertRaisesRegex(ValueError,'identity_changed'):world.preserve_mapping(previous,old,[{**area,'geom':box(0,0,4,4)}])
  def test_source_common_names_keep_country_subdivision_and_polygon_constraints(self):
   city={'countryCode':'DE','stateCode':'BY','name':'Munich','latitude':1,'longitude':1};area={'geom':box(0,0,2,2)}
   lookup={('DE-BY',name):[area] for name in world.names({'primary':'München','common':{'en':'Munich'}})}
@@ -36,6 +43,22 @@ class WorldIdentity(unittest.TestCase):
   self.assertEqual(ops.queue_slots(220*1024*1024,100),0)
   self.assertEqual(ops.queue_slots(220*1024*1024-8192,100),2)
 class Transport(unittest.TestCase):
+ def test_cached_country_column_is_insufficient_without_geometry_and_provenance(self):
+  rows=[{'row_group_id':0,'row_group_num_rows':10,'path_in_schema':c,'data_page_offset':i*10+1,'dictionary_page_offset':None,'total_compressed_size':2} for i,c in enumerate(sorted(remote.SELECTED_COLUMNS))]
+  class Cached:
+   def cache(self,first,last):return b'xx'
+  self.assertEqual(remote.cached_windows(rows,Cached()),[{'firstRow':0,'lastRow':9,'groups':[0]}])
+  country_only=[r for r in rows if r['path_in_schema']=='country']
+  self.assertEqual(remote.cached_windows(country_only,Cached()),[])
+  missing=next(r['data_page_offset'] for r in rows if r['path_in_schema']=='geometry')
+  class Partial:
+   def cache(self,first,last):return None if first==missing else b'xx'
+  self.assertEqual(remote.cached_windows(rows,Partial()),[])
+ def test_cached_windows_keep_real_row_offsets_across_uncached_groups(self):
+  rows=[{'row_group_id':g,'row_group_num_rows':10+g,'path_in_schema':c,'data_page_offset':g*1000+i*10+1,'dictionary_page_offset':None,'total_compressed_size':2} for g in range(4) for i,c in enumerate(sorted(remote.SELECTED_COLUMNS))]
+  class Partial:
+   def cache(self,first,last):return None if 1000<=first<2000 else b'xx'
+  self.assertEqual(remote.cached_windows(rows,Partial()),[{'firstRow':0,'lastRow':9,'groups':[0]},{'firstRow':21,'lastRow':45,'groups':[2,3]}])
  def test_validated_ranges_support_offline_subranges_and_reject_corruption(self):
   with tempfile.TemporaryDirectory() as root:
    asset={'url':'https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=divisions/type=division_area/part-00002-abcd.zstd.parquet','size':100}

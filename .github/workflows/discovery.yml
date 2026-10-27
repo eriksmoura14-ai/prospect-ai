@@ -50,3 +50,5 @@ jobs:
         run: python -m unittest discover -s test -p 'catalog_review_test.py' -v
       - name: Global boundary identities, resumable ranges and immutable country assets
         run: python -m unittest discover -s test -p 'catalog_world_test.py' -v
+      - name: Country publication integrity, isolation and resumable failures
+        run: python -m unittest discover -s test -p 'catalog_publication_test.py' -v

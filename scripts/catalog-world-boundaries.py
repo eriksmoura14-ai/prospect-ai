@@ -21,13 +21,32 @@ def candidates(city,lookup):
  # macroregion. Countries whose registry uses a different level remain pending.
  return [a for a in lookup.get((city['countryCode']+'-'+city['stateCode'],country.normalized(city['name'])),[]) if a['geom'].covers(point)]
 
+def preserve_mapping(previous,old_areas,hits):
+ """A reviewed published identity wins over newly introduced ambiguity only
+ while that exact source polygon and all original location constraints agree.
+ """
+ identity=previous.get('admin_id')
+ if not identity:return None
+ old=old_areas.get(identity);matches=[a for a in hits if a['id']==identity]
+ if old is None or len(matches)!=1:raise ValueError('published_mapping_not_reproduced')
+ area=matches[0]
+ if area['country_code']!=old['country_code'] or area['state_code']!=old['state_code'] or not area['geom'].equals(country.polygon(old['geometry'])):raise ValueError('published_polygon_identity_changed')
+ return area
+
 def main():
- p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--inventory',required=True);p.add_argument('--coverage-audit',required=True);p.add_argument('--country',required=True);p.add_argument('--region',action='append',required=True);a=p.parse_args();start=time.monotonic();root=Path(a.root);root.mkdir(parents=True,exist_ok=True)
+ p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--inventory',required=True);p.add_argument('--coverage-audit',required=True);p.add_argument('--country',required=True);p.add_argument('--region',action='append',required=True);p.add_argument('--merge-existing');a=p.parse_args();start=time.monotonic();root=Path(a.root);root.mkdir(parents=True,exist_ok=True)
  if not re.fullmatch('[A-Z]{2}',a.country):raise ValueError('country_identity')
  inventory=[v for v in json.loads(Path(a.inventory).read_text())['cities'] if v['countryCode']==a.country]
  with Path(a.coverage_audit).open() as file:prior=[v for v in csv.DictReader(file) if v['country_code']==a.country]
  if {v['city_key'] for v in prior}!={v['key'] for v in inventory}:raise ValueError('coverage_inventory_mismatch')
- if any(v['coverage_status']!='location_pending' for v in prior):raise ValueError('existing_country_crosswalk_must_be_merged_explicitly')
+ previous={};old_areas={}
+ if a.merge_existing:
+  previous_root=Path(a.merge_existing)
+  with (previous_root/'mapped-inventory.ndjson').open() as file:previous={v['key']:v for v in map(json.loads,file)}
+  with (previous_root/'admin-areas.ndjson').open() as file:old_areas={v['id']:v for v in map(json.loads,file)}
+  if previous.keys()!={v['key'] for v in inventory} or any(v['countryCode']!=a.country for v in previous.values()) or any(v['country_code']!=a.country for v in old_areas.values()):raise ValueError('existing_country_identity_mismatch')
+  if any(v['coverage_status']!='location_pending' and not previous[v['city_key']].get('admin_id') for v in prior):raise ValueError('existing_confirmed_mapping_missing')
+ elif any(v['coverage_status']!='location_pending' for v in prior):raise ValueError('existing_country_crosswalk_must_be_merged_explicitly')
  wanted={a.country+'-'+v['stateCode'] for v in inventory};lookup=collections.defaultdict(list);seen={};bad=[];source_files=[]
  db=duckdb.connect(config={'memory_limit':'256MB','threads':'1'});columns=['id','division_id','names','country','region','subtype','class','is_territorial','sources','geometry']
  for path in map(Path,a.region):
@@ -57,6 +76,9 @@ def main():
  db.close();used={};counts=collections.Counter();mapped=[]
  for city in inventory:
   row={**city,'association_status':'name_state_or_anchor_not_confirmed','coverage_status':'location_pending','next_action':'review_official_country_crosswalk'};hits=candidates(city,lookup)
+  preserved=preserve_mapping(previous[city['key']],old_areas,hits) if city['key'] in previous else None
+  if preserved:
+   hits=[preserved];counts['previousConfirmedMappingsPreserved']+=1
   if len(hits)==1:
    row.update(admin_id=hits[0]['id'],association_status='source_iso_name_and_anchor_inside_territorial_polygon',coverage_status='partial',next_action='collect_supported_segments_until_50_or_document_source_limits');used[hits[0]['id']]=hits[0]
   elif len(hits)>1:row['association_status']='ambiguous_boundary'

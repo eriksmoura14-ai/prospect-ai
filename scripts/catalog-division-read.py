@@ -11,6 +11,33 @@ from urllib.parse import urlsplit
 import duckdb,requests
 
 RELEASE='2026-10-21.0'
+SELECTED_COLUMNS={'id','division_id','names','country','region','subtype','class','is_land','is_territorial','admin_level','sources','bbox','geometry'}
+
+def cached_windows(rows,source):
+ """Identify candidate offline windows with all selected column chunks cached.
+ A cached country column alone does not establish that geometry was fetched.
+ This is a column-availability plan; the actual offline read remains the final
+ check because a reader can request padding between physical column chunks.
+ """
+ groups={}
+ for row in rows:
+  root=re.split(r'[,\.]',row['path_in_schema'])[0].strip()
+  if root not in SELECTED_COLUMNS:continue
+  groups.setdefault(row['row_group_id'],[]).append(row)
+ windows=[];first=0
+ for identity,columns in sorted(groups.items()):
+  count=columns[0]['row_group_num_rows'];available=True
+  roots={re.split(r'[,\.]',v['path_in_schema'])[0].strip() for v in columns}
+  if roots!=SELECTED_COLUMNS:available=False
+  for row in columns:
+   start=row.get('dictionary_page_offset') or row['data_page_offset'];size=row['total_compressed_size']
+   if not available:break
+   if size<=0 or source.cache(start,start+size-1) is None:available=False
+  if available:
+   if windows and windows[-1]['lastRow']==first-1:windows[-1]['lastRow']=first+count-1;windows[-1]['groups'].append(identity)
+   else:windows.append({'firstRow':first,'lastRow':first+count-1,'groups':[identity]})
+  first+=count
+ return windows
 
 class RangeSource:
  def __init__(self,asset,root,maximum=128*1024*1024,seconds=180,offline=False):
@@ -44,7 +71,7 @@ class RangeSource:
   if time.monotonic()>self.deadline:raise RuntimeError('division_deadline')
   p=self.root/(str(start)+'-'+str(end));meta=p.with_suffix('.json');body=self.cache(start,end)
   if body is not None:self.reused+=len(body);return body
-  if self.offline:raise RuntimeError('division_offline_cache_miss')
+  if self.offline:raise RuntimeError('division_offline_cache_miss:'+str(start)+'-'+str(end))
   with self.lock:
    if self.received+end-start+1>self.maximum:raise RuntimeError('division_byte_budget')
    if shutil.disk_usage(self.root).free<end-start+1+256*1024*1024:raise RuntimeError('division_disk_budget')
@@ -63,13 +90,13 @@ class RangeSource:
  def metrics(self):return {'receivedBytes':self.received,'cachedBytesReused':self.reused,'requests':self.calls,'maximumBytes':self.maximum,'source':self.url}
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--assets',required=True);p.add_argument('--asset',required=True);p.add_argument('--country',required=True);p.add_argument('--state');p.add_argument('--offline',action='store_true');p.add_argument('--probe',action='store_true');p.add_argument('--metadata',action='store_true');p.add_argument('--first-row',type=int);p.add_argument('--last-row',type=int);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--assets',required=True);p.add_argument('--asset',required=True);p.add_argument('--country',required=True);p.add_argument('--state');p.add_argument('--offline',action='store_true');p.add_argument('--probe',action='store_true');p.add_argument('--metadata',action='store_true');p.add_argument('--cached-plan',action='store_true');p.add_argument('--first-row',type=int);p.add_argument('--last-row',type=int);a=p.parse_args()
  if not re.fullmatch('[A-Z]{2}',a.country):raise ValueError('invalid_country')
  if a.state and not re.fullmatch('[A-Z0-9-]{1,8}',a.state):raise ValueError('invalid_subdivision')
  if (a.first_row is None)!=(a.last_row is None) or a.first_row is not None and not 0<=a.first_row<=a.last_row<100000000:raise ValueError('invalid_row_window')
  assets=[v for v in json.loads(Path(a.assets).read_text()) if v['id']==a.asset and v['theme']=='divisions-stac']
  if len(assets)!=1:raise ValueError('one_reviewed_asset_required')
- root=Path(a.root);root.mkdir(parents=True,exist_ok=True);source=RangeSource(assets[0],root/('ranges-'+a.asset),offline=a.offline);started=time.monotonic()
+ root=Path(a.root);root.mkdir(parents=True,exist_ok=True);source=RangeSource(assets[0],root/('ranges-'+a.asset),offline=a.offline or a.cached_plan);started=time.monotonic()
  class Gateway(BaseHTTPRequestHandler):
   def log_message(self,*args):pass
   def do_HEAD(self):
@@ -86,7 +113,10 @@ def main():
  try:
   db.execute('LOAD httpfs');db.execute('SET http_timeout=35;SET http_retries=0;SET enable_http_metadata_cache=true')
   url='http://127.0.0.1:'+str(server.server_address[1])+'/division.parquet'
-  if a.metadata:
+  if a.cached_plan:
+   values=db.execute('SELECT row_group_id,row_group_num_rows,path_in_schema,data_page_offset,dictionary_page_offset,total_compressed_size FROM parquet_metadata(?)',[url]).fetchall();columns=[v[0] for v in db.description];rows=[dict(zip(columns,v)) for v in values]
+   plan={'assetId':a.asset,'windows':cached_windows(rows,source),'transport':source.metrics(),'actualOfflineReadStillRequired':True,'doesNotEstablishCountryCompleteness':True};(root/('cached-plan-'+a.asset+'.json')).write_text(json.dumps(plan,indent=2));print(json.dumps(plan),flush=True)
+  elif a.metadata:
    values=db.execute("SELECT row_group_id,row_group_num_rows,path_in_schema,stats_min_value,stats_max_value,data_page_offset,dictionary_page_offset,total_compressed_size FROM parquet_metadata(?) WHERE path_in_schema IN ('country','region','geometry','id')",[url]).fetchall();columns=[v[0] for v in db.description];rows=[dict(zip(columns,v)) for v in values];(root/('row-groups-'+a.asset+'.json')).write_text(json.dumps(rows));print(json.dumps({'groups':len({v['row_group_id'] for v in rows}),'transport':source.metrics()}))
   elif a.probe:
    columns=db.execute('DESCRIBE SELECT * FROM read_parquet(?)',[url]).fetchall();print(json.dumps({'columns':columns,'transport':source.metrics()}),flush=True)

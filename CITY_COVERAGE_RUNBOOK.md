@@ -316,6 +316,60 @@ continuam sujeitos ao código de país publicado e à revisão de limites; a
 interseção do plano não autoriza reclassificá-los. Partições consultadas não
 comprovam cobertura completa de empresas.
 
+Durante indisponibilidade da rede do executor, `catalog-division-read.py
+--root RAIZ --assets assets.json --asset 00003 --country PL --cached-plan`
+inspeciona exclusivamente os intervalos já salvos e verificados. Ele lista
+janelas cujas colunas estão em cache. A leitura real com `--offline
+--first-row INICIO --last-row FIM` ainda é obrigatória: buffers do leitor
+podem precisar de intervalos adicionais. Uma falha informa os bytes ausentes,
+não baixa automaticamente e não significa que a região não tenha empresas.
+Os arquivos concluídos usam nomes separados por janela e preservam a origem.
+
+Para ampliar um país já publicado, conservar o diretório anterior e fornecer
+`--merge-existing DIRETORIO_ANTERIOR` ao `catalog-world-boundaries.py`.
+Todos os vínculos anteriores devem reaparecer com a mesma identidade e o mesmo
+polígono, ainda atendendo país, estado, nome e coordenadas. Uma fonte nova que
+produza outra candidatura não substitui automaticamente esse vínculo. Fonte ou
+geometria conflitante interrompe a preparação. Guardar os relatórios anteriores
+em histórico e executar novamente a conciliação: o Parquet publicado fica
+byte a byte igual quando os registros não mudam.
+
+### Publicação retomável de um país preparado
+
+`catalog-publish-country.py` aceita seletores de arquivos privados, não valores
+de credenciais na linha de comando. Executa um único país, com trava local,
+limite de 220 MiB no banco e verificação do conteúdo antes da ativação. Exemplo
+exato desta rodada, idempotente quando concluído:
+
+```bash
+.artifacts/venv-catalog/bin/python scripts/catalog-publish-country.py \
+  --root .artifacts/city-coverage-austria-v4-20261026 \
+  --database-config .env.coverage-operations \
+  --asset-config .env.austria-v4-asset-upload \
+  --geometry-config .env.austria-v4-geometry-upload
+```
+
+Acrescentar `--check-only` verifica arquivos, país, hashes e os destinos
+assinados sem acesso à rede. As URLs de upload, obtidas pelo conector Neon,
+expiram: renovar pelo mesmo projeto/bucket/chaves quando houver etapas de
+upload pendentes; não publicar esses arquivos privados no Git ou nos pacotes.
+O comando reconhece um objeto que já foi enviado e verifica seu SHA-256,
+sem sobrescrevê-lo. `publication-checkpoint.json` guarda as etapas terminadas;
+falhas de rede deixam o país retomável. Não há repetição automática ilimitada.
+
+Quando só a cobertura geográfica mudou, conservar o ativo comercial e usar
+`--geography-only`. O comando exige o ativo congelado e registrado, verifica
+seu hash, publica novas geometrias e contagens, e cria um checkpoint separado
+por hash. Não reenviar nem registrar novamente as mesmas empresas.
+
+Nos testes reais, executar `catalog-smoke.py` em série: o serviço gratuito
+limita o leitor de arquivos a uma consulta simultânea. Contagens certificadas
+podem ser menores que os registros dentro de um polígono quando há sobreposição
+entre áreas administrativas. Não aumentar a certificação automaticamente:
+registrar o motivo e comparar a lista exata de IDs da aplicação com a extração
+local usando `--expected-source-sha256`. O teste grava a evidência também
+quando uma comparação falha.
+
 Para geometrias novas, `catalog-geometry-upload.py` aceita `gzip:true` no JSON
 privado de entrada. Preserva os bytes e SHA-256 do JSON descomprimido no manifesto
 e grava o objeto com `Content-Encoding:gzip`. Requests e o fetch Node decodificam
