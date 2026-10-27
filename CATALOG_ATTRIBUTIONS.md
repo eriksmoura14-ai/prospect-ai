@@ -22,6 +22,10 @@ website. Não há dados de contas ou sessões de clientes nos arquivos públicos
   e registro permanecem nos arquivos: CDLA Permissive 2.0, Apache 2.0 e CC0 1.0,
   conforme a fonte. Os Parquets comerciais independentes preservam conteúdo e
   licença original; rótulos de cidade não são substituídos pelo inventário ODbL.
+  Os deltas de recuperação costeira, selecionados por limites OSM revisados,
+  são disponibilizados também sob **ODbL 1.0**, acrescida das licenças originais
+  de cada registro. Suas provas e atribuições acompanham a publicação pública;
+  eles não substituem nem reclassificam a licença dos arquivos independentes.
 - **geoBoundaries gbOpen:** https://www.geoboundaries.org/, com produtores,
   licenças, versão, URLs e atribuições específicas nos metadados de cada arquivo.
   Brasil: IBGE/OCHA, municípios 2020 CC BY 3.0 IGO; estados 2006 CC BY 2.5.

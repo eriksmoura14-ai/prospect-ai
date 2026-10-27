@@ -4,7 +4,7 @@ Requests keeps the inherited proxy and TLS. DuckDB uses only a loopback range
 gateway with an aggregate byte/deadline budget. No worldwide geometry download.
 The immutable publisher asset and completed ranges are cached for resumption.
 """
-import argparse,hashlib,json,re,threading,time,shutil
+import argparse,bisect,hashlib,json,re,threading,time,shutil
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -12,6 +12,14 @@ import duckdb,requests
 
 RELEASE='2026-10-21.0'
 SELECTED_COLUMNS={'id','division_id','names','country','region','subtype','class','is_land','is_territorial','admin_level','sources','bbox','geometry'}
+
+def country_row_windows(index,code,subtypes=('locality','localadmin')):
+ if not index.get('complete') or index.get('release')!=RELEASE:raise ValueError('complete_pinned_row_index_required')
+ windows=[]
+ for group in index['rowGroups']:
+  rows=sum(group['countries'].get(code,{}).get(kind,0) for kind in subtypes)
+  if rows:windows.append({'firstRow':group['firstRow'],'lastRow':group['lastRow'],'rows':rows,'selectedCompressedBytes':group['selectedCompressedBytes']})
+ return windows
 
 def cached_windows(rows,source):
  """Identify candidate offline windows with all selected column chunks cached.
@@ -90,7 +98,7 @@ class RangeSource:
  def metrics(self):return {'receivedBytes':self.received,'cachedBytesReused':self.reused,'requests':self.calls,'maximumBytes':self.maximum,'source':self.url}
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--assets',required=True);p.add_argument('--asset',required=True);p.add_argument('--country',required=True);p.add_argument('--state');p.add_argument('--offline',action='store_true');p.add_argument('--probe',action='store_true');p.add_argument('--metadata',action='store_true');p.add_argument('--cached-plan',action='store_true');p.add_argument('--country-index',action='store_true');p.add_argument('--include-counties',action='store_true');p.add_argument('--first-row',type=int);p.add_argument('--last-row',type=int);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--assets',required=True);p.add_argument('--asset',required=True);p.add_argument('--country',required=True);p.add_argument('--state');p.add_argument('--offline',action='store_true');p.add_argument('--probe',action='store_true');p.add_argument('--metadata',action='store_true');p.add_argument('--cached-plan',action='store_true');p.add_argument('--country-index',action='store_true');p.add_argument('--country-rows-index',action='store_true');p.add_argument('--include-counties',action='store_true');p.add_argument('--first-row',type=int);p.add_argument('--last-row',type=int);a=p.parse_args()
  if not re.fullmatch('[A-Z]{2}',a.country):raise ValueError('invalid_country')
  if a.state and not re.fullmatch('[A-Z0-9-]{1,8}',a.state):raise ValueError('invalid_subdivision')
  if (a.first_row is None)!=(a.last_row is None) or a.first_row is not None and not 0<=a.first_row<=a.last_row<100000000:raise ValueError('invalid_row_window')
@@ -113,7 +121,23 @@ def main():
  try:
   db.execute('LOAD httpfs');db.execute('SET http_timeout=35;SET http_retries=0;SET enable_http_metadata_cache=true')
   url='http://127.0.0.1:'+str(server.server_address[1])+'/division.parquet'
-  if a.country_index:
+  if a.country_rows_index:
+   metadata=db.execute('SELECT row_group_id,row_group_num_rows,path_in_schema,total_compressed_size FROM parquet_metadata(?) ORDER BY row_group_id',[url]).fetchall();groups={};total=0;boundaries=[];ends=[]
+   for identity,count,column,size in metadata:
+    if identity not in groups:groups[identity]={'rowGroup':identity,'rows':count,'selectedCompressedBytes':0,'countries':{}}
+    if re.split(r'[,\.]',column)[0].strip() in SELECTED_COLUMNS:groups[identity]['selectedCompressedBytes']+=size
+   for identity,group in sorted(groups.items()):group.update(firstRow=total,lastRow=total+group['rows']-1);total+=group['rows'];boundaries.append(group);ends.append(total)
+   cursor=db.execute('SELECT file_row_number,country,subtype,is_territorial FROM read_parquet(?,file_row_number=true)',[url]);seen=0
+   while True:
+    batch=cursor.fetchmany(25000)
+    if not batch:break
+    for position,code,kind,territorial in batch:
+     if code and territorial is True:
+      counts=boundaries[bisect.bisect_right(ends,position)]['countries'].setdefault(code,{});counts[kind]=counts.get(kind,0)+1
+    seen+=len(batch)
+   if seen!=total:raise RuntimeError('incomplete_country_row_index')
+   index={'assetId':a.asset,'release':RELEASE,'license':'ODbL-1.0','rowGroups':boundaries,'metadataRows':seen,'complete':True,'transport':source.metrics(),'geometryColumnsRead':False,'businessCoverage':False};(root/('country-row-index-'+a.asset+'.json')).write_text(json.dumps(index,indent=2));print(json.dumps({'assetId':a.asset,'metadataRows':seen,'rowGroups':len(boundaries),'transport':source.metrics(),'geometryColumnsRead':False,'businessCoverage':False}),flush=True)
+  elif a.country_index:
    values=db.execute('SELECT country,subtype,count(*) AS sourceRows FROM read_parquet(?) WHERE is_territorial=true GROUP BY country,subtype ORDER BY country,subtype',[url]).fetchall()
    index={'assetId':a.asset,'release':RELEASE,'license':'ODbL-1.0','countrySubtypeCounts':[{'country':v[0],'subtype':v[1],'sourceRows':v[2]} for v in values],'transport':source.metrics(),'businessCoverage':False,'geometryColumnsRead':False};(root/('country-index-'+a.asset+'.json')).write_text(json.dumps(index,indent=2));print(json.dumps({'assetId':a.asset,'countrySubtypePairs':len(values),'transport':source.metrics(),'businessCoverage':False}),flush=True)
   elif a.cached_plan:

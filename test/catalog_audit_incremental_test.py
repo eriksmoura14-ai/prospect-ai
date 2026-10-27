@@ -4,6 +4,9 @@ from pathlib import Path
 spec=importlib.util.spec_from_file_location('incremental',Path(__file__).resolve().parents[1]/'scripts/catalog-audit-incremental.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 
 class IncrementalProof(unittest.TestCase):
+ def test_csv_json_and_nullable_counts_keep_the_ndjson_data_types(self):
+  row={'city_key':'FI:01:1','city_id':'001','unique_supported':'','source_rows':'0','category_count':'2','sources':'[{"source":"overture","rows":0}]','limitations':'[]','review_id':''};decoded=m.decode_export_row(row)
+  self.assertIsNone(decoded['unique_supported']);self.assertEqual(decoded['source_rows'],0);self.assertEqual(decoded['category_count'],2);self.assertEqual(decoded['sources'][0]['rows'],0);self.assertEqual(decoded['limitations'],[]);self.assertIsNone(decoded['review_id']);self.assertEqual(decoded['city_id'],'001')
  def test_missing_location_is_distinct_from_zero_companies(self):
   row={'city_key':'GB:NFK:1','unique_supported':None,'source_rows':None,'category_count':None,'association_status':'pending','coverage_status':'location_pending'}
   self.assertNotEqual(m.canonical(row),m.canonical({**row,'unique_supported':0}))

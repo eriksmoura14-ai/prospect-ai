@@ -33,6 +33,16 @@ def canonical(row):
  if any('|' in value or '\n' in value for value in values):raise ValueError('unsafe_coverage_fingerprint_field')
  return ('|'.join(values)+'\n').encode()
 
+def decode_export_row(row):
+ row=dict(row)
+ for key in ('unique_supported','source_rows','category_count'):
+  if key in row:row[key]=None if row[key] in (None,'') else int(row[key])
+ for key in ('sources','limitations'):
+  if isinstance(row.get(key),str):row[key]=json.loads(row[key]) if row[key] else None
+ for key in ('updated_at','review_id','reviewed_at','revisit_after'):
+  if row.get(key)=='':row[key]=None
+ return row
+
 def verified(countries,proof):
  if proof.get('database')!='catalog_ops':raise ValueError('isolated_public_inventory_required')
  actual={r['country_code']:r for r in proof['countries']}
@@ -82,11 +92,12 @@ def main():
  with baseline.open() as source,temporary.open('w',newline='') as out,gzip.open(compressed,'wt') as archive:
   reader=csv.DictReader(source);writer=csv.DictWriter(out,fieldnames=reader.fieldnames);writer.writeheader()
   for original in reader:
+   original=decode_export_row(original)
    key=original['city_key'];cc=original['country_code']
    if key<=last:raise ValueError('complete_baseline_must_have_unique_sorted_keys')
    last=key;row={**original,**patches.pop(key,{})};row.pop('unique_all',None)
    if cc in countries_changed:
-    row['updated_at']='';row['audit_status']='target_met' if row['coverage_status']=='target_met' else original['audit_status'] if original['audit_status']=='audited_below_target' else 'pending'
+    row['updated_at']=None;row['audit_status']='target_met' if row['coverage_status']=='target_met' else original['audit_status'] if original['audit_status']=='audited_below_target' else 'pending'
    n=None if row.get('unique_supported') in (None,'') else int(row['unique_supported'])
    s=stats.setdefault(cc,collections.Counter());s['cities']+=1
    for threshold in (50,100,200):s['min'+str(threshold)]+=int(n is not None and n>=threshold)

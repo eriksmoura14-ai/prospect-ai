@@ -37,10 +37,19 @@ def registry_names(city):
  return result
 
 def scope_matches(city,area):
- # Some app options are explicitly named administrative districts (Okres).
- # A county must never be silently borrowed for an ordinary town of that name.
- district=city['countryCode'] in ('SK','CZ') and country.normalized(city['name']).startswith('okres ')
- return area.get('kind')=='county' if district else area.get('kind')!='county'
+ # An explicitly selected administrative option is a separate requested scope.
+ # A county must never be borrowed for an ordinary town of the same name.
+ return area.get('kind')=='county' if requested_county_policy(city) else area.get('kind')!='county'
+
+def requested_county_policy(city):
+ name=country.normalized(city['name'])
+ if city['countryCode'] in ('SK','CZ') and name.startswith('okres '):return 'explicit_registry_okres_district'
+ # The Danish registry explicitly lists "Aarhus Kommune" separately from
+ # "Aarhus". Overture represents the 98 municipalities as county/admin_level 2;
+ # these are not the historical amter abolished in 2007. Only the explicit
+ # Kommune option can use that reviewed source class.
+ if city['countryCode']=='DK' and name.endswith(' kommune'):return 'explicit_registry_danish_municipality'
+ return None
 
 def preserve_mapping(previous,old_areas,hits):
  """A reviewed published identity wins over newly introduced ambiguity only
@@ -72,8 +81,8 @@ def main():
  wanted={a.country+'-'+v['stateCode'] for v in inventory};lookup=collections.defaultdict(list);seen={};bad=[];source_files=[];hierarchy=None;source_names={}
  if a.hierarchy:
   spec=importlib.util.spec_from_file_location('published_hierarchy',Path(__file__).with_name('catalog-hierarchy.py'));hm=importlib.util.module_from_spec(spec);spec.loader.exec_module(hm);hierarchy=hm.HierarchyIndex(a.hierarchy,a.country,a.state_registry,{v['stateCode'] for v in inventory})
- district_entries=[v for v in inventory if v['countryCode'] in ('SK','CZ') and country.normalized(v['name']).startswith('okres ')]
- db=duckdb.connect(config={'memory_limit':'256MB','threads':'1'});columns=['id','division_id','names','country','region','subtype','class','is_territorial','sources','geometry']
+ district_entries=[v for v in inventory if requested_county_policy(v)]
+ db=duckdb.connect(config={'memory_limit':'256MB','threads':'1'});columns=['id','division_id','names','country','region','subtype','class','is_territorial','sources','geometry','admin_level']
  for path in map(Path,a.region):
   report=json.loads(path.with_name(path.stem+'-report.json').read_text())
   if report['sourceRelease']!='2026-10-21.0' or report['license']!='ODbL-1.0' or report['country']!=a.country or path.stat().st_size!=report['bytes'] or hashlib.file_digest(path.open('rb'),'sha256').hexdigest()!=report['sha256']:raise ValueError('division_extract_integrity')
@@ -98,10 +107,13 @@ def main():
     source_state=row['region'].split('-',1)[1] if isinstance(row['region'],str) and row['region'].startswith(a.country+'-') else None
     primary=row['names']['primary'];area={'id':identity,'country_code':a.country,'state_code':source_state,'name':primary,'kind':row['subtype'],'source':'Overture divisions / OpenStreetMap / geoBoundaries','vintage':'2026-10-21.0','geom':g,'license':{'id':'ODbL-1.0','url':'https://opendatacommons.org/licenses/odbl/1-0/','attribution':'© OpenStreetMap contributors; Overture Maps Foundation; geoBoundaries contributors as recorded per feature','shareAlike':True,'source':'https://docs.overturemaps.org/guides/divisions/'},'source_metadata':{'source_area_id':row['id'],'division_id':row['division_id'],'subtype':row['subtype'],'regionISO':row['region'],'territorial':True,'sources':sources,'association':'Exact published country, ISO subdivision, normalized primary/common name, and app anchor inside territorial polygon','notACurrentCadastralSurvey':True}}
     if row['subtype']=='county':
-     district_labels=sorted(country.normalized(v['name']) for v in district_entries if registry_names(v).intersection(names(row['names'])))
+     matching=[v for v in district_entries if registry_names(v).intersection(names(row['names']))];district_labels=sorted(country.normalized(v['name']) for v in matching)
      if not district_labels:continue
-     area['source_metadata']['scope_policy']='explicit_registry_okres_district'
-     area['source_metadata']['verified_district_labels']=district_labels
+     policy=requested_county_policy(matching[0]);area['source_metadata']['scope_policy']=policy
+     if policy=='explicit_registry_danish_municipality':
+      if row['admin_level']!=2 or not country.normalized(primary).endswith(' kommune'):continue
+      area['source_metadata'].update(verified_municipality_labels=district_labels,admin_level=2,hierarchyAuthority='https://www.dst.dk/en/Statistik/dokumentation/nomenklaturer/nuts',authorityDescription='98 municipalities within five regions; source geometry remains OSM, not Statistics Denmark')
+     else:area['source_metadata']['verified_district_labels']=district_labels
     seen[identity]=area
     if a.country=='SI':area['source_metadata']['published_name_aliases']=sorted(names(row['names'],a.country))
     source_names[identity]=names(row['names'],a.country)

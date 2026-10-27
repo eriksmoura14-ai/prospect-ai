@@ -178,6 +178,9 @@ def confirmed_admin_ids(candidates,geometries=None):
             # districts. Do not assume the county is always the larger unit.
             district=geometries[parent['id']] if geometries is not None else polygon(parent['geometry']);town=geometries[child['id']] if geometries is not None else polygon(child['geometry'])
             if district.covers(town) or town.covers(district):return [parent['id'],child['id']]
+        if child['country_code']==parent['country_code']=='DK' and child['state_code']==parent['state_code'] and child['kind'] in ('locality','localadmin') and parent['kind']=='county' and parent_meta.get('scope_policy')=='explicit_registry_danish_municipality' and parent_meta.get('admin_level')==2 and normalized(parent.get('name','')).endswith(' kommune') and normalized(parent.get('name','')) in parent_meta.get('verified_municipality_labels',[]):
+            municipality=geometries[parent['id']] if geometries is not None else polygon(parent['geometry']);town=geometries[child['id']] if geometries is not None else polygon(child['geometry'])
+            if municipality.covers(town):return [parent['id'],child['id']]
     return []
 
 def geometry(args):
@@ -215,6 +218,21 @@ def geometry(args):
     result={'country':country,'uploads':uploads,'manifests':manifests,'geometryBytes':sum(u['bytes'] for u in uploads),'files':len(uploads),'cities':sum(len(u['cityIds']) for u in uploads)}
     (root/'geometry-publication.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({k:v for k,v in result.items() if k not in ('uploads','manifests')}),flush=True)
 
+def restore_observation_history(counts,sources,inventory,previous):
+    if {r['city_key'] for r in previous}!={r['key'] for r in inventory}:raise ValueError('previous_coverage_inventory_mismatch')
+    by_key={r['key']:r for r in inventory};restored={}
+    for row in previous:
+        admin=by_key[row['city_key']].get('admin_id');n=row['unique_supported']
+        if bool(admin)!=(n is not None):raise ValueError('previous_coverage_scope_changed')
+        if not admin:continue
+        if counts[admin]['unique']!=n:raise ValueError('previous_canonical_coverage_changed')
+        old_sources=Counter({r['source']:r['rows'] for r in row['sources']});history=(row['source_rows'],old_sources)
+        if admin in restored:
+            if restored[admin]!=history:raise ValueError('previous_shared_scope_conflict')
+            continue
+        if row['source_rows']<counts[admin]['source_rows'] or any(old_sources[s]<v for s,v in sources[admin].items()):raise ValueError('previous_observation_history_incomplete')
+        counts[admin]['source_rows']=row['source_rows'];sources[admin]=old_sources;restored[admin]=history
+
 def reconcile(args):
     root=Path(args.root);start=time.monotonic();country=args.country;h=helper()
     files=[Path(p) for p in args.region];assert files and all(p.is_file() for p in files)
@@ -232,9 +250,10 @@ def reconcile(args):
             if r['country_code']!=country:raise ValueError('wrong_business_country')
             identity=('osm/' if source in ('qlever','overpass','geofabrik') else source+'/')+str(r['source_id'])
             previous=seen.accept(identity,country,r['name'],r['latitude'],r['longitude'],r.get('phone'),r.get('address'))
-            totals['observations']+=1
+            totals['observations']+=1;totals['new_observations' if new else 'previous_observations']+=1
             if previous:
                 aliases.append({'source':source,'source_id':str(r['source_id']),'canonical':previous,'country_code':country,'reason':'same_identity_or_same_name_within_60m_and_shared_phone_or_nonconflicting_address'});totals['overlaps']+=1
+                if new:totals['new_overlaps']+=1
             else:
                 totals['unique']+=1;totals['new_unique' if new else 'previous_unique']+=1
                 if new:new_ids.append(str(r['source_id']))
@@ -250,6 +269,16 @@ def reconcile(args):
         rows=[{**r,'source_id':str(r['source_id']),'latitude':r['payload']['latitude'],'longitude':r['payload']['longitude']} for r in old['discovery_records'] if r['source']==source and r['country_code']==country]
         consume(rows,source,False)
     fields=['source_id','country_code','name','latitude','longitude','phone','address','category','primary_category','category_hierarchy','alternate_categories','basic_category']
+    existing=[Path(p) for p in getattr(args,'existing_asset',[]) or []]
+    if bool(existing)!=bool(getattr(args,'previous_coverage',None)):raise ValueError('existing_assets_and_previous_coverage_required_together')
+    if existing:
+        cur=db.execute('SELECT '+','.join('CAST(source_id AS VARCHAR) AS source_id' if f=='source_id' else f for f in fields)+' FROM read_parquet(?,union_by_name=true) WHERE country_code=? ORDER BY source_id',[[str(p) for p in existing],country])
+        while True:
+            batch=cur.fetchmany(5000)
+            if not batch:break
+            consume([dict(zip(fields,row)) for row in batch],'overture',False)
+        inventory=[json.loads(line) for line in (root/'mapped-inventory.ndjson').open()]
+        previous=[json.loads(line) for line in Path(args.previous_coverage).open()];restore_observation_history(counts,sources,inventory,previous)
     cur=db.execute('SELECT '+','.join('CAST(source_id AS VARCHAR) AS source_id' if f=='source_id' else f for f in fields)+' FROM read_parquet(?,union_by_name=true) WHERE country_code=? ORDER BY source_id',[[str(p) for p in files],country])
     while True:
         batch=cur.fetchmany(5000)
@@ -283,10 +312,11 @@ def reconcile(args):
             out.write(json.dumps(update,separators=(',',':'))+'\n');writer.writerow([country,city['stateCode'],city['name'],city['key'],admin or '',prev,n,len(categories[admin]) if admin else '',status])
     quality=dict(zip(['records','phone','website','address','valid_location'],db.execute("SELECT count(*),count(*) FILTER(WHERE phone<>''),count(*) FILTER(WHERE website<>''),count(*) FILTER(WHERE address<>''),count(*) FILTER(WHERE latitude BETWEEN -90 AND 90 AND longitude BETWEEN -180 AND 180) FROM read_parquet(?)",[str(output)]).fetchone()))
     result={'country':country,'inventoryDenominator':152970,'countryInventoryCities':len(inventory),'counts':dict(totals),'countrySummary':dict(summary),'baselineCountrySummary':dict(baseline),'newAsset':{**quality,'file':str(output),'bytes':output.stat().st_size,'sha256':hashlib.file_digest(output.open('rb'),'sha256').hexdigest()},'immutableOutputReused':immutable_reused,'examples':sorted(examples,key=lambda r:r['after'])[:100],'elapsedMs':round((time.monotonic()-start)*1000),'backgroundProcessConfigured':False,'targetPerCity':50,'sourcesAreNotVerifiedBusinesses':True}
+    if existing:result.update(existingCanonicalAssets=[str(p) for p in existing],previousCoverageInput=args.previous_coverage,previousObservationsAreCanonicalOnly=True,coverageObservationHistoryPreserved=True)
     (root/'country-report.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({k:v for k,v in result.items() if k!='examples'}),flush=True)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('action',choices=['boundaries','reconcile','geometry']);parser.add_argument('--root',required=True);parser.add_argument('--country',required=True);parser.add_argument('--inventory');parser.add_argument('--state-metadata');parser.add_argument('--city-metadata');parser.add_argument('--states');parser.add_argument('--cities');parser.add_argument('--region',action='append');parser.add_argument('--legacy');parser.add_argument('--niches');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('action',choices=['boundaries','reconcile','geometry']);parser.add_argument('--root',required=True);parser.add_argument('--country',required=True);parser.add_argument('--inventory');parser.add_argument('--state-metadata');parser.add_argument('--city-metadata');parser.add_argument('--states');parser.add_argument('--cities');parser.add_argument('--region',action='append');parser.add_argument('--legacy');parser.add_argument('--niches');parser.add_argument('--existing-asset',action='append');parser.add_argument('--previous-coverage');args=parser.parse_args()
     if args.action=='boundaries':boundaries(args)
     elif args.action=='geometry':geometry(args)
     else:reconcile(args)

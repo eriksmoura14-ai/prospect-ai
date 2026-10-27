@@ -35,6 +35,15 @@ class WorldIdentity(unittest.TestCase):
   self.assertEqual(world.country.confirmed_admin_ids([child,{**parent,'state_code':'BC'}]),[])
   self.assertEqual(world.country.confirmed_admin_ids([child,{**parent,'geometry':mapping(box(1.5,1.5,3,3))}]),[])
   self.assertEqual(set(world.country.confirmed_admin_ids([{**child,'geometry':mapping(box(-1,-1,4,4))},parent])),{'town','district'})
+ def test_danish_municipality_is_available_only_for_the_explicit_kommune_option(self):
+  city={'countryCode':'DK','stateCode':'82','name':'Aarhus Kommune','latitude':1,'longitude':1};area={'id':'municipality','kind':'county','geom':box(0,0,2,2)}
+  self.assertEqual(world.candidates(city,{('DK-82','aarhus kommune'):[area]}),[area])
+  self.assertEqual(world.candidates({**city,'name':'Aarhus'},{('DK-82','aarhus'):[area]}),[])
+  self.assertEqual(world.candidates({**city,'countryCode':'SE'},{('SE-82','aarhus kommune'):[area]}),[])
+ def test_danish_dual_membership_needs_reviewed_label_level_state_and_containment(self):
+  town={'id':'town','kind':'locality','country_code':'DK','state_code':'82','name':'Aarhus','geometry':mapping(box(1,1,2,2))};municipality={'id':'municipality','kind':'county','country_code':'DK','state_code':'82','name':'Aarhus Kommune','geometry':mapping(box(0,0,3,3)),'source_metadata':{'scope_policy':'explicit_registry_danish_municipality','admin_level':2,'verified_municipality_labels':['aarhus kommune']}}
+  self.assertEqual(set(world.country.confirmed_admin_ids([town,municipality])),{'town','municipality'})
+  for changed in ({'state_code':'83'},{'source_metadata':{}},{'geometry':mapping(box(1.5,1.5,3,3))}):self.assertEqual(world.country.confirmed_admin_ids([town,{**municipality,**changed}]),[])
  def test_confirmed_scope_is_preserved_when_new_sources_add_an_ambiguous_name(self):
   previous={'admin_id':'original'};area={'id':'original','country_code':'CZ','state_code':'20','geom':box(0,0,2,2)};old={'original':{**{k:v for k,v in area.items() if k!='geom'},'geometry':mapping(area['geom'])}}
   other={**area,'id':'another','geom':box(0,0,3,3)}
@@ -75,6 +84,12 @@ class GeographicWriteBatching(unittest.TestCase):
   item=self.manifest('A');item['payload']['untrustedNotes']='x'*(3*1024*1024)
   with self.assertRaisesRegex(ValueError,'batch_budget'):ops.geometry_manifest_batches([item])
 class Transport(unittest.TestCase):
+ def test_country_windows_preserve_physical_offsets_without_borrowing_neighbouring_rows(self):
+  index={'complete':True,'release':remote.RELEASE,'rowGroups':[{'firstRow':0,'lastRow':9,'selectedCompressedBytes':123,'countries':{'BR':{'locality':3}}},{'firstRow':10,'lastRow':29,'selectedCompressedBytes':456,'countries':{'AR':{'locality':2,'county':5}}},{'firstRow':30,'lastRow':39,'selectedCompressedBytes':789,'countries':{'AR':{'region':1}}}]}
+  self.assertEqual(remote.country_row_windows(index,'AR'),[{'firstRow':10,'lastRow':29,'rows':2,'selectedCompressedBytes':456}])
+  self.assertEqual(remote.country_row_windows(index,'AR',('locality','county'))[0]['rows'],7)
+  self.assertEqual(remote.country_row_windows(index,'UY'),[])
+  with self.assertRaises(ValueError):remote.country_row_windows({**index,'complete':False},'AR')
  def test_hierarchy_layer_requires_explicit_opt_in_and_remains_on_reviewed_public_source(self):
   with tempfile.TemporaryDirectory() as root:
    asset={'url':'https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=divisions/type=division/part-00000-abcd.zstd.parquet','size':100}

@@ -5,6 +5,40 @@ segmentos atuais. O denominador continua sendo 152.970; volume mundial e
 localidades processadas não substituem essa medida. Empresas acima da meta são
 preservadas. A coleta não comprova atividade atual, WhatsApp ou ausência de site.
 
+## Recuperação costeira sem ampliar a área de busca
+
+O mapa de países Natural Earth 1:10m é simplificado e pode excluir pontos
+costeiros válidos. `catalog-coastal-recovery.py` revisita somente os candidatos
+já coletados que ficaram fora desse mapa. Exige país publicado concordante e
+contenção exata em um polígono local previamente revisado. Não aplica buffer,
+raio, cidade vizinha ou geocodificação em massa. Buracos e limites são respeitados.
+
+Fornecer o banco de candidatos, o Parquet normalizado e seu recibo, a raiz
+geográfica publicada e uma raiz nova. O resultado ainda precisa passar por
+`catalog-country.py reconcile`, com **todos os ativos canônicos anteriores do
+país** em `--existing-asset` e a cobertura anterior em `--previous-coverage`.
+Incluir também o snapshot legado. Não somar o ativo original aposentado e seus
+fragmentos de distribuição como se fossem empresas diferentes.
+
+Essa conciliação grava apenas o delta novo, preserva as observações anteriores
+das fontes e aborta se a cobertura canônica anterior não puder ser reproduzida.
+Usar ID/chave novos ao publicar o delta; conservar os arquivos e IDs anteriores.
+O delta derivado e sua prova geográfica são públicos sob ODbL 1.0, preservando
+também as licenças originais por registro. Recuperação geográfica não verifica
+contatos nem atividade atual.
+
+`catalog-local-witness.py` usa o leitor real do aplicativo sobre cópias locais
+com SHA-256 verificado. Seu hash do conjunto de IDs pode ser comparado com
+`catalog-smoke.py --expected-source-sha256` na instância de teste existente.
+
+## Publicação por lotes pequenos
+
+Os manifestos de geometria são validados integralmente antes da escrita e
+gravados em lotes de até 50, limitados a 3 MiB. Cada lote mantém a checagem de
+espaço do banco. Upserts idempotentes e checkpoints permitem retomar uma falha
+sem registrar o mesmo estabelecimento novamente. Em um mesmo arquivo regional,
+agrupar `--country-code` reduz leituras repetidas por país.
+
 ## Rodadas e retomada
 
 `catalog-ops.py queue` cria por padrão apenas novas tarefas abaixo de 50.
