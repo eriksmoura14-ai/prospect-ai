@@ -1,5 +1,8 @@
 # Expansão acelerada — 27/10/2026
 
+Snapshot histórico. A rodada seguinte, com Portugal e conferência de capacidade,
+está em [COBERTURA_PORTUGAL_20261027.md](COBERTURA_PORTUGAL_20261027.md).
+
 Snapshot conferido em **2026-10-27T13:57:05.86119+00:00**. O código de produção permanece em main; esta implementação está na branch separada do PR 38. As consultas abaixo foram executadas no serviço de teste existente, sem novo deploy de produção.
 
 ## Resultado verificável

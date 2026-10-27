@@ -1,0 +1,24 @@
+{
+  "file": ".artifacts/coverage-capacity-20261027/final/coverage-portugal-v3.zip",
+  "bytes": 3514676,
+  "sha256": "4da837f1c637c14eb02cad5f3cc95c9ba7d3016f144a0bb7ae689907554ba817",
+  "md5": "55620a8215b7f0caa7a10d0580d85dcb",
+  "files": 54,
+  "url": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/archives/20261027/coverage-portugal-v3.zip",
+  "containsFullAppInventory": true,
+  "privateMaterialScanPassed": true,
+  "applicationReserveStillBudgetedBytes": 54525329,
+  "budgetIncludesPriorPublicationAndSmokeAllowances": true,
+  "providerCounterMayLag": true,
+  "uploaded": true,
+  "publicHeadVerified": true,
+  "singlePutEtagMatchesLocalMd5": true,
+  "publicETag": "55620a8215b7f0caa7a10d0580d85dcb",
+  "remoteFullSha256Downloaded": false,
+  "verifiedAtUnix": 1793139550,
+  "objectStorageAfterEvidence": {
+    "objects": 1305,
+    "bytes": 2953950278
+  },
+  "capacityLedgerId": "capacity-ledger:20261027:PT:final"
+}

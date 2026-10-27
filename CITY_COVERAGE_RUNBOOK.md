@@ -154,6 +154,17 @@ exige consultar cotas novamente. Contadores do provedor podem atrasar: incluir
 em `unreportedTransferBytes` as transferências conhecidas ainda não refletidas,
 inclusive downloads de teste, repetições e outras publicações desde o snapshot.
 
+Reservas acumuladas também ficam em manifestos públicos `capacity-ledger:%`
+no banco de operações. Consultar o manifesto mais recente do mesmo projeto e
+período de consumo antes de preparar outro lote. Seu
+`providerBaselineBytes + cumulativeReservedBytes` é um teto conservador do uso
+já comprometido. Para o novo JSON, usar
+`unreportedTransferBytes = max(0, teto - dataTransferBytes_atual)`.
+Isso preserva a reserva quando o contador continua igual e evita somá-la duas
+vezes quando o provedor já contabilizou o tráfego. Reservas não são medições
+faturáveis; pertencem ao período indicado, sem transportar saldo negativo
+artificialmente para um novo período de consumo.
+
 `catalog-capacity.py --root SAIDA --usage CONFIRMACAO.json --output RELATORIO.json`
 calcula conservadoramente upload e leitura integral de verificação dos arquivos
 ainda pendentes, mais 2 MiB para controle/teste curto. Mantém 50 MiB reservados
