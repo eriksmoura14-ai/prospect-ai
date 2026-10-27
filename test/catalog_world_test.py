@@ -1,11 +1,21 @@
 import importlib.util,tempfile,unittest,json,hashlib
 from pathlib import Path
 from unittest.mock import patch
-from shapely.geometry import Polygon,box
+from shapely.geometry import Polygon,MultiPolygon,box
 
 def module(name,file):
  spec=importlib.util.spec_from_file_location(name,Path(__file__).resolve().parents[1]/'scripts'/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 world=module('world','catalog-world-boundaries.py');remote=module('division_reader','catalog-division-read.py');ops=module('queue_budgets','catalog-ops.py')
+planner=module('source_planner','catalog-source-plan.py')
+class RegionalSourcePlan(unittest.TestCase):
+ def test_all_longitude_partitions_are_required_not_only_capital_tile(self):
+  country=box(2.5,50.7,6.8,53.6)
+  tiles=[{'id':'west','bbox':[0,40,4.383,60]},{'id':'east','bbox':[4.383,40,15,60]},{'id':'outside','bbox':[16,40,25,60]}]
+  self.assertEqual([r['id'] for r in planner.required_parts(country,tiles)],['west','east'])
+ def test_disconnected_territories_use_actual_polygon_not_envelope(self):
+  country=MultiPolygon([box(-65,17,-64,18),box(3,51,7,54)])
+  tiles=[{'id':'island','bbox':[-66,16,-63,19]},{'id':'mainland','bbox':[0,50,10,55]},{'id':'empty_between','bbox':[-40,30,-30,40]}]
+  self.assertEqual([r['id'] for r in planner.required_parts(country,tiles)],['island','mainland'])
 class WorldIdentity(unittest.TestCase):
  def test_source_common_names_keep_country_subdivision_and_polygon_constraints(self):
   city={'countryCode':'DE','stateCode':'BY','name':'Munich','latitude':1,'longitude':1};area={'geom':box(0,0,2,2)}

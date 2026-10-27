@@ -304,6 +304,18 @@ são apagadas. Repetir `queue` ao consumir a fila, não criar outra cópia de to
 inventário. Uma recontagem geográfica preserva o Parquet imutável descrito em
 `published-asset.json`: mudança em qualquer campo exige publicação separada.
 
+Antes de selecionar extratos de empresas, executar `catalog-source-plan.py
+--countries .artifacts/catalog-million-20261023/countries-natural-earth.geojson
+--stac .cache/overture/2026-10-21.0-places-stac.json --country NL --country BE
+--root SAIDA`. O plano cruza todos os polígonos do país com todas as partições,
+incluindo fragmentos separados. Não selecionar apenas o extrato da capital ou
+uma faixa de latitude: isso omitia a parte oeste dos Países Baixos e da Bélgica.
+O comando não baixa empresas; lista arquivos já disponíveis para reutilização.
+Conferir os hashes dos arquivos em cache antes de normalizá-los. Os territórios
+continuam sujeitos ao código de país publicado e à revisão de limites; a
+interseção do plano não autoriza reclassificá-los. Partições consultadas não
+comprovam cobertura completa de empresas.
+
 Para geometrias novas, `catalog-geometry-upload.py` aceita `gzip:true` no JSON
 privado de entrada. Preserva os bytes e SHA-256 do JSON descomprimido no manifesto
 e grava o objeto com `Content-Encoding:gzip`. Requests e o fetch Node decodificam
