@@ -58,3 +58,5 @@ jobs:
         run: python -m unittest discover -s test -p 'catalog_coastal_test.py' -v
       - name: Country publication integrity, isolation and resumable failures
         run: python -m unittest discover -s test -p 'catalog_publication_test.py' -v
+      - name: Free resource budgets, application reserve and stale quota snapshots
+        run: python -m unittest discover -s test -p 'catalog_capacity_test.py' -v

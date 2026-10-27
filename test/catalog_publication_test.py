@@ -1,4 +1,4 @@
-import hashlib,importlib.util,json,sys,tempfile,unittest
+import hashlib,importlib.util,json,sys,tempfile,time,unittest
 from pathlib import Path
 from unittest.mock import patch
 
@@ -19,9 +19,22 @@ class PublicationSafety(unittest.TestCase):
   (root/'coverage-updates.ndjson').write_text('{"city_key":"CH:ZH:1"}\n')
   for name,value in [('publication-plan-asset.json',asset),('geometry-publication.json',geometry),('upload.json',upload),('geo-upload.json',geo_upload),('database.json',database)]:
    (root/name).write_text(json.dumps(value))
+  usage={'projectId':publisher.capacity.PROJECT,'planFingerprint':publisher.capacity.fingerprint(asset,geometry,(root/'coverage-updates.ndjson').read_bytes()),'observedAtUnix':int(time.time()),'databaseBytes':1,'dataTransferBytes':0,'dataTransferQuotaBytes':5_000_000_000,'unreportedTransferBytes':0}
+  (root/'capacity.json').write_text(json.dumps(usage))
   return asset,geometry,upload,geo_upload,database
  def arguments(self,root):
-  return ['catalog-publish-country.py','--root',str(root),'--database-config',str(root/'database.json'),'--asset-config',str(root/'upload.json'),'--geometry-config',str(root/'geo-upload.json')]
+  return ['catalog-publish-country.py','--root',str(root),'--database-config',str(root/'database.json'),'--asset-config',str(root/'upload.json'),'--geometry-config',str(root/'geo-upload.json'),'--capacity-config',str(root/'capacity.json')]
+ def test_missing_capacity_snapshot_stops_before_database_or_upload(self):
+  with tempfile.TemporaryDirectory() as folder:
+   root=Path(folder);self.fixture(root)
+   with patch.object(sys,'argv',self.arguments(root)[:-2]),patch.object(publisher,'database_room',side_effect=AssertionError('network reached')),patch.object(publisher,'run',side_effect=AssertionError('upload reached')):
+    with self.assertRaisesRegex(RuntimeError,'fresh_capacity_config_required'):publisher.main()
+ def test_transfer_budget_stops_before_database_or_upload(self):
+  with tempfile.TemporaryDirectory() as folder:
+   root=Path(folder);self.fixture(root);p=root/'capacity.json';usage=json.loads(p.read_text());usage['dataTransferBytes']=4_999_999_999;p.write_text(json.dumps(usage))
+   with patch.object(sys,'argv',self.arguments(root)),patch.object(publisher,'database_room',side_effect=AssertionError('network reached')),patch.object(publisher,'run',side_effect=AssertionError('upload reached')):
+    with self.assertRaisesRegex(RuntimeError,'capacity_blocked:transfer_budget'):publisher.main()
+   self.assertFalse((root/'publication-checkpoint.json').exists())
  def test_mismatched_signed_target_and_customer_database_are_rejected(self):
   with tempfile.TemporaryDirectory() as folder:
    root=Path(folder);a,g,u,gu,db=self.fixture(root)

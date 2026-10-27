@@ -3,13 +3,14 @@
 Private selectors stay local. Public checkpoints bind every completed step to
 the exact business, geometry and coverage files. Existing catalogs are retained.
 """
-import argparse,fcntl,hashlib,json,os,re,subprocess,sys
+import argparse,fcntl,hashlib,importlib.util,json,os,re,subprocess,sys
 from pathlib import Path
 from urllib.parse import urlsplit
 import requests
 
 ORIGIN='https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/'
 SCRIPTS=Path(__file__).resolve().parent
+_capacity_spec=importlib.util.spec_from_file_location('catalog_capacity',SCRIPTS/'catalog-capacity.py');capacity=importlib.util.module_from_spec(_capacity_spec);_capacity_spec.loader.exec_module(capacity)
 
 def digest(path):
  with Path(path).open('rb') as file:return hashlib.file_digest(file,'sha256').hexdigest()
@@ -87,7 +88,7 @@ def save(path,data):
  tmp=path.with_suffix('.tmp');tmp.write_text(json.dumps(data,indent=2));os.replace(tmp,path)
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--database-config',required=True);p.add_argument('--asset-config',required=True);p.add_argument('--geometry-config',required=True);p.add_argument('--check-only',action='store_true');p.add_argument('--geography-only',action='store_true');a=p.parse_args();root=Path(a.root).resolve()
+ p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--database-config',required=True);p.add_argument('--asset-config',required=True);p.add_argument('--geometry-config',required=True);p.add_argument('--capacity-config');p.add_argument('--check-only',action='store_true');p.add_argument('--geography-only',action='store_true');a=p.parse_args();root=Path(a.root).resolve()
  asset=json.loads((root/'publication-plan-asset.json').read_text());geometry=json.loads((root/'geometry-publication.json').read_text());upload=json.loads(Path(a.asset_config).read_text());geo_upload=json.loads(Path(a.geometry_config).read_text());database=json.loads(Path(a.database_config).read_text())
  fingerprint=validate(root,asset,geometry,upload,geo_upload,database)
  if a.geography_only and not (root/'published-asset.json').exists():raise ValueError('geography_update_requires_existing_frozen_asset')
@@ -96,6 +97,15 @@ def main():
   fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
   checkpoint=root/('geography-publication-'+fingerprint[:16]+'.json' if a.geography_only else 'publication-checkpoint.json');state=json.loads(checkpoint.read_text()) if checkpoint.exists() else {'fingerprint':fingerprint,'completed':[]}
   if state['fingerprint']!=fingerprint:raise RuntimeError('changed_publication_requires_separate_checkpoint')
+  # A completed resume transfers no public artifacts. Every unfinished publication
+  # requires a fresh, plan-bound quota snapshot before the first network call.
+  expected={'asset_remote_sha256','geometry_uploaded_and_verified','geometry_registered','coverage_saved','queue_refreshed'}
+  if not a.geography_only:expected|={'asset_uploaded','asset_registered'}
+  if not expected.issubset(state['completed']):
+   if not a.capacity_config:raise RuntimeError('fresh_capacity_config_required')
+   report=capacity.assess(root,json.loads(Path(a.capacity_config).read_text()),geography_only=a.geography_only)
+   if not report['allowed']:raise RuntimeError('capacity_blocked:'+','.join(report['blockers']))
+   save(root/'capacity-preflight.json',report)
   existing=database_room(database,asset)
   if a.geography_only and not existing:raise RuntimeError('geography_update_requires_registered_asset')
   steps=[('asset_uploaded',lambda:ensure_uploaded(asset,upload)),('asset_remote_sha256',lambda:verify_remote(asset)),('geometry_uploaded_and_verified',lambda:run('catalog-geometry-upload.py',[],geo_upload)),('geometry_registered',lambda:run('catalog-ops.py',['geometry_manifest','--root',str(root)],{**database,'manifests':geometry['manifests']})),('asset_registered',lambda:run('catalog-ops.py',['asset','--root',str(root)],{**database,'asset':asset})),('coverage_saved',lambda:run('catalog-ops.py',['coverage','--root',str(root)],{**database,'externalGeometry':True})),('queue_refreshed',lambda:run('catalog-ops.py',['queue','--root',str(root)],{**database,'minimumOnly':True}))]

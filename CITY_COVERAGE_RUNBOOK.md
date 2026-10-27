@@ -139,6 +139,34 @@ ausência de empresas. Contatos e dados privados nunca são enviados a esse leit
 
 ## Recursos e critérios de encerramento
 
+`catalog-publish-country.py` exige agora `--capacity-config CONFIRMACAO.json`
+antes de qualquer publicação incompleta. A conferência é local e antecede a
+primeira requisição de rede; `--check-only` continua verificando arquivos sem
+rede. Uma retomada já concluída mantém seus checkpoints e ativos.
+
+O JSON de capacidade é público, sem senha. Deve conter `projectId`,
+`planFingerprint`, `observedAtUnix`, `databaseBytes`, `dataTransferBytes`,
+`dataTransferQuotaBytes` e `unreportedTransferBytes`. Use o estado efetivamente
+consultado do projeto `polished-sky-36508370`, não valores inventados. O
+fingerprint é o SHA-256 do plano de publicação e impede reutilizar a mesma
+conferência para outro país/ativo. A conferência expira em uma hora; renovar
+exige consultar cotas novamente. Contadores do provedor podem atrasar: incluir
+em `unreportedTransferBytes` as transferências conhecidas ainda não refletidas,
+inclusive downloads de teste, repetições e outras publicações desde o snapshot.
+
+`catalog-capacity.py --root SAIDA --usage CONFIRMACAO.json --output RELATORIO.json`
+calcula conservadoramente upload e leitura integral de verificação dos arquivos
+ainda pendentes, mais 2 MiB para controle/teste curto. Mantém 50 MiB reservados
+às consultas do aplicativo e 32 MiB no disco local. Respeita o guard de banco
+de 220 MiB e rejeita uma quota declarada acima dos 5 GB gratuitos existentes.
+O publicador continua conferindo o tamanho real do banco antes de cada etapa.
+O relatório não promete que um contador com atraso já inclua todo o tráfego.
+
+`VACUUM (ANALYZE)` comum permite reutilizar páginas de versões mortas após
+atualizações de cobertura. Ele preserva linhas vivas, IDs, índices e geometrias;
+não equivale a apagar o catálogo nem garante reduzir o tamanho físico do banco.
+Não usar `VACUUM FULL`, reconstrução de catálogo ou aumento de quota como atalho.
+
 O limite operacional do banco permanece 220 MiB, abaixo da quota gratuita.
 Não o aumentar para contornar falta de espaço. Conferir disco, quotas atuais,
 índices e transferência antes de novos lotes. Os arquivos comerciais ficam no
