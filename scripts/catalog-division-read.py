@@ -40,9 +40,9 @@ def cached_windows(rows,source):
  return windows
 
 class RangeSource:
- def __init__(self,asset,root,maximum=128*1024*1024,seconds=180,offline=False):
+ def __init__(self,asset,root,maximum=128*1024*1024,seconds=180,offline=False,layer='division_area'):
   self.url=asset['url'];self.size=asset['size'];u=urlsplit(self.url)
-  if u.scheme!='https' or u.netloc!='overturemaps-us-west-2.s3.us-west-2.amazonaws.com' or not u.path.startswith('/release/'+RELEASE+'/theme=divisions/type=division_area/') or not re.fullmatch(r'part-\d{5}-[a-f0-9-]+\.zstd\.parquet',u.path.rsplit('/',1)[-1]) or u.query or u.fragment:raise ValueError('unreviewed_division_asset')
+  if layer not in ('division_area','division') or u.scheme!='https' or u.netloc!='overturemaps-us-west-2.s3.us-west-2.amazonaws.com' or not u.path.startswith('/release/'+RELEASE+'/theme=divisions/type='+layer+'/') or not re.fullmatch(r'part-\d{5}-[a-f0-9-]+\.zstd\.parquet',u.path.rsplit('/',1)[-1]) or u.query or u.fragment:raise ValueError('unreviewed_division_asset')
   if type(self.size) is not int or not 1<=self.size<900*1024*1024:raise ValueError('asset_budget')
   self.root=Path(root);self.root.mkdir(parents=True,exist_ok=True);self.maximum=maximum;self.deadline=time.monotonic()+seconds;self.received=0;self.reused=0;self.calls=0;self.errors=[];self.lock=threading.Lock();self.offline=offline
   self.ranges=[];self.validated=set()
@@ -90,7 +90,7 @@ class RangeSource:
  def metrics(self):return {'receivedBytes':self.received,'cachedBytesReused':self.reused,'requests':self.calls,'maximumBytes':self.maximum,'source':self.url}
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--assets',required=True);p.add_argument('--asset',required=True);p.add_argument('--country',required=True);p.add_argument('--state');p.add_argument('--offline',action='store_true');p.add_argument('--probe',action='store_true');p.add_argument('--metadata',action='store_true');p.add_argument('--cached-plan',action='store_true');p.add_argument('--first-row',type=int);p.add_argument('--last-row',type=int);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--assets',required=True);p.add_argument('--asset',required=True);p.add_argument('--country',required=True);p.add_argument('--state');p.add_argument('--offline',action='store_true');p.add_argument('--probe',action='store_true');p.add_argument('--metadata',action='store_true');p.add_argument('--cached-plan',action='store_true');p.add_argument('--country-index',action='store_true');p.add_argument('--include-counties',action='store_true');p.add_argument('--first-row',type=int);p.add_argument('--last-row',type=int);a=p.parse_args()
  if not re.fullmatch('[A-Z]{2}',a.country):raise ValueError('invalid_country')
  if a.state and not re.fullmatch('[A-Z0-9-]{1,8}',a.state):raise ValueError('invalid_subdivision')
  if (a.first_row is None)!=(a.last_row is None) or a.first_row is not None and not 0<=a.first_row<=a.last_row<100000000:raise ValueError('invalid_row_window')
@@ -113,7 +113,10 @@ def main():
  try:
   db.execute('LOAD httpfs');db.execute('SET http_timeout=35;SET http_retries=0;SET enable_http_metadata_cache=true')
   url='http://127.0.0.1:'+str(server.server_address[1])+'/division.parquet'
-  if a.cached_plan:
+  if a.country_index:
+   values=db.execute('SELECT country,subtype,count(*) AS sourceRows FROM read_parquet(?) WHERE is_territorial=true GROUP BY country,subtype ORDER BY country,subtype',[url]).fetchall()
+   index={'assetId':a.asset,'release':RELEASE,'license':'ODbL-1.0','countrySubtypeCounts':[{'country':v[0],'subtype':v[1],'sourceRows':v[2]} for v in values],'transport':source.metrics(),'businessCoverage':False,'geometryColumnsRead':False};(root/('country-index-'+a.asset+'.json')).write_text(json.dumps(index,indent=2));print(json.dumps({'assetId':a.asset,'countrySubtypePairs':len(values),'transport':source.metrics(),'businessCoverage':False}),flush=True)
+  elif a.cached_plan:
    values=db.execute('SELECT row_group_id,row_group_num_rows,path_in_schema,data_page_offset,dictionary_page_offset,total_compressed_size FROM parquet_metadata(?)',[url]).fetchall();columns=[v[0] for v in db.description];rows=[dict(zip(columns,v)) for v in values]
    plan={'assetId':a.asset,'windows':cached_windows(rows,source),'transport':source.metrics(),'actualOfflineReadStillRequired':True,'doesNotEstablishCountryCompleteness':True};(root/('cached-plan-'+a.asset+'.json')).write_text(json.dumps(plan,indent=2));print(json.dumps(plan),flush=True)
   elif a.metadata:
@@ -122,11 +125,12 @@ def main():
    columns=db.execute('DESCRIBE SELECT * FROM read_parquet(?)',[url]).fetchall();print(json.dumps({'columns':columns,'transport':source.metrics()}),flush=True)
   else:
    window='-rows'+str(a.first_row)+'-'+str(a.last_row) if a.first_row is not None else ''
-   output=root/(a.country+('-'+a.state if a.state else '')+window+'-'+a.asset+'.parquet');temporary=output.with_suffix('.partial.parquet')
+   output=root/(a.country+('-'+a.state if a.state else '')+window+('-with-counties' if a.include_counties else '')+'-'+a.asset+'.parquet');temporary=output.with_suffix('.partial.parquet')
    if temporary.exists():temporary.unlink() # Unpublished partial copy only.
    state_filter=' AND region=?' if a.state else ''
    row_filter=' AND file_row_number BETWEEN ? AND ?' if a.first_row is not None else ''
-   db.execute("COPY (SELECT id,division_id,names,country,region,subtype,class,is_land,is_territorial,admin_level,sources,bbox,geometry FROM read_parquet(?,file_row_number=true) WHERE country=? AND subtype IN ('locality','localadmin') AND is_territorial=true"+state_filter+row_filter+") TO '"+str(temporary).replace("'","''")+"' (FORMAT PARQUET,COMPRESSION ZSTD,ROW_GROUP_SIZE 2048)",[url,a.country]+([a.country+'-'+a.state] if a.state else [])+([a.first_row,a.last_row] if a.first_row is not None else []));temporary.replace(output)
+   types="('locality','localadmin','county')" if a.include_counties else "('locality','localadmin')"
+   db.execute("COPY (SELECT id,division_id,names,country,region,subtype,class,is_land,is_territorial,admin_level,sources,bbox,geometry FROM read_parquet(?,file_row_number=true) WHERE country=? AND subtype IN "+types+" AND is_territorial=true"+state_filter+row_filter+") TO '"+str(temporary).replace("'","''")+"' (FORMAT PARQUET,COMPRESSION ZSTD,ROW_GROUP_SIZE 2048)",[url,a.country]+([a.country+'-'+a.state] if a.state else [])+([a.first_row,a.last_row] if a.first_row is not None else []));temporary.replace(output)
    count=db.execute('SELECT count(*) FROM read_parquet(?)',[str(output)]).fetchone()[0]
    report={'country':a.country,'assetId':a.asset,'records':count,'file':str(output),'bytes':output.stat().st_size,'sha256':hashlib.file_digest(output.open('rb'),'sha256').hexdigest(),'transport':source.metrics(),'elapsedMs':round((time.monotonic()-started)*1000),'sourceRelease':RELEASE,'license':'ODbL-1.0','exhaustive':False}
    output.with_name(output.stem+'-report.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)

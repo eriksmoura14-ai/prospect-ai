@@ -158,7 +158,7 @@ def freeze_output(db,root,temporary,output):
     if db.execute(query,[str(output)]).fetchone()!=db.execute(query,[str(temporary)]).fetchone():raise RuntimeError('country_delta_requires_separate_asset')
     temporary.unlink();return True
 
-def confirmed_admin_ids(candidates):
+def confirmed_admin_ids(candidates,geometries=None):
     """Explicit municipal parent/district membership can count for both app
     options, while a global business is still counted once. Overlapping peers
     or unreviewed geometric containment never authorize multiple assignments."""
@@ -168,6 +168,16 @@ def confirmed_admin_ids(candidates):
         meta=child.get('source_metadata',{})
         if child['country_code']==parent['country_code']=='FR' and child['kind'] in ('municipal_district','delegated_municipality') and parent['kind']=='municipality' and meta.get('authority')=='IGN ADMIN EXPRESS / DINUM 2026' and meta.get('parent_admin_id')==parent['id']:
             return [parent['id'],child['id']]
+        # Explicit app district entries are separate requested scopes, not a
+        # replacement town boundary. The reviewed Overture county class, exact
+        # country/state, registry label and full containment must all agree.
+        parent_meta=parent.get('source_metadata',{})
+        district_label=normalized(parent.get('name','')).startswith('okres ') or any(n.startswith('okres ') for n in parent_meta.get('verified_district_labels',[]))
+        if child['country_code']==parent['country_code'] and parent['country_code'] in ('SK','CZ') and child['state_code']==parent['state_code'] and child['kind'] in ('locality','localadmin') and parent['kind']=='county' and parent_meta.get('scope_policy')=='explicit_registry_okres_district' and district_label:
+            # Bratislava/Prague can contain multiple explicitly selected
+            # districts. Do not assume the county is always the larger unit.
+            district=geometries[parent['id']] if geometries is not None else polygon(parent['geometry']);town=geometries[child['id']] if geometries is not None else polygon(child['geometry'])
+            if district.covers(town) or town.covers(district):return [parent['id'],child['id']]
     return []
 
 def geometry(args):
@@ -209,11 +219,11 @@ def reconcile(args):
     root=Path(args.root);start=time.monotonic();country=args.country;h=helper()
     files=[Path(p) for p in args.region];assert files and all(p.is_file() for p in files)
     areas=[json.loads(line) for line in (root/'admin-areas.ndjson').open()]
-    geoms=np.array([shape(a['geometry']) for a in areas]);tree=shapely.STRtree(geoms);ids=[a['id'] for a in areas]
+    geoms=np.array([polygon(a['geometry']) for a in areas]);tree=shapely.STRtree(geoms);ids=[a['id'] for a in areas];geometry_by_id=dict(zip(ids,geoms))
     def locate(rows):
         pairs=tree.query(shapely.points([r['longitude'] for r in rows],[r['latitude'] for r in rows]),predicate='covered_by');hits=defaultdict(list)
         for i,j in zip(*pairs):hits[int(i)].append(int(j))
-        return [confirmed_admin_ids([areas[j] for j in hits[i]]) for i in range(len(rows))]
+        return [confirmed_admin_ids([areas[j] for j in hits[i]],geometry_by_id) for i in range(len(rows))]
     db=duckdb.connect(str(root/'country-reconcile.duckdb'),config={'memory_limit':'512MB','threads':'1','preserve_insertion_order':'false','temp_directory':str(root/'spill'),'max_temp_directory_size':'2GB'})
     groups=json.loads(Path(args.niches).read_text());cats={v for values in groups.values() for v in values}
     seen=h.Deduplicator();counts=defaultdict(Counter);before=defaultdict(Counter);sources=defaultdict(Counter);categories=defaultdict(set);totals=Counter();new_ids=[];aliases=[]

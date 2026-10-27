@@ -10,16 +10,37 @@ import duckdb,shapely
 from shapely.geometry import mapping
 spec=importlib.util.spec_from_file_location('country',Path(__file__).with_name('catalog-country.py'));country=importlib.util.module_from_spec(spec);spec.loader.exec_module(country)
 
-def names(value):
+def names(value,country_code=None):
  if not isinstance(value,dict):return set()
- return {country.normalized(v) for v in [value.get('primary'),*(value.get('common') or {}).values()] if isinstance(v,str) and v.strip()}
+ labels=[v for v in [value.get('primary'),*(value.get('common') or {}).values()] if isinstance(v,str) and v.strip()]
+ if country_code=='SI':
+  # Published Slovenian settlement labels use the descriptive suffix
+  # "(naselje)" and explicit Slovenian / Italian display variants. Preserve
+  # the original name and accept only those literal variants, never fuzzy names.
+  for label in list(labels):
+   trimmed=label.removesuffix(' (naselje)')
+   if trimmed!=label:labels.append(trimmed)
+   if ' / ' in trimmed:labels.extend(v.strip() for v in trimmed.split(' / ') if v.strip())
+ return {country.normalized(v) for v in labels}
 
 def candidates(city,lookup):
  if not isinstance(city.get('latitude'),(int,float)) or not isinstance(city.get('longitude'),(int,float)):return []
  point=shapely.Point(city['longitude'],city['latitude'])
  # ISO 3166-2 must identify the selected app subdivision, not an enclosing
  # macroregion. Countries whose registry uses a different level remain pending.
- return [a for a in lookup.get((city['countryCode']+'-'+city['stateCode'],country.normalized(city['name'])),[]) if a['geom'].covers(point)]
+ hits={a.get('id',id(a)):a for name in registry_names(city) for a in lookup.get((city['countryCode']+'-'+city['stateCode'],name),[])}
+ return [a for a in hits.values() if a['geom'].covers(point) and scope_matches(city,a)]
+
+def registry_names(city):
+ name=country.normalized(city['name']);result={name}
+ if city['countryCode'] in ('SK','CZ') and name.startswith('okres '):result.add(name[len('okres '):])
+ return result
+
+def scope_matches(city,area):
+ # Some app options are explicitly named administrative districts (Okres).
+ # A county must never be silently borrowed for an ordinary town of that name.
+ district=city['countryCode'] in ('SK','CZ') and country.normalized(city['name']).startswith('okres ')
+ return area.get('kind')=='county' if district else area.get('kind')!='county'
 
 def preserve_mapping(previous,old_areas,hits):
  """A reviewed published identity wins over newly introduced ambiguity only
@@ -34,7 +55,7 @@ def preserve_mapping(previous,old_areas,hits):
  return area
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--inventory',required=True);p.add_argument('--coverage-audit',required=True);p.add_argument('--country',required=True);p.add_argument('--region',action='append',required=True);p.add_argument('--merge-existing');a=p.parse_args();start=time.monotonic();root=Path(a.root);root.mkdir(parents=True,exist_ok=True)
+ p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--inventory',required=True);p.add_argument('--coverage-audit',required=True);p.add_argument('--country',required=True);p.add_argument('--region',action='append',required=True);p.add_argument('--merge-existing');p.add_argument('--hierarchy');p.add_argument('--state-registry');a=p.parse_args();start=time.monotonic();root=Path(a.root);root.mkdir(parents=True,exist_ok=True)
  if not re.fullmatch('[A-Z]{2}',a.country):raise ValueError('country_identity')
  inventory=[v for v in json.loads(Path(a.inventory).read_text())['cities'] if v['countryCode']==a.country]
  with Path(a.coverage_audit).open() as file:prior=[v for v in csv.DictReader(file) if v['country_code']==a.country]
@@ -47,7 +68,11 @@ def main():
   if previous.keys()!={v['key'] for v in inventory} or any(v['countryCode']!=a.country for v in previous.values()) or any(v['country_code']!=a.country for v in old_areas.values()):raise ValueError('existing_country_identity_mismatch')
   if any(v['coverage_status']!='location_pending' and not previous[v['city_key']].get('admin_id') for v in prior):raise ValueError('existing_confirmed_mapping_missing')
  elif any(v['coverage_status']!='location_pending' for v in prior):raise ValueError('existing_country_crosswalk_must_be_merged_explicitly')
- wanted={a.country+'-'+v['stateCode'] for v in inventory};lookup=collections.defaultdict(list);seen={};bad=[];source_files=[]
+ if bool(a.hierarchy)!=bool(a.state_registry):raise ValueError('hierarchy_and_registry_required_together')
+ wanted={a.country+'-'+v['stateCode'] for v in inventory};lookup=collections.defaultdict(list);seen={};bad=[];source_files=[];hierarchy=None;source_names={}
+ if a.hierarchy:
+  spec=importlib.util.spec_from_file_location('published_hierarchy',Path(__file__).with_name('catalog-hierarchy.py'));hm=importlib.util.module_from_spec(spec);spec.loader.exec_module(hm);hierarchy=hm.HierarchyIndex(a.hierarchy,a.country,a.state_registry,{v['stateCode'] for v in inventory})
+ district_entries=[v for v in inventory if v['countryCode'] in ('SK','CZ') and country.normalized(v['name']).startswith('okres ')]
  db=duckdb.connect(config={'memory_limit':'256MB','threads':'1'});columns=['id','division_id','names','country','region','subtype','class','is_territorial','sources','geometry']
  for path in map(Path,a.region):
   report=json.loads(path.with_name(path.stem+'-report.json').read_text())
@@ -59,7 +84,7 @@ def main():
    if not values:break
    for value in values:
     row=dict(zip(columns,value));identity='OVT:division_area:'+row['id'];sources=row['sources'] or []
-    if row['country']!=a.country or row['region'] not in wanted or row['subtype'] not in ('locality','localadmin') or row['is_territorial'] is not True:continue
+    if row['country']!=a.country or not hierarchy and row['region'] not in wanted or row['subtype'] not in ('locality','localadmin','county') or row['is_territorial'] is not True:continue
     if not sources or any(str(s.get('dataset','')).lower() not in ('openstreetmap','geoboundaries') or s.get('license') not in ('ODbL-1.0','CC-BY-4.0','CC-BY-3.0','CC-BY-3.0-IGO') for s in sources):
      bad.append({'id':identity,'reason':'source_license_requires_review'});continue
     try:g=country.polygon(mapping(shapely.force_2d(shapely.from_wkb(row['geometry']))))
@@ -70,9 +95,25 @@ def main():
     if identity in seen:
      if not seen[identity]['geom'].equals(g):raise ValueError('conflicting_source_geometry')
      continue
-    primary=row['names']['primary'];area={'id':identity,'country_code':a.country,'state_code':row['region'].split('-',1)[1],'name':primary,'kind':row['subtype'],'source':'Overture divisions / OpenStreetMap / geoBoundaries','vintage':'2026-10-21.0','geom':g,'license':{'id':'ODbL-1.0','url':'https://opendatacommons.org/licenses/odbl/1-0/','attribution':'© OpenStreetMap contributors; Overture Maps Foundation; geoBoundaries contributors as recorded per feature','shareAlike':True,'source':'https://docs.overturemaps.org/guides/divisions/'},'source_metadata':{'source_area_id':row['id'],'division_id':row['division_id'],'subtype':row['subtype'],'regionISO':row['region'],'territorial':True,'sources':sources,'association':'Exact published country, ISO subdivision, normalized primary/common name, and app anchor inside territorial polygon','notACurrentCadastralSurvey':True}}
+    source_state=row['region'].split('-',1)[1] if isinstance(row['region'],str) and row['region'].startswith(a.country+'-') else None
+    primary=row['names']['primary'];area={'id':identity,'country_code':a.country,'state_code':source_state,'name':primary,'kind':row['subtype'],'source':'Overture divisions / OpenStreetMap / geoBoundaries','vintage':'2026-10-21.0','geom':g,'license':{'id':'ODbL-1.0','url':'https://opendatacommons.org/licenses/odbl/1-0/','attribution':'© OpenStreetMap contributors; Overture Maps Foundation; geoBoundaries contributors as recorded per feature','shareAlike':True,'source':'https://docs.overturemaps.org/guides/divisions/'},'source_metadata':{'source_area_id':row['id'],'division_id':row['division_id'],'subtype':row['subtype'],'regionISO':row['region'],'territorial':True,'sources':sources,'association':'Exact published country, ISO subdivision, normalized primary/common name, and app anchor inside territorial polygon','notACurrentCadastralSurvey':True}}
+    if row['subtype']=='county':
+     district_labels=sorted(country.normalized(v['name']) for v in district_entries if registry_names(v).intersection(names(row['names'])))
+     if not district_labels:continue
+     area['source_metadata']['scope_policy']='explicit_registry_okres_district'
+     area['source_metadata']['verified_district_labels']=district_labels
     seen[identity]=area
-    for name in names(row['names']):lookup[(row['region'],name)].append(area)
+    if a.country=='SI':area['source_metadata']['published_name_aliases']=sorted(names(row['names'],a.country))
+    source_names[identity]=names(row['names'],a.country)
+    for name in source_names[identity]:lookup[(row['region'],name)].append(area)
+ if hierarchy:
+  wanted_names=set().union(*(registry_names(city) for city in inventory));eligible=[area for key,area in seen.items() if wanted_names.intersection(source_names[key])];hierarchy.preload([v['source_metadata']['division_id'] for v in eligible])
+  for area in eligible:
+   meta=area['source_metadata'];proofs=hierarchy.for_area({'country':area['country_code'],'division_id':meta['division_id'],'subtype':area['kind'],'region':meta['regionISO']})
+   if not proofs:continue
+   meta['subdivision_hierarchy_proofs']=proofs;meta['association']='Published subdivision identity and consistent ancestry, exact normalized locality name, and app anchor inside territorial polygon';area['license']['attribution']+='; Esri Community Maps contributors where recorded in hierarchy provenance (CC BY 4.0)'
+   for code in proofs:
+    for name in source_names[area['id']]:lookup[(a.country+'-'+code,name)].append(area)
  db.close();used={};counts=collections.Counter();mapped=[]
  for city in inventory:
   row={**city,'association_status':'name_state_or_anchor_not_confirmed','coverage_status':'location_pending','next_action':'review_official_country_crosswalk'};hits=candidates(city,lookup)
@@ -81,6 +122,7 @@ def main():
    hits=[preserved];counts['previousConfirmedMappingsPreserved']+=1
   if len(hits)==1:
    row.update(admin_id=hits[0]['id'],association_status='source_iso_name_and_anchor_inside_territorial_polygon',coverage_status='partial',next_action='collect_supported_segments_until_50_or_document_source_limits');used[hits[0]['id']]=hits[0]
+   if city['stateCode'] in hits[0]['source_metadata'].get('subdivision_hierarchy_proofs',{}):row['association_status']='published_subdivision_hierarchy_name_and_anchor_inside_territorial_polygon'
   elif len(hits)>1:row['association_status']='ambiguous_boundary'
   mapped.append(row);counts[row['association_status']]+=1
  with (root/'mapped-inventory.ndjson').open('w') as out:
@@ -90,5 +132,6 @@ def main():
    g=area['geom'];geometry=mapping(g);w,s,e,n=g.bounds;key=hashlib.sha256((area['id']+json.dumps(geometry,separators=(',',':'))).encode()).hexdigest()
    out.write(json.dumps({**{k:v for k,v in area.items() if k!='geom'},'geometry':geometry,'bounds':[s,n,w,e],'area_key':key},ensure_ascii=False,separators=(',',':'))+'\n')
  result={'country':a.country,'inventoryCities':len(inventory),'mappedEntries':sum(bool(v.get('admin_id')) for v in mapped),'distinctSourceAreas':len(used),'counts':dict(counts),'sourceFiles':source_files,'sourcePolygonsAcceptedByRules':len(seen),'sourceFailures':bad,'elapsedMs':round((time.monotonic()-start)*1000),'licenseReviewed':True,'sourcesExhausted':False}
+ if hierarchy:result['publishedHierarchy']=hierarchy.identity
  (root/'boundary-match-report.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));print(json.dumps({k:v for k,v in result.items() if k not in ('sourceFiles','sourceFailures')}),flush=True)
 if __name__=='__main__':main()

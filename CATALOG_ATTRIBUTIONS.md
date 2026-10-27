@@ -51,6 +51,15 @@ fonte e não representam levantamento cadastral atual. Nomes, âncoras, limites 
 licenças não confirmados permanecem pendentes. Extratos não comprovam cobertura
 integral. O catálogo não afirma ter 50 empresas em toda localidade.
 
+Hierarquias administrativas Overture Divisions 2026-10-21.0: além das fontes
+OSM e geoBoundaries acima, os vínculos publicados podem conter **Esri Community
+Maps contributors**, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
+conforme a [atribuição oficial da Overture](https://docs.overturemaps.org/attribution/).
+Os identificadores e a proveniência de cada vínculo acompanham os cruzamentos.
+Foram adaptados nomes administrativos formais e vinculadas subdivisões ao
+inventário; os limites geométricos originais não são alterados. Isso não envolve
+acesso aos serviços comerciais da Esri nem confirmação de estabelecimentos.
+
 
 ### Novos limites RO e IT, revisão de 26/10/2026
 

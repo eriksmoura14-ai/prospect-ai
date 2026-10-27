@@ -17,6 +17,24 @@ class RegionalSourcePlan(unittest.TestCase):
   tiles=[{'id':'island','bbox':[-66,16,-63,19]},{'id':'mainland','bbox':[0,50,10,55]},{'id':'empty_between','bbox':[-40,30,-30,40]}]
   self.assertEqual([r['id'] for r in planner.required_parts(country,tiles)],['island','mainland'])
 class WorldIdentity(unittest.TestCase):
+ def test_slovenian_published_settlement_variants_do_not_relax_other_country_or_state_filters(self):
+  value={'primary':'Sečovlje / Siccole (naselje)'};aliases=world.names(value,'SI');self.assertIn('secovlje',aliases);self.assertIn('siccole',aliases);self.assertNotIn('secovlje',world.names(value,'SK'))
+  city={'countryCode':'SI','stateCode':'090','name':'Sečovlje','longitude':1,'latitude':1};a={'geom':box(0,0,2,2),'kind':'locality'};lookup={('SI-090',name):[a] for name in aliases};self.assertEqual(world.candidates(city,lookup),[a]);self.assertEqual(world.candidates({**city,'stateCode':'001'},lookup),[])
+ def test_explicit_registry_district_is_not_a_fallback_for_an_ordinary_town(self):
+  city={'countryCode':'SK','stateCode':'BL','name':'Okres Malacky','latitude':1,'longitude':1};county={'id':'county','kind':'county','geom':box(0,0,2,2)};town={'id':'town','kind':'locality','geom':box(0,0,2,2)}
+  self.assertEqual(world.candidates(city,{('SK-BL','okres malacky'):[county,town]}),[county])
+  self.assertEqual(world.candidates({**city,'name':'Malacky'},{('SK-BL','malacky'):[county,town]}),[town])
+  self.assertEqual(world.candidates(city,{('SK-BL','malacky'):[county,town]}),[county])
+  self.assertEqual(world.candidates(city,{('SK-BL','malacky'):[county],('SK-BL','okres malacky'):[county]}),[county])
+  self.assertFalse(world.scope_matches({**city,'countryCode':'US'},county))
+ def test_reviewed_district_and_contained_city_keep_both_requested_scopes(self):
+  child={'id':'town','kind':'locality','country_code':'SK','state_code':'BL','name':'Malacky','geometry':mapping(box(1,1,2,2))};parent={'id':'district','kind':'county','country_code':'SK','state_code':'BL','name':'okres Malacky','geometry':mapping(box(0,0,3,3)),'source_metadata':{'scope_policy':'explicit_registry_okres_district'}}
+  self.assertEqual(set(world.country.confirmed_admin_ids([child,parent])),{'town','district'})
+  cached={a['id']:world.country.polygon(a['geometry']) for a in [child,parent]};self.assertEqual(set(world.country.confirmed_admin_ids([child,parent],cached)),{'town','district'})
+  self.assertEqual(world.country.confirmed_admin_ids([child,{**parent,'source_metadata':{}}]),[])
+  self.assertEqual(world.country.confirmed_admin_ids([child,{**parent,'state_code':'BC'}]),[])
+  self.assertEqual(world.country.confirmed_admin_ids([child,{**parent,'geometry':mapping(box(1.5,1.5,3,3))}]),[])
+  self.assertEqual(set(world.country.confirmed_admin_ids([{**child,'geometry':mapping(box(-1,-1,4,4))},parent])),{'town','district'})
  def test_confirmed_scope_is_preserved_when_new_sources_add_an_ambiguous_name(self):
   previous={'admin_id':'original'};area={'id':'original','country_code':'CZ','state_code':'20','geom':box(0,0,2,2)};old={'original':{**{k:v for k,v in area.items() if k!='geom'},'geometry':mapping(area['geom'])}}
   other={**area,'id':'another','geom':box(0,0,3,3)}
@@ -43,6 +61,12 @@ class WorldIdentity(unittest.TestCase):
   self.assertEqual(ops.queue_slots(220*1024*1024,100),0)
   self.assertEqual(ops.queue_slots(220*1024*1024-8192,100),2)
 class Transport(unittest.TestCase):
+ def test_hierarchy_layer_requires_explicit_opt_in_and_remains_on_reviewed_public_source(self):
+  with tempfile.TemporaryDirectory() as root:
+   asset={'url':'https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=divisions/type=division/part-00000-abcd.zstd.parquet','size':100}
+   with self.assertRaises(ValueError):remote.RangeSource(asset,root)
+   self.assertEqual(remote.RangeSource(asset,root,layer='division').size,100)
+   with self.assertRaises(ValueError):remote.RangeSource(asset,root,layer='unreviewed_table')
  def test_cached_country_column_is_insufficient_without_geometry_and_provenance(self):
   rows=[{'row_group_id':0,'row_group_num_rows':10,'path_in_schema':c,'data_page_offset':i*10+1,'dictionary_page_offset':None,'total_compressed_size':2} for i,c in enumerate(sorted(remote.SELECTED_COLUMNS))]
   class Cached:
