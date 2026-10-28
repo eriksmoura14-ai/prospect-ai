@@ -1,5 +1,11 @@
 # Portugal e controle de capacidade — 27/10/2026
 
+> Estado posterior: o Neon informou 5.123.311.271 bytes de transferência para
+> uma cota de 5.000.000.000 e recusou a consulta com HTTP 402 por quota excedida.
+> As métricas abaixo são o último snapshot verificado; não foi possível
+> reconfirmar contagens no banco durante esse bloqueio. Nenhuma quota foi
+> elevada. Ver [registro do bloqueio](evidence/catalog-capacity-block-20261028.json).
+
 Snapshot conferido em **27/10/2026 às 19:09 BRT** (22:09 UTC), com prova SQL e
 fingerprints de todos os 223 países do inventário. O código continua na branch
 do [PR 38](https://github.com/eriksmoura14-ai/prospect-ai/pull/38), sem merge ou
