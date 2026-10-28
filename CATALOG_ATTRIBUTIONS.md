@@ -22,6 +22,10 @@ website. Não há dados de contas ou sessões de clientes nos arquivos públicos
   e registro permanecem nos arquivos: CDLA Permissive 2.0, Apache 2.0 e CC0 1.0,
   conforme a fonte. Os Parquets comerciais independentes preservam conteúdo e
   licença original; rótulos de cidade não são substituídos pelo inventário ODbL.
+  Os deltas de recuperação costeira, selecionados por limites OSM revisados,
+  são disponibilizados também sob **ODbL 1.0**, acrescida das licenças originais
+  de cada registro. Suas provas e atribuições acompanham a publicação pública;
+  eles não substituem nem reclassificam a licença dos arquivos independentes.
 - **geoBoundaries gbOpen:** https://www.geoboundaries.org/, com produtores,
   licenças, versão, URLs e atribuições específicas nos metadados de cada arquivo.
   Brasil: IBGE/OCHA, municípios 2020 CC BY 3.0 IGO; estados 2006 CC BY 2.5.
@@ -50,3 +54,33 @@ Os limites são cartográficos históricos, podem ter simplificação publicada 
 fonte e não representam levantamento cadastral atual. Nomes, âncoras, limites e
 licenças não confirmados permanecem pendentes. Extratos não comprovam cobertura
 integral. O catálogo não afirma ter 50 empresas em toda localidade.
+
+Hierarquias administrativas Overture Divisions 2026-10-21.0: além das fontes
+OSM e geoBoundaries acima, os vínculos publicados podem conter **Esri Community
+Maps contributors**, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
+conforme a [atribuição oficial da Overture](https://docs.overturemaps.org/attribution/).
+Os identificadores e a proveniência de cada vínculo acompanham os cruzamentos.
+Foram adaptados nomes administrativos formais e vinculadas subdivisões ao
+inventário; os limites geométricos originais não são alterados. Isso não envolve
+acesso aos serviços comerciais da Esri nem confirmação de estabelecimentos.
+
+
+### Novos limites RO e IT, revisão de 26/10/2026
+
+Romênia: ANCPI, unidades municipais de 2016, e World Bank, condados de 2017,
+via geoBoundaries gbOpen, CC BY 4.0. Origem ANCPI sob OGL-ROU-1.0:
+https://data.gov.ro/dataset/unitati-administrative . Itália: ISTAT, províncias
+e comuni de 2023, via geoBoundaries gbOpen, CC BY 3.0
+(https://creativecommons.org/licenses/by/3.0/). A fonte oficial descreve a
+hierarquia e publica os conjuntos históricos em
+https://www.istat.it/it/archivio/222527 . São limites históricos simplificados
+pelo publicador, não um levantamento cadastral atual. Os metadados completos,
+URLs de origem, hashes e incertezas acompanham a publicação.
+
+Estabelecimentos: Overture Maps Foundation, release 2026-10-21.0. Continuam as
+licenças por registro e suas proveniências, incluindo CDLA-Permissive-2.0,
+Apache-2.0 e CC0-1.0 conforme a origem. A geometria administrativa não transforma
+a licença do registro comercial independente. Complementos OSM/QLever mantêm
+© OpenStreetMap contributors, ODbL 1.0, e seus IDs originais; nunca são
+redistribuídos como se fossem registros Overture. Coleta não verifica WhatsApp,
+atividade atual nem ausência de website.

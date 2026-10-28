@@ -1,10 +1,35 @@
 """Bounded idempotent public-catalog operations. DB credential only on stdin.
 Schema is versioned in db/catalog-archive.sql and tested on coverage-dev.
 """
-import argparse,gzip,hashlib,json,sys,time,uuid,re
+import argparse,gzip,hashlib,json,sys,time,uuid,re,importlib.util
 from pathlib import Path
 from urllib.parse import urlsplit
 import requests
+_review_spec=importlib.util.spec_from_file_location('catalog_review_policy',Path(__file__).with_name('catalog-review.py'));_review_module=importlib.util.module_from_spec(_review_spec);_review_spec.loader.exec_module(_review_module)
+ACTIVE_REVIEW=_review_module.ACTIVE_REVIEW
+def queue_slots(size,pending):
+ # Existing tasks remain intact. The full city inventory is the durable backlog;
+ # materialize only a small ready batch instead of duplicating it without bound.
+ return max(0,min(250,50000-pending,(220*1024*1024-size)//4096))
+def geometry_manifest_batches(items):
+ # Validate the entire request before any write. Keep the existing identities,
+ # hashes and per-part limits, but avoid two DB round trips for every state.
+ prepared=[];seen=set()
+ for item in items:
+  data=item['payload'];identity=item['id']
+  if not re.fullmatch(r'geometry-v1:[A-Z]{2}:[A-Z0-9-]+',identity) or identity in seen:raise ValueError('geometry_manifest_identity')
+  if identity!='geometry-v1:'+data['countryCode']+':'+data['stateCode'] or data['version']!=1 or not 0<len(data['parts'])<=200:raise ValueError('geometry_manifest_country')
+  for part in data['parts']:
+   if not part['url'].startswith('https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/geography/') or not re.fullmatch('[a-f0-9]{64}',part['sha256']) or not 0<part['bytes']<=2*1024*1024:raise ValueError('geometry_manifest_part')
+  prepared.append({'id':identity,'payload':data,'sha256':hashlib.sha256(json.dumps(data,separators=(',',':'),sort_keys=True).encode()).hexdigest()});seen.add(identity)
+ batches=[];current=[];size=2
+ for item in prepared:
+  n=len(json.dumps(item,ensure_ascii=False,separators=(',',':')).encode())+1
+  if n+2>3*1024*1024:raise ValueError('geometry_manifest_batch_budget')
+  if current and (len(current)>=50 or size+n>3*1024*1024):batches.append(current);current=[];size=2
+  current.append(item);size+=n
+ if current:batches.append(current)
+ return batches
 def external_coverage(row):
  # Older resumable country checkpoints did not contain association_status.
  # A numeric count is only emitted after polygon matching; pending is null.
@@ -81,26 +106,47 @@ def main():
   print(json.dumps({'coverageUpdated':n,'summary':sql("SELECT coverage_status,count(*) AS n FROM catalog_city_inventory GROUP BY 1 ORDER BY 1")}))
  elif a.action=='queue':
   room()
+  sql("""UPDATE catalog_ingest_tasks t SET state='queued',attempts=0,run_after=now(),updated_at=now()
+   FROM catalog_city_inventory c LEFT JOIN catalog_manifests v ON v.id='review-v1:'||c.city_key
+   WHERE t.id='city:'||c.city_key AND t.state='done' AND t.checkpoint->>'stage'='documented_below_target'
+   AND c.unique_supported<50 AND NOT coalesce(("""+ACTIVE_REVIEW+"""),false)""")
+  sql("""UPDATE catalog_ingest_tasks t SET state='done',checkpoint=jsonb_build_object('stage','documented_below_target','reviewManifest',v.id),
+   outcome=jsonb_build_object('targetMet',false,'reviewedBelowTarget',true,'revisitAfter',v.payload->>'revisitAfter'),updated_at=now()
+   FROM catalog_city_inventory c JOIN catalog_manifests v ON v.id='review-v1:'||c.city_key
+   WHERE t.id='city:'||c.city_key AND (t.state='queued' OR t.state='done' AND t.checkpoint->>'stage'='documented_below_target' AND t.outcome->>'revisitAfter' IS DISTINCT FROM v.payload->>'revisitAfter') AND ("""+ACTIVE_REVIEW+")")
   sql("""UPDATE catalog_ingest_tasks t SET state='done',checkpoint=jsonb_build_object('stage','target_met_by_regional_import','uniqueSupported',c.unique_supported),outcome=jsonb_build_object('target',t.target,'notACensus',true),updated_at=now()
-   FROM catalog_city_inventory c WHERE t.id='city:'||c.city_key AND t.state='queued' AND c.unique_supported>=t.target""")
-  sql("""INSERT INTO catalog_ingest_tasks(id,kind,region,round,target,state,budgets,outcome)
+   FROM catalog_city_inventory c WHERE t.id='city:'||c.city_key AND (t.state='queued' OR t.checkpoint->>'stage'='documented_below_target') AND c.unique_supported>=t.target""")
+  sql("""UPDATE catalog_ingest_tasks t SET round=CASE WHEN c.unique_supported>=100 THEN 3 WHEN c.unique_supported>=50 THEN 2 ELSE 1 END,
+   target=CASE WHEN c.unique_supported>=100 THEN 200 WHEN c.unique_supported>=50 THEN 100 ELSE 50 END,
+   outcome=jsonb_build_object('currentSupported',c.unique_supported,'priority','under_50_first')
+   FROM catalog_city_inventory c WHERE t.id='city:'||c.city_key AND t.state='queued'
+   AND (c.admin_id IS NOT NULL OR c.association_status='licensed_polygon_archive') AND coalesce(c.unique_supported,0)<CASE WHEN $1::boolean THEN 50 ELSE 200 END
+   AND (t.round,t.target,t.outcome) IS DISTINCT FROM
+   (CASE WHEN c.unique_supported>=100 THEN 3 WHEN c.unique_supported>=50 THEN 2 ELSE 1 END,CASE WHEN c.unique_supported>=100 THEN 200 WHEN c.unique_supported>=50 THEN 100 ELSE 50 END,jsonb_build_object('currentSupported',c.unique_supported,'priority','under_50_first'))""",[cfg.get('minimumOnly',True)])
+  budget=sql("SELECT pg_database_size(current_database()) AS bytes,count(*) FILTER(WHERE state IN ('queued','running')) AS pending FROM catalog_ingest_tasks")[0]
+  slots=queue_slots(int(budget['bytes']),int(budget['pending']))
+  added=sql("""INSERT INTO catalog_ingest_tasks(id,kind,region,round,target,state,budgets,outcome)
    SELECT 'city:'||city_key,'city_complement',city_key,CASE WHEN unique_supported>=100 THEN 3 WHEN unique_supported>=50 THEN 2 ELSE 1 END,
    CASE WHEN unique_supported>=100 THEN 200 WHEN unique_supported>=50 THEN 100 ELSE 50 END,'queued',
    '{"maximumSeconds":90,"maximumAttempts":3,"maximumResponseBytes":8388608,"concurrency":1}'::jsonb,
    jsonb_build_object('currentSupported',unique_supported,'priority','under_50_first')
-   FROM catalog_city_inventory WHERE (admin_id IS NOT NULL OR association_status='licensed_polygon_archive') AND coalesce(unique_supported,0)<CASE WHEN $1::boolean THEN 50 ELSE 200 END
-   ON CONFLICT(id) DO UPDATE SET round=excluded.round,target=excluded.target,outcome=excluded.outcome WHERE catalog_ingest_tasks.state='queued'
-   AND (catalog_ingest_tasks.round,catalog_ingest_tasks.target,catalog_ingest_tasks.outcome) IS DISTINCT FROM (excluded.round,excluded.target,excluded.outcome)""",[cfg.get('minimumOnly',True)])
+   FROM catalog_city_inventory c WHERE (admin_id IS NOT NULL OR association_status='licensed_polygon_archive') AND coalesce(unique_supported,0)<CASE WHEN $1::boolean THEN 50 ELSE 200 END
+   AND NOT EXISTS(SELECT 1 FROM catalog_manifests v WHERE v.id='review-v1:'||c.city_key AND ("""+ACTIVE_REVIEW+"""))
+   AND NOT EXISTS(SELECT 1 FROM catalog_ingest_tasks t WHERE t.id='city:'||c.city_key)
+   ORDER BY coalesce(unique_supported,0),city_key LIMIT $2
+   ON CONFLICT(id) DO NOTHING RETURNING id""",[cfg.get('minimumOnly',True),slots])
   sql("""INSERT INTO catalog_ingest_tasks(id,kind,region,state,budgets,outcome)
    SELECT 'country:'||country_code,'country_boundary_review',country_code,'blocked','{"maximumRegions":1,"automaticWorldScan":false}'::jsonb,
    '{"reason":"Official boundary crosswalk, source license, regional asset and resource budget must be reviewed before collection"}'::jsonb
    FROM catalog_city_inventory WHERE coverage_status='location_pending' GROUP BY country_code ON CONFLICT(id) DO NOTHING""")
-  print(json.dumps({'queue':sql('SELECT kind,state,round,count(*) AS tasks FROM catalog_ingest_tasks GROUP BY 1,2,3 ORDER BY 1,2,3')}))
+  print(json.dumps({'queue':sql('SELECT kind,state,round,count(*) AS tasks FROM catalog_ingest_tasks GROUP BY 1,2,3 ORDER BY 1,2,3'),'newCityTasks':len(added),'maximumActiveTasks':50000,'batchSlots':slots,'unmaterializedCitiesRemainInInventory':True}))
  elif a.action=='add_region':
   part=cfg['region'];assert re.fullmatch('[0-9]{5}',part);room()
   sql("INSERT INTO catalog_ingest_tasks(id,kind,region,budgets) VALUES($1,'overture_partition',$2,$3::jsonb) ON CONFLICT(id) DO NOTHING",['overture-2026-10-21.0-'+part,part,json.dumps({'downloadBytes':900*1024*1024,'maximumSeconds':1800,'memory':'768MB','concurrency':2,'automaticWorldScan':False})]);print(json.dumps({'queuedRegion':part}))
  elif a.action=='claim':
-  token=str(uuid.uuid4());tasks=sql("""WITH candidate AS (SELECT id FROM catalog_ingest_tasks WHERE ($1::text IS NULL OR id=$1) AND (round=1 OR $4::boolean) AND attempts<3 AND run_after<=now() AND (state='queued' OR state='running' AND lease_until<now() OR $3::boolean AND state='blocked' AND checkpoint->>'stage'='awaiting_publication') ORDER BY round,updated_at FOR UPDATE SKIP LOCKED LIMIT 1)
+  token=str(uuid.uuid4());tasks=sql("""WITH candidate AS (SELECT id FROM catalog_ingest_tasks t WHERE ($1::text IS NULL OR id=$1) AND (round=1 OR $4::boolean) AND attempts<3 AND run_after<=now() AND (state='queued' OR state='running' AND lease_until<now() OR $3::boolean AND state='blocked' AND checkpoint->>'stage'='awaiting_publication')
+   AND NOT EXISTS(SELECT 1 FROM catalog_city_inventory c JOIN catalog_manifests v ON v.id='review-v1:'||c.city_key WHERE t.id='city:'||c.city_key AND ("""+ACTIVE_REVIEW+"""))
+   ORDER BY round,updated_at FOR UPDATE SKIP LOCKED LIMIT 1)
    UPDATE catalog_ingest_tasks SET state='running',attempts=attempts+1,lease_token=$2::uuid,lease_until=now()+interval '30 minutes',updated_at=now() WHERE id IN (SELECT id FROM candidate) RETURNING id,kind,region,round,target,attempts,checkpoint,budgets""",[cfg.get('taskId'),token,bool(cfg.get('resumePublication')),bool(cfg.get('allowHigherTargets'))])
   if tasks:tasks[0]['token']=token
   print(json.dumps({'task':tasks[0] if tasks else None}))
@@ -112,14 +158,10 @@ def main():
  elif a.action=='manifest':
   data=cfg.get('manifest') or json.loads((root/'publication-manifest.json').read_text());digest=hashlib.sha256(json.dumps(data,separators=(',',':'),sort_keys=True).encode()).hexdigest();sql('INSERT INTO catalog_manifests(id,payload,sha256) VALUES($1,$2::jsonb,$3) ON CONFLICT(id) DO NOTHING',[data['id'],json.dumps(data),digest]);print(json.dumps({'manifestSaved':data['id']}))
  elif a.action=='geometry_manifest':
-  for item in cfg['manifests']:
-   data=item['payload'];identity=item['id'];assert re.fullmatch(r'geometry-v1:[A-Z]{2}:[A-Z0-9-]+',identity)
-   assert identity=='geometry-v1:'+data['countryCode']+':'+data['stateCode'] and data['version']==1 and 0<len(data['parts'])<=200
-   for part in data['parts']:
-    assert part['url'].startswith('https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/geography/') and re.fullmatch('[a-f0-9]{64}',part['sha256']) and 0<part['bytes']<=2*1024*1024
-   digest=hashlib.sha256(json.dumps(data,separators=(',',':'),sort_keys=True).encode()).hexdigest();room()
-   sql('INSERT INTO catalog_manifests(id,payload,sha256) VALUES($1,$2::jsonb,$3) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,sha256=excluded.sha256 WHERE catalog_manifests.sha256 IS DISTINCT FROM excluded.sha256',[identity,json.dumps(data),digest])
-  print(json.dumps({'geometryManifestsSaved':len(cfg['manifests'])}))
+  batches=geometry_manifest_batches(cfg['manifests'])
+  for batch in batches:
+   room();sql('INSERT INTO catalog_manifests(id,payload,sha256) SELECT id,payload,sha256 FROM jsonb_to_recordset($1::jsonb) AS r(id text,payload jsonb,sha256 text) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,sha256=excluded.sha256 WHERE catalog_manifests.sha256 IS DISTINCT FROM excluded.sha256',[json.dumps(batch,ensure_ascii=False,separators=(',',':'))])
+  print(json.dumps({'geometryManifestsSaved':len(cfg['manifests']),'databaseWriteBatches':len(batches)}))
  elif a.action=='export_legacy':
   result={}
   for table in ['discovery_records','discovery_areas','discovery_coverage']:

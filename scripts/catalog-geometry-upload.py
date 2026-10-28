@@ -1,6 +1,6 @@
 """Upload only reviewed, bounded public geometry chunks. Signed URLs arrive on
 stdin, never in logs. Two connections, durable per-file completion checkpoint."""
-import concurrent.futures,hashlib,json,sys,time
+import concurrent.futures,hashlib,json,sys,time,gzip
 from pathlib import Path
 from urllib.parse import urlsplit,urlunsplit
 import requests
@@ -14,8 +14,12 @@ def main():
         url=urlsplit(item['signedUrl']);assert url.scheme=='https' and url.hostname=='br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech' and url.path.startswith('/prospect-public-catalog/geography/')
         public=urlunsplit((url.scheme,url.netloc,url.path,'',''))
         if completed.get(item['key'])==sha:return item['key'],sha,True
-        with file.open('rb') as body:
-            response=requests.put(item['signedUrl'],data=body,headers=item.get('headers',{}),timeout=(10,60),allow_redirects=False)
+        if cfg.get('gzip'):
+            body=gzip.compress(file.read_bytes(),compresslevel=6,mtime=0)
+            response=requests.put(item['signedUrl'],data=body,headers={**item.get('headers',{}),'Content-Encoding':'gzip'},timeout=(10,60),allow_redirects=False)
+        else:
+            with file.open('rb') as body:
+                response=requests.put(item['signedUrl'],data=body,headers=item.get('headers',{}),timeout=(10,60),allow_redirects=False)
         if response.status_code not in (200,201,204):raise RuntimeError('geometry_upload_http_'+str(response.status_code))
         with requests.get(public,stream=True,timeout=(10,30),allow_redirects=False) as response:
             response.raise_for_status();digest=hashlib.sha256();size=0
@@ -27,7 +31,7 @@ def main():
         return item['key'],sha,False
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
         for key,sha,reused in pool.map(upload,items):
-            completed[key]=sha;checkpoint.write_text(json.dumps(completed,sort_keys=True))
+            completed[key]=sha;temporary=checkpoint.with_suffix('.tmp');temporary.write_text(json.dumps(completed,sort_keys=True));temporary.replace(checkpoint)
             if len(completed)%8==0 or len(completed)==len(items):print(json.dumps({'verifiedGeometryFiles':len(completed),'totalFiles':len(items),'resumed':reused}),flush=True)
     print(json.dumps({'geometryUploadsComplete':len(items),'elapsedMs':round((time.monotonic()-start)*1000)}),flush=True)
 if __name__=='__main__':

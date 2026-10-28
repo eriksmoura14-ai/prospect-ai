@@ -32,8 +32,14 @@ test("unapproved asset URLs fail before a reader subprocess starts",async()=>{
  const archive=createArchive({databaseUrl:"postgresql://reader:fixture@fixture.neon.tech/catalog",python:"python",fetchImpl:async()=>({ok:true,json:async()=>({rows:[{url:"http://127.0.0.1/private",sha256:"a".repeat(64),bytes:100}]})}),reader:async()=>assert.fail("Invalid URL reached reader")});
  await assert.rejects(archive.query(area,"Padarias",10),e=>e.code==="catalog_archive_unavailable");
 });
-test("an official geometry is never fabricated into an OSM identity for QLever",async()=>{
- const provider=require("../discovery/providers.cjs").providers({});await assert.rejects(provider.qlever({...area,officialBoundary:true},"Padarias"),e=>e.code==="source_area_unsupported");
+test("official geometry queries use a source-neutral scope marker instead of a fabricated OSM identity",async()=>{
+ let calls=0;
+ const provider=require("../discovery/providers.cjs").providers({businessMatch:()=>true,fetchImpl:async(url,options)=>{
+  calls++;const query=options?.method==="POST"?new URLSearchParams(options.body).get("query"):new URL(url).searchParams.get("query");
+  assert.match(query,/urn:prospect:area:[a-f0-9]{64}/);assert.match(query,/geof:sfIntersects/);assert.doesNotMatch(query,/<https:\/\/www.openstreetmap.org\/(relation|node|way)\//);
+  const scope=query.match(/urn:prospect:area:[a-f0-9]{64}/)[0];return new Response(JSON.stringify({results:{bindings:[{region:{type:"uri",value:scope}}]}}));
+ }});
+ const result=await provider.qlever({...area,officialBoundary:true},"Padarias");assert.equal(result.rows.length,0);assert(calls>=1);
 });
 test("HTTPS catalog transport refuses mutation SQL",async()=>{
  const read=require("../discovery/neon-read.cjs").createRead("postgresql://reader:fixture@fixture.neon.tech/catalog",()=>assert.fail());await assert.rejects(read("UPDATE catalog_assets SET state='retired'"),/somente leitura/);

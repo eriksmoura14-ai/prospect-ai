@@ -46,3 +46,17 @@ jobs:
         run: python -m unittest discover -s test -p 'catalog_france_test.py' -v
       - name: Spatial serving preserves identities and file budgets
         run: python -m unittest discover -s test -p 'catalog_serving_test.py' -v
+      - name: Below-target exceptions require independent evidence
+        run: python -m unittest discover -s test -p 'catalog_review_test.py' -v
+      - name: Global boundary identities, resumable ranges and immutable country assets
+        run: python -m unittest discover -s test -p 'catalog_world_test.py' -v
+      - name: Published subdivision ancestry and conflicting political hierarchies
+        run: python -m unittest discover -s test -p 'catalog_hierarchy_test.py' -v
+      - name: Incremental full-inventory audit requires every live country fingerprint
+        run: python -m unittest discover -s test -p 'catalog_audit_incremental_test.py' -v
+      - name: Coastal recovery requires exact reviewed polygons and preserves previous observations
+        run: python -m unittest discover -s test -p 'catalog_coastal_test.py' -v
+      - name: Country publication integrity, isolation and resumable failures
+        run: python -m unittest discover -s test -p 'catalog_publication_test.py' -v
+      - name: Free resource budgets, application reserve and stale quota snapshots
+        run: python -m unittest discover -s test -p 'catalog_capacity_test.py' -v

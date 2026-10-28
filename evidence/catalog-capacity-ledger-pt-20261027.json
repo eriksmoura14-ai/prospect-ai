@@ -1,0 +1,27 @@
+{
+  "id": "capacity-ledger:20261027:PT:final",
+  "version": 1,
+  "projectId": "polished-sky-36508370",
+  "consumptionPeriodStart": "2026-10-05T08:48:22Z",
+  "consumptionPeriodEnd": "2026-11-01T00:00:00Z",
+  "providerBaselineBytes": 4885295531,
+  "cumulativeReservedBytes": 60179140,
+  "effectiveCommittedCeilingBytes": 4945474671,
+  "transferQuotaBytes": 5000000000,
+  "applicationTransferReserveBytes": 52428800,
+  "budgetedRemainingBytes": 54525329,
+  "additionalSafetyAllowanceBytes": 16777216,
+  "publicationsCompleted": [
+    "country-pt-min50-20261027",
+    "country-pt-coastal-20261027"
+  ],
+  "smokeAllowanceBytes": 8388608,
+  "evidenceBytes": 3514676,
+  "evidenceUrl": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/archives/20261027/coverage-portugal-v3.zip",
+  "evidenceSha256": "4da837f1c637c14eb02cad5f3cc95c9ba7d3016f144a0bb7ae689907554ba817",
+  "sourceCommit": "07c458066ef354ae6aa36875128a45c944b445a1",
+  "reservationIsNotMeasuredHttpUsage": true,
+  "providerCounterMayLag": true,
+  "backgroundProcessConfigured": false,
+  "quotasChanged": false
+}

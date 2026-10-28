@@ -1,0 +1,250 @@
+{
+  "id": "coverage-world-progress-20261027-v3",
+  "asOf": "2026-10-27T22:09:09.049743+00:00",
+  "before": {
+    "uniqueBusinesses": 5517669,
+    "sourceObservations": 5530174,
+    "overlaps": 12505,
+    "readyArchiveRecords": 5505203,
+    "netLegacyAdditional": 12466,
+    "catalogCountries": 42,
+    "archiveCountries": 29,
+    "coverage": {
+      "min50": 12639,
+      "min100": 6719,
+      "min200": 3186,
+      "cities_with_confirmed_records": 61739,
+      "location_pending": 82743,
+      "partial": 57586,
+      "temporary_failure": 2,
+      "inventory_cities": 152970,
+      "percent_min50": 8.2624,
+      "percent_min100": 4.3924,
+      "percent_min200": 2.0828
+    },
+    "remainingBelowOrUnconfirmed50": 140331
+  },
+  "new": {
+    "uniqueBusinesses": 55704,
+    "sourceObservations": 55947,
+    "overlaps": 243,
+    "additionalCitiesMin50": 111
+  },
+  "after": {
+    "uniqueBusinesses": 5573373,
+    "sourceObservations": 5586121,
+    "overlaps": 12748,
+    "readyArchiveRecords": 5560907,
+    "netLegacyAdditional": 12466,
+    "catalogCountries": 42,
+    "archiveCountries": 30,
+    "coverage": {
+      "min50": 12750,
+      "min100": 6774,
+      "min200": 3207,
+      "cities_with_confirmed_records": 62224,
+      "location_pending": 82162,
+      "partial": 58056,
+      "temporary_failure": 2,
+      "inventory_cities": 152970,
+      "percent_min50": 8.335,
+      "percent_min100": 4.4283,
+      "percent_min200": 2.0965
+    },
+    "remainingBelowOrUnconfirmed50": 140220
+  },
+  "portugal": {
+    "inventoryCities": 1296,
+    "geographicallyConfirmed": 581,
+    "withConfirmedBusinesses": 485,
+    "locationPending": 715,
+    "below50WithConfirmedScope": 470,
+    "min50": 111,
+    "min100": 55,
+    "min200": 21,
+    "newUnique": 55704,
+    "countryUniqueWithLegacy": 56105,
+    "legacyObservations": 401,
+    "coastalNewUnique": 819,
+    "originalSourceNewObservations": 55128,
+    "newSourceObservations": 55947,
+    "qualityOfNewUnique": {
+      "records": 55704,
+      "phone": 51118,
+      "website": 18461,
+      "address": 54304,
+      "valid_location": 55704
+    },
+    "primarySegmentSummary": {
+      "newUniqueRows": 55704,
+      "primarySupportedSegments": 11,
+      "byPrimarySegment": {
+        "Restaurantes": 31008,
+        "Cafeterias": 11897,
+        "Padarias": 4610,
+        "Barber": 2656,
+        "Hair Salon": 2082,
+        "Lanchonetes": 1999,
+        "Auto Detailing": 747,
+        "Sorveterias": 558,
+        "Electrician": 94,
+        "Cleaning": 31,
+        "Landscaping": 22
+      },
+      "nichesConsidered": 24,
+      "allPrimarySegmentsSupported": true
+    }
+  },
+  "originalMillion": {
+    "file": ".artifacts/catalog-million-20261023/prospect-businesses.parquet",
+    "bytes": 137403018,
+    "sha256": "f0d691f744c9cc55b5ed7213b6f8758061ddc694334ca879406119804f520314",
+    "preserved": true
+  },
+  "originalMillionSha256VerifiedThisRound": true,
+  "originalMillionFileUnchanged": true,
+  "legacySourceObservationsBefore": 13960,
+  "legacySourceObservationsAfter": 13960,
+  "sourceCommit": "07c458066ef354ae6aa36875128a45c944b445a1",
+  "tests": {
+    "pythonPassed": 100,
+    "geospatialCI": {
+      "run": 40592710672,
+      "conclusion": "success"
+    },
+    "authenticationCI": {
+      "run": 40592710671,
+      "conclusion": "success"
+    }
+  },
+  "liveSearch": {
+    "environment": "existing free isolated Render staging",
+    "country": "PT",
+    "state": "30",
+    "cityId": 89139,
+    "unique": 52,
+    "byNiche": {
+      "Barber": 2,
+      "Hair Salon": 1,
+      "Restaurantes": 36,
+      "Hamburguerias": 1,
+      "Sorveterias": 0,
+      "Pizzarias": 3,
+      "Padarias": 2,
+      "Confeitarias": 0,
+      "Cafeterias": 6,
+      "Lanchonetes": 4,
+      "Açaiterias": 0,
+      "Churrascarias": 4,
+      "Auto Detailing": 1,
+      "Cleaning": 0,
+      "Landscaping": 0,
+      "Plumbing": 0,
+      "HVAC": 0,
+      "Roofing": 0,
+      "Painting": 0,
+      "Fencing": 0,
+      "Pressure Washing": 0,
+      "Moving": 0,
+      "Handyman": 0,
+      "Electrician": 0
+    },
+    "sources": [
+      "country-pt-coastal-20261027",
+      "country-pt-min50-20261027"
+    ],
+    "scope": "Overture divisions / OpenStreetMap / geoBoundaries · locality · 2026-10-21.0",
+    "withPhone": 44,
+    "withWebsite": 13,
+    "withAddress": 51,
+    "examples": [
+      {
+        "name": "BarberShop Jair",
+        "id": "overture/1dfa0ef5-394c-4e42-940d-4b743389ed2b"
+      },
+      {
+        "name": "Kairós",
+        "id": "overture/60c44b9b-360a-4812-acd2-f85d358468f6"
+      },
+      {
+        "name": "Susana & Marlene",
+        "id": "overture/bd52351d-3e58-4e8d-b833-ad59df0d4b84"
+      }
+    ],
+    "elapsedMs": 102501,
+    "contactsVerified": false,
+    "sourceIdentitySha256": "95265f5d7c3767cb8006415ca42826146d5d3fb7a2cecd2ba5da3c86794357a3",
+    "expectedUnique": 52,
+    "expectedSourceIdentitySha256": "95265f5d7c3767cb8006415ca42826146d5d3fb7a2cecd2ba5da3c86794357a3",
+    "normalSearch": {
+      "state": "done",
+      "totalDiscovered": 36,
+      "timings": {
+        "discoveryMs": 4603,
+        "verificationMs": 3236,
+        "totalMs": 7839
+      },
+      "discoveryMetrics": {
+        "raw": 36,
+        "unique": 36,
+        "withPhone": 34,
+        "withWebsite": 8,
+        "withAddress": 35,
+        "validLocation": 36,
+        "elapsedMs": 3309,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "country-pt-coastal-20261027",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "country-pt-min50-20261027",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "rows": 10
+    }
+  },
+  "databaseBytesBefore": 229556224,
+  "databaseBytesAfter": 229572608,
+  "databaseGuardBytes": 230686720,
+  "normalMaintenance": {
+    "vacuumFull": false,
+    "liveRowsDeleted": 0,
+    "physicalShrinkClaimed": false,
+    "estimatedDeadRowsBefore": 9457,
+    "estimatedDeadRowsAfterMaintenance": 21
+  },
+  "normalization": {
+    "normalizedRowsBeforeDeduplication": 55128,
+    "elapsedMs": 50777,
+    "newRawPlacesDownloadedBytes": 0,
+    "cachedPlacesBytesReused": 1476310046,
+    "rowsPerSecond": 1085.69
+  },
+  "fullInventoryCountryFingerprintsVerified": true,
+  "allCitiesTargetMet": false,
+  "providerQuotaBytes": 5000000000,
+  "providerDataTransferBytesAtInspection": 4885295531,
+  "applicationTransferReserveBytes": 52428800,
+  "unreportedTransferConservativelyReservedBeforeEachPublication": true,
+  "quotasChanged": false,
+  "backgroundProcessConfigured": false,
+  "productionCodeChanged": false,
+  "evidenceUrl": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/archives/20261027/coverage-portugal-v3.zip",
+  "objectStorageBeforeEvidence": {
+    "objects": 1304,
+    "bytes": 2950435602
+  },
+  "newCommercialAssetBytes": 6224057,
+  "newGeographyDecodedBytes": 7428111,
+  "newGeographyStoredGzipBytes": 2331593
+}
