@@ -19,6 +19,18 @@ def dump(name):
  data=adb('shell','cat','/sdcard/prospect-ui.xml');(OUT/(name+'.xml')).write_bytes(data)
  return ET.fromstring(data)
 
+launcher_dialogs=0
+def dismiss_test_launcher_dialog(root):
+ # A slow CI software GPU can leave the emulator launcher ANR above the app.
+ # Handle only that unrelated process; a Prospect ANR is never dismissed.
+ global launcher_dialogs
+ if not any(n.get('text')=="Pixel Launcher isn't responding" for n in root.iter('node')):return False
+ for node in root.iter('node'):
+  if node.get('text')=='Close app':
+   b=list(map(int,re.findall(r'\d+',node.get('bounds',''))));assert len(b)==4
+   adb('shell','input','tap',str((b[0]+b[2])//2),str((b[1]+b[3])//2));launcher_dialogs+=1;time.sleep(1);return True
+ raise RuntimeError('unrelated_launcher_dialog_unresolved')
+
 started=time.monotonic();socket=None;counter=0;last_error=''
 deadline=time.monotonic()+120
 while time.monotonic()<deadline:
@@ -56,13 +68,16 @@ while time.monotonic()<deadline:
  time.sleep(2)
 else:
  screenshot('login-failure');dump('login-failure');raise RuntimeError('prospect_login_or_export_bridge_not_ready')
-screenshot('prospect-login');dump('prospect-login')
+root=dump('prospect-login')
+if dismiss_test_launcher_dialog(root):dump('prospect-login')
+screenshot('prospect-login')
 
 filename='prospect-ai-1793560000000.csv';fixture='\ufeffnome,telefone\r\nEmpresa de teste,+5534998883900'
 evaluate("(() => {const b=new Blob(["+json.dumps(fixture)+"],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='"+filename+"';document.body.append(a);a.click();a.remove();return true;})()")
 deadline=time.monotonic()+25;save=None
 while time.monotonic()<deadline:
  root=dump('export-picker')
+ if dismiss_test_launcher_dialog(root):continue
  for node in root.iter('node'):
   if node.get('text','').casefold() in ('save','salvar') and node.get('enabled')=='true':save=node;break
  if save is not None:break
@@ -81,5 +96,5 @@ while time.monotonic()<deadline:
  time.sleep(1)
 if not offline:raise RuntimeError('native_offline_screen_missing')
 screenshot('offline-screen');socket.close()
-report={'androidApi':adb('shell','getprop','ro.build.version.sdk').decode().strip(),'testBuild':'debug only; delivered APK separately uses release with WebView debugging disabled','approvedOrigin':ORIGIN,'currentSaasLoginVisible':True,'originScopedExportBridgeReady':True,'nativeDocumentPickerOpened':True,'csvBytesIdentical':True,'utf8BomRetained':True,'phoneDigitsRetained':True,'nativeOfflineScreenVisible':True,'fixtureIsNotARealBusinessRecord':True,'customerAccountUsed':False,'searchesOrEmailsSent':False,'elapsedMs':round((time.monotonic()-started)*1000)}
+report={'androidApi':adb('shell','getprop','ro.build.version.sdk').decode().strip(),'testBuild':'debug only; delivered APK separately uses release with WebView debugging disabled','approvedOrigin':ORIGIN,'currentSaasLoginVisible':True,'originScopedExportBridgeReady':True,'nativeDocumentPickerOpened':True,'csvBytesIdentical':True,'utf8BomRetained':True,'phoneDigitsRetained':True,'nativeOfflineScreenVisible':True,'emulatorLauncherAnrDialogsDismissed':launcher_dialogs,'fixtureIsNotARealBusinessRecord':True,'customerAccountUsed':False,'searchesOrEmailsSent':False,'elapsedMs':round((time.monotonic()-started)*1000)}
 (OUT/'device-smoke.json').write_text(json.dumps(report,indent=2));print(json.dumps(report))
