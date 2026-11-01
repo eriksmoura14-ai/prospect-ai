@@ -50,7 +50,7 @@ jobs:
           cp "$ANDROID_HOME/build-tools/36.0.0/lib/apksigner.jar" android-delivery/apksigner.jar
           cp "$ANDROID_HOME/build-tools/36.0.0/zipalign" android-delivery/zipalign
           if [ -d "$ANDROID_HOME/build-tools/36.0.0/lib64" ]; then cp -r "$ANDROID_HOME/build-tools/36.0.0/lib64" android-delivery/lib64; fi
-          find android-delivery -type f -exec sha256sum {} \; > android-delivery/SHA256SUMS.txt
+          find android-delivery -type f ! -name SHA256SUMS.txt -exec sha256sum {} \; > android-delivery/SHA256SUMS.txt
       - name: Save build reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
