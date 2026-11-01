@@ -34,7 +34,11 @@ jobs:
         run: |
           test -e /dev/kvm
           sudo chmod a+rw /dev/kvm
-          echo no | avdmanager create avd --force --name prospect-test --package 'system-images;android-35;google_apis;x86_64' --device pixel_6
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/prospect-avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | avdmanager create avd --force --name prospect-test --path "$ANDROID_AVD_HOME/prospect-test.avd" --package 'system-images;android-35;google_apis;x86_64' --device pixel_6
+          printf 'avd.ini.encoding=UTF-8\npath=%s\n' "$ANDROID_AVD_HOME/prospect-test.avd" > "$ANDROID_AVD_HOME/prospect-test.ini"
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -x prospect-test
           "$ANDROID_HOME/emulator/emulator" -avd prospect-test -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 2048 > emulator.log 2>&1 &
           timeout 180 adb wait-for-device
           for attempt in $(seq 1 90); do

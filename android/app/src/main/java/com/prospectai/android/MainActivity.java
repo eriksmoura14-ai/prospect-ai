@@ -1,6 +1,5 @@
 package com.prospectai.android;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -35,6 +34,8 @@ import android.widget.Toast;
 
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
+import androidx.activity.ComponentActivity;
+import androidx.activity.OnBackPressedCallback;
 
 import org.json.JSONObject;
 import java.io.OutputStream;
@@ -43,7 +44,7 @@ import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public final class MainActivity extends Activity {
+public final class MainActivity extends ComponentActivity {
     private static final int SAVE_EXPORT = 41;
     private static final int BACKGROUND = Color.rgb(3, 18, 31);
     private static final int ACCENT = Color.rgb(0, 219, 235);
@@ -90,10 +91,9 @@ public final class MainActivity extends Activity {
         root.addView(progress, new FrameLayout.LayoutParams(-1, dp(3), Gravity.TOP));
         showState(false);
         web.loadUrl(BuildConfig.APP_URL);
-        if (Build.VERSION.SDK_INT >= 33) {
-            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
-        }
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() { handleBack(); }
+        });
     }
 
     private void configureWebView() {
@@ -288,7 +288,6 @@ public final class MainActivity extends Activity {
         if (now - lastBack < 2000) finish();
         else { lastBack = now; toast(R.string.exit_hint); }
     }
-    @Override public void onBackPressed() { handleBack(); }
     @Override protected void onPause() {
         if (web != null) web.onPause();
         CookieManager.getInstance().flush(); super.onPause();
