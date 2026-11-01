@@ -1,0 +1,39 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.prospectai.android'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.prospectai.android'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '0.1.0'
+        buildConfigField 'String', 'APP_URL', '"https://prospect-ai-eriksmoura.netlify.app/"'
+    }
+    buildFeatures { buildConfig true }
+    buildTypes {
+        release {
+            minifyEnabled false
+            debuggable false
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.activity:activity:1.11.0'
+    implementation 'androidx.webkit:webkit:1.14.0'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+tasks.named('preBuild').configure {
+    doFirst {
+        if (!file('src/main/assets/web-manifest.json').isFile()) {
+            throw new GradleException('Run npm ci --ignore-scripts and node scripts/build-android-frontend.cjs before building Android.')
+        }
+    }
+}

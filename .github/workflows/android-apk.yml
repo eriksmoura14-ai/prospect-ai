@@ -1,0 +1,73 @@
+name: Android APK
+
+on:
+  pull_request:
+    paths: ['android/**', 'scripts/build-android-frontend.cjs', 'test/android-export.test.cjs', '.github/workflows/android-apk.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Check official Gradle wrapper integrity
+        working-directory: android
+        run: echo '81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f  gradle/wrapper/gradle-wrapper.jar' | sha256sum --check
+      - name: Browser export regressions
+        run: node --test test/android-export.test.cjs
+      - name: Bundle current public frontend without backend files or secrets
+        run: |
+          npm ci --ignore-scripts
+          node scripts/build-android-frontend.cjs
+      - name: Set up Android SDK tools
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Prepare Android SDK
+        run: |
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Compile, test and lint Android
+        working-directory: android
+        run: ./gradlew --no-daemon --console=plain testReleaseUnitTest lintRelease assembleRelease
+      - name: Prepare unsigned APK and offline signing utility
+        run: |
+          mkdir -p android-delivery
+          cp android/app/build/outputs/apk/release/app-release-unsigned.apk android-delivery/prospect-ai-unsigned.apk
+          cp "$ANDROID_HOME/build-tools/36.0.0/lib/apksigner.jar" android-delivery/apksigner.jar
+          cp "$ANDROID_HOME/build-tools/36.0.0/zipalign" android-delivery/zipalign
+          if [ -d "$ANDROID_HOME/build-tools/36.0.0/lib64" ]; then cp -r "$ANDROID_HOME/build-tools/36.0.0/lib64" android-delivery/lib64; fi
+          find android-delivery -type f ! -name SHA256SUMS.txt -exec sha256sum {} \; > android-delivery/SHA256SUMS.txt
+      - name: Save build reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-reports
+          path: |
+            android/app/build/reports/
+            android/app/build/test-results/
+          retention-days: 14
+      - name: Save unsigned build for private local signing
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prospect-ai-android-unsigned
+          path: android-delivery/
+          if-no-files-found: error
+          retention-days: 14

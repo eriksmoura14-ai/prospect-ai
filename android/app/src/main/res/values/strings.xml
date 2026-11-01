@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Prospect AI</string>
+    <string name="loading">Conectando ao seu workspace…</string>
+    <string name="error_title">Não foi possível abrir o Prospect</string>
+    <string name="error_message">Confira sua conexão e tente novamente. O servidor também pode estar iniciando.</string>
+    <string name="retry">Tentar novamente</string>
+    <string name="open_browser">Abrir no navegador</string>
+    <string name="no_handler">Nenhum aplicativo disponível para abrir esse link.</string>
+    <string name="blocked_link">Esse tipo de link não pode ser aberto pelo aplicativo.</string>
+    <string name="export_failed">Não foi possível exportar. Tente novamente ou abra o Prospect no navegador.</string>
+    <string name="export_busy">Conclua o salvamento do arquivo atual primeiro.</string>
+    <string name="export_saved">Arquivo salvo.</string>
+    <string name="exit_hint">Toque em voltar novamente para sair.</string>
+</resources>
