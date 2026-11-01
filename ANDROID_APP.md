@@ -32,7 +32,9 @@ do frontend nem muda Render, Netlify, Neon ou a branch de produção.
 
 ## Segurança
 
-Somente `INTERNET` é solicitado. Sem câmera, microfone, contatos, localização,
+`INTERNET` permite a conexão ao SaaS. AndroidX acrescenta uma permissão interna
+do próprio pacote, protegida por assinatura, para seus broadcasts. Ela não dá
+acesso aos dados do telefone. Sem câmera, microfone, contatos, localização,
 armazenamento amplo ou rastreadores adicionais. HTTPS obrigatório dentro do app;
 TLS inválido é recusado. O app usa os certificados de sistema, bloqueia conteúdo
 misto, acesso `file://`/`content://`, intents arbitrários e URLs com credenciais.
