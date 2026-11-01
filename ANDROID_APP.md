@@ -1,14 +1,18 @@
 # Prospect AI para Android
 
 Primeira versão: aplicativo Android instalável, conectado ao SaaS existente em
-`https://prospect-ai-a90q.onrender.com/`. Android 8.0 (API 26) ou posterior;
+`https://prospect-ai-eriksmoura.netlify.app/`. Android 8.0 (API 26) ou posterior;
 SDK de compilação e target 36. Usa o mesmo login Gmail/senha, conta, buscas,
 listas, histórico, assistente, mapas e banco do site. Não duplica nem empacota
 o catálogo mundial, senhas ou chaves de APIs no APK. Precisa de internet.
 
-O projeto está em `android/`. A interface vem do endereço HTTPS aprovado e
-recebe as atualizações já publicadas do SaaS. O app não publica uma nova versão
-do frontend nem muda Render, Netlify, Neon ou a branch de produção.
+O projeto está em `android/`. A interface atual é empacotada no APK a partir
+da lista pública do frontend; não depende do HTML antigo publicado na Netlify.
+O endereço HTTPS aprovado permanece como origem das chamadas de API, preservando
+cookies e CSRF. Somente os GETs dos arquivos públicos enumerados no manifesto
+são atendidos pelo APK. Login e buscas continuam pela rede, com TLS verificado.
+Atualizações de interface exigem novo APK. O app não publica uma nova versão
+do site nem muda Render, Netlify, Neon ou a branch de produção.
 
 ## Experiência no celular
 
@@ -52,6 +56,8 @@ Requisitos locais: JDK 17, Android SDK 36 e Build Tools 36.0.0. O Gradle Wrapper
 8.13 tem checksum fixado; o Android Gradle Plugin é 8.13.2 e WebKit 1.14.0.
 
 ```bash
+npm ci --ignore-scripts
+node scripts/build-android-frontend.cjs
 node --test test/android-export.test.cjs
 cd android
 ./gradlew --no-daemon testReleaseUnitTest lintRelease assembleRelease

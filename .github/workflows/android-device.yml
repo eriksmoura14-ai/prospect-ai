@@ -1,7 +1,7 @@
 name: Android device smoke
 on:
   pull_request:
-    paths: ['android/**', 'test/android-device-smoke.py', '.github/workflows/android-device.yml']
+    paths: ['android/**', 'scripts/build-android-frontend.cjs', 'test/android-device-smoke.py', '.github/workflows/android-device.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +20,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Bundle current public frontend
+        run: |
+          npm ci --ignore-scripts
+          node scripts/build-android-frontend.cjs
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
         with:
           packages: platform-tools

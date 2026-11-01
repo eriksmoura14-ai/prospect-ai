@@ -41,6 +41,7 @@ import org.json.JSONObject;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -58,6 +59,36 @@ public final class MainActivity extends ComponentActivity {
     private long lastBack;
     private boolean failed;
     private String exportScript;
+    private volatile JSONObject bundledRoutes;
+    private static final String CONTENT_POLICY = "default-src 'self'; script-src 'self'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; object-src 'none'; base-uri 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'self'";
+
+    private String readAsset(String name) throws java.io.IOException {
+        try (java.io.InputStream stream = getAssets().open(name)) {
+            java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+            byte[] block = new byte[4096]; int count;
+            while ((count = stream.read(block)) != -1) buffer.write(block, 0, count);
+            return buffer.toString(StandardCharsets.UTF_8.name());
+        }
+    }
+
+    private WebResourceResponse bundledResource(WebResourceRequest request) {
+        if (!"GET".equals(request.getMethod()) || !policy.internal(request.getUrl().toString()) || bundledRoutes == null) return null;
+        JSONObject asset = bundledRoutes.optJSONObject(request.getUrl().getPath());
+        if (asset == null) return null; // Authenticated APIs always use the real HTTPS server.
+        try {
+            String file = asset.getString("file");
+            if (file.contains("..") || file.startsWith("/") || file.startsWith(".env")) return null;
+            HashMap<String, String> headers = new HashMap<>();
+            headers.put("Content-Security-Policy", CONTENT_POLICY);
+            headers.put("X-Content-Type-Options", "nosniff");
+            headers.put("Cache-Control", "no-store");
+            headers.put("Referrer-Policy", "no-referrer");
+            return new WebResourceResponse(asset.getString("mime"), "UTF-8", 200, "OK", headers, getAssets().open("web/" + file));
+        } catch (java.io.IOException | org.json.JSONException error) {
+            return new WebResourceResponse("text/plain", "UTF-8", 500, "Missing bundled resource", Collections.emptyMap(),
+                new java.io.ByteArrayInputStream("Reinstale o aplicativo.".getBytes(StandardCharsets.UTF_8)));
+        }
+    }
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,6 +131,8 @@ public final class MainActivity extends ComponentActivity {
     }
 
     private void configureWebView() {
+        try { bundledRoutes = new JSONObject(readAsset("web-manifest.json")).getJSONObject("routes"); }
+        catch (java.io.IOException | org.json.JSONException error) { throw new IllegalStateException("Android public frontend bundle missing", error); }
         web = new WebView(this);
         web.setBackgroundColor(BACKGROUND);
         root.addView(web, new FrameLayout.LayoutParams(-1, -1));
@@ -130,6 +163,9 @@ public final class MainActivity extends ComponentActivity {
             @Override public void onPermissionRequest(PermissionRequest request) { request.deny(); }
         });
         web.setWebViewClient(new WebViewClient() {
+            @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return bundledResource(request);
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 if (policy.internal(request.getUrl().toString())) return false;
                 if (request.isForMainFrame()) routeExternal(request.getUrl().toString());

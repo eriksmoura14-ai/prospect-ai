@@ -6,3 +6,5 @@ local.properties
 *.apk
 *.aab
 captures/
+app/src/main/assets/web/
+app/src/main/assets/web-manifest.json

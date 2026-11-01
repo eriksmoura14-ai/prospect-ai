@@ -11,12 +11,12 @@ function browser({ blob = new Blob(["\uFEFFnome,telefone\r\nEmpresa,+55349988839
   const context = {
     window: { ProspectAndroid: { postMessage(value) { messages.push(JSON.parse(value)); } } },
     document: { addEventListener(type, callback) { listeners.push(callback); } },
-    location: { origin: "https://prospect-ai-a90q.onrender.com" },
+    location: { origin: "https://prospect-ai-eriksmoura.netlify.app" },
     fetch: async () => { throw new Error("CSP blocks fetch(blob:)"); },
     TextDecoder,
     Blob,
     URL: {
-      createObjectURL() { return `blob:https://prospect-ai-a90q.onrender.com/${++nextUrl}`; },
+      createObjectURL() { return `blob:https://prospect-ai-eriksmoura.netlify.app/${++nextUrl}`; },
       revokeObjectURL(url) { revoked.push(url); },
     },
   };

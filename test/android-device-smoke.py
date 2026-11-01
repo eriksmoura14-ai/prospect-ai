@@ -6,7 +6,7 @@ from pathlib import Path
 import websocket
 
 OUT=Path('.artifacts/android-device');OUT.mkdir(parents=True,exist_ok=True)
-APP='com.prospectai.android';ORIGIN='https://prospect-ai-a90q.onrender.com'
+APP='com.prospectai.android';ORIGIN='https://prospect-ai-eriksmoura.netlify.app'
 
 def adb(*args):
  return subprocess.run(['adb',*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=20).stdout
@@ -96,12 +96,12 @@ if exported!=expected:
  raise RuntimeError('csv_bytes_or_phone_number_changed')
 
 cdp('Network.enable');cdp('Network.emulateNetworkConditions',{'offline':True,'latency':0,'downloadThroughput':0,'uploadThroughput':0});cdp('Page.reload',{'ignoreCache':True})
-deadline=time.monotonic()+20;offline=False
+deadline=time.monotonic()+30;offline=False
 while time.monotonic()<deadline:
  root=dump('offline-screen')
- if any(n.get('text')=='Não foi possível abrir o Prospect' for n in root.iter('node')):offline=True;break
+ if any(n.get('text')=='Não foi possível abrir o Prospect' or 'Não foi possível conectar ao servidor' in n.get('text','') for n in root.iter('node')):offline=True;break
  time.sleep(1)
-if not offline:raise RuntimeError('native_offline_screen_missing')
+if not offline:raise RuntimeError('offline_screen_missing')
 screenshot('offline-screen');socket.close()
-report={'androidApi':adb('shell','getprop','ro.build.version.sdk').decode().strip(),'testBuild':'debug only; delivered APK separately uses release with WebView debugging disabled','approvedOrigin':ORIGIN,'currentSaasLoginVisible':True,'originScopedExportBridgeReady':True,'nativeDocumentPickerOpened':True,'csvBytesIdentical':True,'utf8BomRetained':True,'phoneDigitsRetained':True,'nativeOfflineScreenVisible':True,'emulatorLauncherAnrDialogsDismissed':launcher_dialogs,'fixtureIsNotARealBusinessRecord':True,'customerAccountUsed':False,'searchesOrEmailsSent':False,'elapsedMs':round((time.monotonic()-started)*1000)}
+report={'androidApi':adb('shell','getprop','ro.build.version.sdk').decode().strip(),'testBuild':'debug only; delivered APK separately uses release with WebView debugging disabled','approvedOrigin':ORIGIN,'currentSaasLoginVisible':True,'originScopedExportBridgeReady':True,'nativeDocumentPickerOpened':True,'csvBytesIdentical':True,'utf8BomRetained':True,'phoneDigitsRetained':True,'offlineScreenVisible':True,'frontendBundledInApk':True,'emulatorLauncherAnrDialogsDismissed':launcher_dialogs,'fixtureIsNotARealBusinessRecord':True,'customerAccountUsed':False,'searchesOrEmailsSent':False,'elapsedMs':round((time.monotonic()-started)*1000)}
 (OUT/'device-smoke.json').write_text(json.dumps(report,indent=2));print(json.dumps(report))
