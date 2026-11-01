@@ -1,5 +1,9 @@
 # Portugal e controle de capacidade — 27/10/2026
 
+> Atualização de 01/11: o período gratuito de novembro foi conferido, o acesso
+> ao banco voltou e novas publicações foram verificadas. O aviso abaixo descreve
+> o incidente de outubro. Veja o [snapshot atual](COBERTURA_MUNDIAL_20261101.md).
+
 > Estado posterior: o Neon informou 5.123.311.271 bytes de transferência para
 > uma cota de 5.000.000.000 e recusou a consulta com HTTP 402 por quota excedida.
 > As métricas abaixo são o último snapshot verificado; não foi possível

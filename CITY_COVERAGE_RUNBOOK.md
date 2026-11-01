@@ -1,5 +1,25 @@
 # Cobertura mínima por cidade
 
+O [snapshot de 01/11/2026](COBERTURA_MUNDIAL_20261101.md) registra a retomada
+após conferir a renovação do período gratuito. Avisos de quota de outubro são
+históricos; nunca presumir renovação ou usar o último contador sem reconferir.
+
+## Recuperar espaço sem perder o acervo
+
+`REINDEX INDEX CONCURRENTLY` pode recuperar espaço de índices com crescimento
+por atualizações. Executar um índice por vez, somente após medir os índices e
+conferir espaço para a cópia transitória. Comparar fingerprints de todos os
+países e ativos, contagens de inventário/áreas/tarefas e validade/prontidão dos
+índices antes e depois. Essa manutenção não autoriza excluir registros, trocar
+identidades ou elevar o guard do banco. O recibo de novembro acompanha o pacote.
+
+Um cache DuckDB derivado só pode ser removido quando todos os Parquets originais
+e de distribuição continuarem disponíveis, seus SHA-256 tiverem sido conferidos
+e a igualdade de todas as colunas tiver sido demonstrada por contagem e hashes.
+Preservar os candidatos ainda não publicados. Não apagar fontes ou catálogos
+para abrir espaço. Arquivos canônicos e partições brutas não são caches livres
+para descarte. A remoção verificada de novembro não altera o leitor do backend.
+
 ## Sérvia: distritos e nomes publicados
 
 Na release fixada, os polígonos sérvios publicam `RS-VO` ou região vazia,
