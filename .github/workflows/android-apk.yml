@@ -32,6 +32,11 @@ jobs:
         run: echo '81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f  gradle/wrapper/gradle-wrapper.jar' | sha256sum --check
       - name: Browser export regressions
         run: node --test test/android-export.test.cjs
+      - name: Set up Android SDK tools
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - name: Prepare Android SDK
         run: |
           sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
