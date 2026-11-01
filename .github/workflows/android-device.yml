@@ -1,0 +1,58 @@
+name: Android device smoke
+on:
+  pull_request:
+    paths: ['android/**', 'test/android-device-smoke.py', '.github/workflows/android-device.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: android-device-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  device:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Prepare SDK, emulator and bounded debug test build
+        run: |
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'emulator' 'system-images;android-35;google_apis;x86_64'
+          python3 -m pip install websocket-client==1.9.0
+          cd android
+          ./gradlew --no-daemon --console=plain assembleDebug
+      - name: Boot Android 15 and install app
+        run: |
+          test -e /dev/kvm
+          sudo chmod a+rw /dev/kvm
+          echo no | avdmanager create avd --force --name prospect-test --package 'system-images;android-35;google_apis;x86_64' --device pixel_6
+          "$ANDROID_HOME/emulator/emulator" -avd prospect-test -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 2048 > emulator.log 2>&1 &
+          timeout 180 adb wait-for-device
+          for attempt in $(seq 1 90); do
+            if adb shell getprop sys.boot_completed | tr -d '\r' | grep -q '^1$'; then break; fi
+            sleep 2
+          done
+          test "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1
+          adb shell input keyevent 82
+          adb install --no-streaming android/app/build/outputs/apk/debug/app-debug.apk
+          adb shell am start -n com.prospectai.android/.MainActivity
+      - name: Real WebView, native CSV picker and offline screen
+        run: python3 test/android-device-smoke.py
+      - name: Save device evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-device-evidence
+          path: |
+            .artifacts/android-device/
+            emulator.log
+          retention-days: 14
