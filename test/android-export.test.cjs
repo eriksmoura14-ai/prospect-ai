@@ -6,23 +6,29 @@ const vm = require("node:vm");
 const source = fs.readFileSync(require("node:path").join(__dirname, "../android/app/src/main/assets/export-bridge.js"), "utf8");
 
 function browser({ blob = new Blob(["\uFEFFnome,telefone\r\nEmpresa,+5534998883900"], { type: "text/csv;charset=utf-8" }) } = {}) {
-  const listeners = [], messages = [];
+  const listeners = [], messages = [], revoked = [];
+  let nextUrl = 0;
   const context = {
     window: { ProspectAndroid: { postMessage(value) { messages.push(JSON.parse(value)); } } },
     document: { addEventListener(type, callback) { listeners.push(callback); } },
     location: { origin: "https://prospect-ai-eriksmoura.netlify.app" },
-    fetch: async () => ({ blob: async () => blob }),
+    fetch: async () => { throw new Error("CSP blocks fetch(blob:)"); },
     TextDecoder,
+    Blob,
+    URL: {
+      createObjectURL() { return `blob:https://prospect-ai-eriksmoura.netlify.app/${++nextUrl}`; },
+      revokeObjectURL(url) { revoked.push(url); },
+    },
   };
   vm.runInNewContext(source, context);
   async function click(overrides = {}) {
-    const link = { href: "blob:https://prospect-ai-eriksmoura.netlify.app/uuid", download: "prospect-ai-1793560000000.csv", ...overrides };
+    const link = { href: context.URL.createObjectURL(blob), download: "prospect-ai-1793560000000.csv", ...overrides };
     let prevented = false;
     listeners[0]({ target: { closest() { return link; } }, preventDefault() { prevented = true; } });
     await new Promise(resolve => setImmediate(resolve));
     return { prevented, messages };
   }
-  return { click, context, listeners, messages };
+  return { click, context, listeners, messages, revoked };
 }
 
 test("Android CSV exports preserve complete phone numbers and use the native save picker", async () => {
@@ -61,4 +67,14 @@ test("the exporter is installed once per document and never replaces standard br
   assert.equal(b.listeners.length, 1);
   const web = { window: {}, document: { addEventListener() { throw new Error("browser should remain unchanged"); } } };
   vm.runInNewContext(source, web);
+});
+test("native export stays functional under strict CSP while object URLs retain their normal revoke behaviour", async () => {
+  const b = browser();
+  const image = new Blob(["image fixture"], { type: "image/png" });
+  const url = b.context.URL.createObjectURL(image);
+  b.context.URL.revokeObjectURL(url);
+  assert.deepEqual(b.revoked, [url]);
+  assert.equal(b.messages.length, 0);
+  const exported = await b.click();
+  assert.equal(exported.messages[0].type, "export");
 });
