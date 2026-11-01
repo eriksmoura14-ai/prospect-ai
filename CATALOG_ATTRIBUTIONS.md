@@ -5,6 +5,13 @@ código não substitui a licença dos dados. Telefones e URLs são publicados pe
 fontes; não constituem confirmação de WhatsApp, atividade atual ou ausência de
 website. Não há dados de contas ou sessões de clientes nos arquivos públicos.
 
+As regras de identidade administrativa consultaram o Statistical Office of the
+Republic of Serbia e o NSI da Bulgária, nos links do runbook. A transliteração
+búlgara segue a tabela e as regras de 2009 publicadas pelo MRDPW. Essas consultas
+documentam nomes e tipos; os polígonos continuam atribuídos às fontes Overture,
+OpenStreetMap e demais produtores registrados por feição. Originais e provas
+de ancestralidade permanecem preservados, com as licenças de cada fonte.
+
 - **Inventário de localidades e derivados:** Countries States Cities Database,
   https://github.com/dr5hn/countries-states-cities-database, distribuída por
   `@countrystatecity/countries@1.0.9`,

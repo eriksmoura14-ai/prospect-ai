@@ -8,6 +8,15 @@ def node(identity,name,subtype,region='GB-ENG',country='GB',local_type='county')
  return {'id':identity,'names':{'primary':name},'subtype':subtype,'region':region,'country':country,'local_type':{'en':local_type},'sources':SOURCE}
 
 class PublishedAdministrativeHierarchy(unittest.TestCase):
+ def test_serbian_district_uses_exact_published_descriptor_and_county_level(self):
+  state={'countryCode':'RS','stateCode':'02','iso':'RS-02','name':'Central Banat','type':'district'};root=node('rs','Serbia','country',None,'RS');district={**node('banat','Central Banat Administrative District','county','RS-VO','RS','municipality'),'admin_level':2};proof,error=m.resolve_state(state,[root,district]);self.assertIsNone(error);self.assertEqual(proof['divisionId'],'banat');self.assertEqual(proof['divisionLocalType'],{'en':'municipality'});self.assertTrue(proof['sourceLocalTypeRetainedButNotUsed'])
+  for bad in [{**district,'admin_level':3},{**district,'subtype':'localadmin'},{**district,'subtype':'region','region':'RS-02'},{**district,'country':'BA'},{**district,'names':{'primary':'South Banat Administrative District'}}]:
+   self.assertIsNone(m.resolve_state(state,[root,bad])[0])
+  self.assertIsNone(m.resolve_state({**state,'iso':'RS-04'},[root,district])[0])
+ def test_serbian_belgrade_is_distinct_from_province_and_wrong_district(self):
+  state={'countryCode':'RS','stateCode':'00','iso':'RS-00','name':'Belgrade','type':'city'};root=node('rs','Serbia','country',None,'RS');city={**node('bg','City of Belgrade','county',None,'RS','municipality'),'admin_level':2};proof,error=m.resolve_state(state,[root,city]);self.assertIsNone(error);self.assertEqual(proof['divisionId'],'bg');self.assertIsNone(m.resolve_state({**state,'stateCode':'01','iso':'RS-01'},[root,city])[0]);self.assertIsNone(m.resolve_state(state,[root,{**city,'subtype':'region'}])[0])
+ def test_serbian_descriptor_never_bypasses_consistent_ancestry_or_license(self):
+  state={'countryCode':'RS','stateCode':'02','iso':'RS-02','name':'Central Banat','type':'district'};root=node('rs','Serbia','country',None,'RS');district={**node('banat','Central Banat Administrative District','county','RS-VO','RS','municipality'),'admin_level':2};proof,_=m.resolve_state(state,[root,district]);town={**node('town','Town','locality','RS-VO','RS'),'parent_division_id':'different','hierarchies':[[{'division_id':'rs','subtype':'country'},{'division_id':'different','subtype':'county'},{'division_id':'town','subtype':'locality'}]]};self.assertIsNone(m.ancestry_proof({'country':'RS','region':'RS-VO','division_id':'town','subtype':'locality'},town,state,proof));self.assertIsNone(m.resolve_state(state,[root,{**district,'sources':[{'dataset':'unknown','license':'unknown'}]}])[0]);self.assertIsNone(m.resolve_state(state,[root,district,{**district,'id':'ambiguous'}])[0])
  def fixture(self):
   roots=[node('uk','United Kingdom','country'),node('eng','England','region'),node('norfolk','Norfolk','county'),node('suffolk','Suffolk','county')]
   state={'countryCode':'GB','stateCode':'NFK','iso':'GB-NFK','name':'Norfolk','type':'two-tier county','id':1};proof,error=m.resolve_state(state,roots);self.assertIsNone(error)

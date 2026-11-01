@@ -4,15 +4,35 @@ This never assigns the nearest city or borrows a parent county. Existing
 confirmed boundaries stay authoritative; this command prepares a new country
 publication using source-native division identifiers and explicit ambiguity.
 """
-import argparse,collections,csv,hashlib,importlib.util,json,re,time
+import argparse,collections,csv,hashlib,importlib.util,json,re,time,unicodedata
 from pathlib import Path
 import duckdb,shapely
 from shapely.geometry import mapping
 spec=importlib.util.spec_from_file_location('country',Path(__file__).with_name('catalog-country.py'));country=importlib.util.module_from_spec(spec);spec.loader.exec_module(country)
+BG_TRANSLITERATION_AUTHORITY='https://www.mrrb.bg/static/media/ups/articles/attachments/TRANSLITERATION%20ACT48938c89238d30492f9d6456d4b8ee7e.pdf'
+BG_MUNICIPALITY_AUTHORITY='https://www.nsi.bg/en/press-release/administrative-territorial-and-territorial-division-of-the-republic-of-bulgaria-9010'
+BG_LETTERS=dict(zip('абвгдежзийклмнопрстуфхцчшщъьюя',['a','b','v','g','d','e','zh','z','i','y','k','l','m','n','o','p','r','s','t','u','f','h','ts','ch','sh','sht','a','y','yu','ya']))
+
+def bulgarian_latin(value):
+ """Official 2009 letter rules for published Bulgarian primary/bg names only.
+ No fuzzy spelling, machine translation, or rules for other Cyrillic alphabets.
+ """
+ value=unicodedata.normalize('NFC',value).lower()
+ if any(c.isalpha() and c not in BG_LETTERS and not ('a'<=c<='z') for c in value):return None
+ def word(match):
+  text=match.group()
+  if text=='българия':return 'bulgaria'
+  return ''.join(BG_LETTERS[c] for c in text[:-2])+'ia' if text.endswith('ия') else ''.join(BG_LETTERS[c] for c in text)
+ return re.sub('[а-я]+',word,value)
 
 def names(value,country_code=None):
  if not isinstance(value,dict):return set()
  labels=[v for v in [value.get('primary'),*(value.get('common') or {}).values()] if isinstance(v,str) and v.strip()]
+ if country_code=='BG':
+  for label in [value.get('primary'),(value.get('common') or {}).get('bg')]:
+   if isinstance(label,str) and label.strip():
+    translated=bulgarian_latin(label)
+    if translated:labels.append(translated)
  if country_code=='SI':
   # Published Slovenian settlement labels use the descriptive suffix
   # "(naselje)" and explicit Slovenian / Italian display variants. Preserve
@@ -34,6 +54,7 @@ def candidates(city,lookup):
 def registry_names(city):
  name=country.normalized(city['name']);result={name}
  if city['countryCode'] in ('SK','CZ') and name.startswith('okres '):result.add(name[len('okres '):])
+ if city['countryCode']=='BG' and name.startswith('obshtina '):result.add(name[len('obshtina '):])
  return result
 
 def scope_matches(city,area):
@@ -49,6 +70,7 @@ def requested_county_policy(city):
  # these are not the historical amter abolished in 2007. Only the explicit
  # Kommune option can use that reviewed source class.
  if city['countryCode']=='DK' and name.endswith(' kommune'):return 'explicit_registry_danish_municipality'
+ if city['countryCode']=='BG' and name.startswith('obshtina '):return 'explicit_registry_bulgarian_municipality'
  return None
 
 def contained_named_locality(city,hits):
@@ -118,15 +140,22 @@ def main():
     source_state=row['region'].split('-',1)[1] if isinstance(row['region'],str) and row['region'].startswith(a.country+'-') else None
     primary=row['names']['primary'];area={'id':identity,'country_code':a.country,'state_code':source_state,'name':primary,'kind':row['subtype'],'source':'Overture divisions / OpenStreetMap / geoBoundaries','vintage':'2026-10-21.0','geom':g,'license':{'id':'ODbL-1.0','url':'https://opendatacommons.org/licenses/odbl/1-0/','attribution':'© OpenStreetMap contributors; Overture Maps Foundation; geoBoundaries contributors as recorded per feature','shareAlike':True,'source':'https://docs.overturemaps.org/guides/divisions/'},'source_metadata':{'source_area_id':row['id'],'division_id':row['division_id'],'subtype':row['subtype'],'regionISO':row['region'],'territorial':True,'sources':sources,'association':'Exact published country, ISO subdivision, normalized primary/common name, and app anchor inside territorial polygon','notACurrentCadastralSurvey':True}}
     if row['subtype']=='county':
-     matching=[v for v in district_entries if registry_names(v).intersection(names(row['names']))];district_labels=sorted(country.normalized(v['name']) for v in matching)
+     matching=[v for v in district_entries if registry_names(v).intersection(names(row['names'],a.country))];district_labels=sorted(country.normalized(v['name']) for v in matching)
      if not district_labels:continue
      policy=requested_county_policy(matching[0]);area['source_metadata']['scope_policy']=policy
      if policy=='explicit_registry_danish_municipality':
       if row['admin_level']!=2 or not country.normalized(primary).endswith(' kommune'):continue
       area['source_metadata'].update(verified_municipality_labels=district_labels,admin_level=2,hierarchyAuthority='https://www.dst.dk/en/Statistik/dokumentation/nomenklaturer/nuts',authorityDescription='98 municipalities within five regions; source geometry remains OSM, not Statistics Denmark')
+     elif policy=='explicit_registry_bulgarian_municipality':
+      # The 265 county/admin_level 2 features publish the municipality's proper
+      # name without the registry's literal "Obshtina" descriptor. The app's
+      # explicit descriptor, reviewed level, ISO state and anchor are required.
+      if row['admin_level']!=2:continue
+      area['source_metadata'].update(verified_municipality_labels=district_labels,admin_level=2,hierarchyAuthority=BG_MUNICIPALITY_AUTHORITY,authorityDescription='265 municipalities distinct from the 28 districts; source polygon and provenance remain OSM')
      else:area['source_metadata']['verified_district_labels']=district_labels
     seen[identity]=area
     if a.country=='SI':area['source_metadata']['published_name_aliases']=sorted(names(row['names'],a.country))
+    if a.country=='BG':area['source_metadata'].update(published_name_aliases=sorted(names(row['names'],a.country)),nameMatchingPolicy='Bulgarian primary/bg name transliterated with the official 2009 rules; country, selected state and polygon anchor remain mandatory',transliterationAuthority=BG_TRANSLITERATION_AUTHORITY)
     source_names[identity]=names(row['names'],a.country)
     for name in source_names[identity]:lookup[(row['region'],name)].append(area)
  if hierarchy:

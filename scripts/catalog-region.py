@@ -46,6 +46,6 @@ def main():
   temporary=output.with_suffix('.partial.parquet')
   c.execute("COPY (SELECT n.*,CASE WHEN website='' THEN 'insufficient_information' WHEN is_profile(website) THEN 'needs_verification' ELSE 'website_identified' END AS website_classification,CASE WHEN phone='' THEN 'not_listed' ELSE 'listed_unverified' END AS phone_verification FROM normalized n ORDER BY country_code,source_id) TO '"+str(temporary).replace("'","''")+"' (FORMAT PARQUET,COMPRESSION ZSTD,ROW_GROUP_SIZE 20000)")
   temporary.replace(output)
- metrics={'records':c.execute('SELECT count(*) FROM normalized').fetchone()[0],'bytes':output.stat().st_size,'sha256':hashlib.file_digest(output.open('rb'),'sha256').hexdigest(),'elapsedMs':round((time.monotonic()-start)*1000),'source':report,'stage':'normalized','deduplicated':False}
+ metrics={'records':c.execute('SELECT count(*) FROM normalized').fetchone()[0],'bytes':output.stat().st_size,'sha256':hashlib.file_digest(output.open('rb'),'sha256').hexdigest(),'elapsedMs':round((time.monotonic()-start)*1000),'source':report,'sourceDownloadReportIsHistorical':True,'rawSourceNetworkBytesThisRun':0,'sourceFileSha256VerifiedThisRun':True,'stage':'normalized','deduplicated':False}
  (root/('normalization-report'+suffix+'.json')).write_text(json.dumps(metrics,indent=2));print(json.dumps(metrics),flush=True)
 if __name__=='__main__':main()

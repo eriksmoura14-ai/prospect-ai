@@ -10,6 +10,18 @@ spec=importlib.util.spec_from_file_location('hierarchy_country',Path(__file__).w
 ADMIN_TYPES={'country','dependency','macroregion','region','macrocounty','county','localadmin'}
 SOURCE_LICENSES={'openstreetmap':{'ODbL-1.0'},'geoboundaries':{'CC-BY-4.0','CC-BY-3.0','CC-BY-3.0-IGO'},'esri community maps':{'CC-BY-4.0'}}
 GB_COUNTY_TYPES={'council area','district','london borough','metropolitan district','unitary authority','two tier county','city'}
+RS_AUTHORITY='https://stat.gov.rs/en-us/oblasti/registar-prostornih-jedinica-i-gis/administrativno-teritorijalna-podela-i-nstj-nivoi-1-2-3/'
+
+def rs_administrative_label(state):
+ # The pinned app selects districts RS-01..RS-24 and the distinct City of
+ # Belgrade RS-00. Overture's county/admin_level 2 nodes publish these exact
+ # English descriptors, but misleadingly call their local_type municipality.
+ # Never substitute the enclosing RS-VO province for a selected district.
+ if state.get('countryCode')!='RS' or state.get('iso')!='RS-'+str(state.get('stateCode')):return None
+ kind=base.normalized(state.get('type'));name=base.normalized(state.get('name'))
+ if kind=='district' and re.fullmatch(r'(0[1-9]|1[0-9]|2[0-4])',str(state.get('stateCode'))):return name+' administrative district'
+ if kind=='city' and state.get('stateCode')=='00' and name=='belgrade':return 'city of belgrade'
+ return None
 
 def licensed(node):
  sources=node.get('sources') or []
@@ -34,6 +46,8 @@ def gb_administrative_labels(values):
 def registry_state_labels(state):
  result={base.normalized(state['name'])}
  if state['countryCode']=='GB' and base.normalized(state.get('type')) in GB_COUNTY_TYPES:result=gb_administrative_labels(result)
+ label=rs_administrative_label(state)
+ if label:result.add(label)
  return result
 
 def state_labels(state,node):
@@ -47,6 +61,8 @@ def state_labels(state,node):
 def compatible(state,node):
  kind=base.normalized(state.get('type'));subtype=node.get('subtype')
  if subtype not in ADMIN_TYPES-{'country','dependency'}:return False
+ label=rs_administrative_label(state)
+ if label:return subtype=='county' and node.get('admin_level')==2 and label in labels(node)
  if state['countryCode']=='GB' and kind in GB_COUNTY_TYPES:return subtype=='county'
  if state['countryCode']=='FR' and kind in ('metropolitan department','overseas department'):return subtype=='county'
  if state['countryCode']=='IT' and kind in ('province','metropolitan city','free municipal consortium'):return subtype=='county'
@@ -54,14 +70,16 @@ def compatible(state,node):
 
 def resolve_state(state,nodes,country_nodes=None):
  candidates=[n for n in nodes if n.get('country')==state['countryCode'] and registry_state_labels(state).intersection(state_labels(state,n))]
- exact=[n for n in candidates if n.get('subtype') in ('region','macroregion') and n.get('region')==state.get('iso')]
+ exact=[n for n in candidates if n.get('subtype') in ('region','macroregion') and n.get('region')==state.get('iso') and not rs_administrative_label(state)]
  selected=exact if exact else [n for n in candidates if compatible(state,n)]
  if len(selected)!=1:return None,'subdivision_not_unique' if selected else 'subdivision_not_found'
  node=selected[0]
  if not licensed(node):return None,'subdivision_source_requires_review'
  country_nodes=nodes if country_nodes is None else country_nodes
  roots=[n['id'] for n in country_nodes if n.get('country')==state['countryCode'] and n.get('subtype')=='country' and licensed(n)];dependencies=[n['id'] for n in country_nodes if n.get('country')==state['countryCode'] and n.get('subtype')=='dependency' and licensed(n)]
- return {'stateCode':state['stateCode'],'registryId':state.get('id'),'registryName':state['name'],'registryType':state.get('type'),'registryISO':state.get('iso'),'divisionId':node['id'],'divisionName':node['names']['primary'],'divisionSubtype':node['subtype'],'divisionLocalType':node.get('local_type'),'method':'published_region_iso_and_name' if exact else 'published_subdivision_name_and_type','sources':node['sources'],'countryDivisionIds':roots,'dependencyDivisionIds':dependencies},None
+ proof={'stateCode':state['stateCode'],'registryId':state.get('id'),'registryName':state['name'],'registryType':state.get('type'),'registryISO':state.get('iso'),'divisionId':node['id'],'divisionName':node['names']['primary'],'divisionSubtype':node['subtype'],'divisionLocalType':node.get('local_type'),'method':'published_region_iso_and_name' if exact else 'published_subdivision_name_and_type','sources':node['sources'],'countryDivisionIds':roots,'dependencyDivisionIds':dependencies}
+ if not exact and rs_administrative_label(state):proof.update(method='reviewed_serbian_district_descriptor_admin_level_and_ancestry',adminLevel=node['admin_level'],hierarchyAuthority=RS_AUTHORITY,sourceLocalTypeRetainedButNotUsed=True)
+ return proof,None
 
 def ancestry_proof(area,node,state,proof):
  if not node or not licensed(node) or area['country']!=state['countryCode'] or node.get('country')!=area['country'] or node.get('id')!=area['division_id'] or node.get('subtype')!=area['subtype'] or node.get('region')!=area.get('region'):return None
@@ -86,7 +104,7 @@ class HierarchyIndex:
   data=json.loads(Path(registry).read_text())
   if data.get('dataset')!='@countrystatecity/countries@1.0.9' or data.get('license')!='ODbL-1.0':raise ValueError('registry_version_requires_review')
   self.states={s['stateCode']:s for s in data['states'] if s['countryCode']==country and s['stateCode'] in wanted};self.proofs={};self.failures={};self.own={}
-  db=duckdb.connect(config={'memory_limit':'256MB','threads':'1'});columns=['id','country','region','names','subtype','local_type','sources'];rows=db.execute('SELECT '+','.join(columns)+' FROM read_parquet(?) WHERE subtype=ANY(?)',[str(self.path),sorted(ADMIN_TYPES)]).fetchall()
+  db=duckdb.connect(config={'memory_limit':'256MB','threads':'1'});columns=['id','country','region','names','subtype','admin_level','local_type','sources'];rows=db.execute('SELECT '+','.join(columns)+' FROM read_parquet(?) WHERE subtype=ANY(?)',[str(self.path),sorted(ADMIN_TYPES)]).fetchall()
   if len(rows)>100000:raise ValueError('hierarchy_state_index_budget')
   nodes=[dict(zip(columns,row)) for row in rows];db.close();by_name={};country_nodes=[n for n in nodes if n['subtype'] in ('country','dependency')]
   for node in nodes:

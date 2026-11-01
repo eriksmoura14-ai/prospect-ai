@@ -181,6 +181,9 @@ def confirmed_admin_ids(candidates,geometries=None):
         if child['country_code']==parent['country_code']=='DK' and child['state_code']==parent['state_code'] and child['kind'] in ('locality','localadmin') and parent['kind']=='county' and parent_meta.get('scope_policy')=='explicit_registry_danish_municipality' and parent_meta.get('admin_level')==2 and normalized(parent.get('name','')).endswith(' kommune') and normalized(parent.get('name','')) in parent_meta.get('verified_municipality_labels',[]):
             municipality=geometries[parent['id']] if geometries is not None else polygon(parent['geometry']);town=geometries[child['id']] if geometries is not None else polygon(child['geometry'])
             if municipality.covers(town):return [parent['id'],child['id']]
+        if child['country_code']==parent['country_code']=='BG' and child['state_code']==parent['state_code'] and child['kind']=='locality' and parent['kind']=='county' and parent_meta.get('scope_policy')=='explicit_registry_bulgarian_municipality' and parent_meta.get('admin_level')==2 and any(n.startswith('obshtina ') for n in parent_meta.get('verified_municipality_labels',[])):
+            municipality=geometries[parent['id']] if geometries is not None else polygon(parent['geometry']);town=geometries[child['id']] if geometries is not None else polygon(child['geometry'])
+            if municipality.covers(town):return [parent['id'],child['id']]
     return []
 
 def geometry(args):

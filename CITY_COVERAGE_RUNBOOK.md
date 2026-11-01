@@ -1,5 +1,38 @@
 # Cobertura mínima por cidade
 
+## Sérvia: distritos e nomes publicados
+
+Na release fixada, os polígonos sérvios publicam `RS-VO` ou região vazia,
+enquanto o seletor usa os distritos `RS-01` a `RS-24` e Belgrado `RS-00`.
+Usar a extração completa de hierarquia de `catalog-hierarchy-read.py`, junto
+ao registro estadual fixado, em `catalog-world-boundaries.py --hierarchy ...
+--state-registry ...`. O vínculo exige o nome publicado completo do distrito,
+classe `county`, `admin_level=2`, origem licenciada e todas as cadeias de
+ancestralidade consistentes. O `local_type=municipality` incorreto da fonte
+permanece registrado; a regra revisada usa o nível e o descritor administrativo.
+A província da Voivodina não substitui o distrito selecionado. Belgrado tem
+regra própria de nome/tipo. Conferência administrativa:
+https://stat.gov.rs/en-us/oblasti/registar-prostornih-jedinica-i-gis/administrativno-teritorijalna-podela-i-nstj-nivoi-1-2-3/.
+
+## Bulgária: nomes em cirílico e opções Obshtina
+
+O cruzamento aceita a transliteração oficial de 2009 para o nome primário
+búlgaro e a variante `bg` publicada. Mantém o original e as outras variantes;
+não translitera alfabetos de outros países nem aplica aproximação textual.
+País, estado e âncora dentro do polígono continuam obrigatórios. Autoridade:
+https://www.mrrb.bg/static/media/ups/articles/attachments/TRANSLITERATION%20ACT48938c89238d30492f9d6456d4b8ee7e.pdf.
+
+As opções explicitamente prefixadas `Obshtina` representam municípios.
+Extrair com `catalog-division-read.py --include-counties`; somente essas opções
+podem usar a classe revisada `county/admin_level=2`. O próprio nome sem o
+descritor deve concordar, de forma única, com a fonte no mesmo estado e país,
+e a âncora deve estar dentro do município. Uma cidade comum não usa esse
+limite como alternativa. Quando a cidade estiver inteiramente contida no
+município explicitamente solicitado, ambas as opções podem contar a mesma
+empresa; sua identidade global continua única. A divisão em 28 distritos e
+265 municípios foi conferida no NSI:
+https://www.nsi.bg/en/press-release/administrative-territorial-and-territorial-division-of-the-republic-of-bulgaria-9010.
+
 A meta é 50 empresas únicas por localidade enumerável da aplicação, somando os
 segmentos atuais. O denominador continua sendo 152.970; volume mundial e
 localidades processadas não substituem essa medida. Empresas acima da meta são
