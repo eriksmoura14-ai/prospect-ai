@@ -40,7 +40,7 @@ jobs:
           printf 'avd.ini.encoding=UTF-8\npath=%s\n' "$ANDROID_AVD_HOME/prospect-test.avd" > "$ANDROID_AVD_HOME/prospect-test.ini"
           "$ANDROID_HOME/emulator/emulator" -list-avds | grep -x prospect-test
           "$ANDROID_HOME/emulator/emulator" -avd prospect-test -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 2048 > emulator.log 2>&1 &
-          timeout 180 adb wait-for-device
+          if ! timeout 180 adb wait-for-device; then cat emulator.log; exit 1; fi
           for attempt in $(seq 1 90); do
             if adb shell getprop sys.boot_completed | tr -d '\r' | grep -q '^1$'; then break; fi
             sleep 2
