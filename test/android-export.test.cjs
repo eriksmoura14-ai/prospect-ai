@@ -5,13 +5,14 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const source = fs.readFileSync(require("node:path").join(__dirname, "../android/app/src/main/assets/export-bridge.js"), "utf8");
 
-function browser({ blob = new Blob(["nome,telefone\r\nEmpresa,+5534998883900"], { type: "text/csv;charset=utf-8" }) } = {}) {
+function browser({ blob = new Blob(["\uFEFFnome,telefone\r\nEmpresa,+5534998883900"], { type: "text/csv;charset=utf-8" }) } = {}) {
   const listeners = [], messages = [];
   const context = {
     window: { ProspectAndroid: { postMessage(value) { messages.push(JSON.parse(value)); } } },
     document: { addEventListener(type, callback) { listeners.push(callback); } },
     location: { origin: "https://prospect-ai-eriksmoura.netlify.app" },
     fetch: async () => ({ blob: async () => blob }),
+    TextDecoder,
   };
   vm.runInNewContext(source, context);
   async function click(overrides = {}) {
@@ -31,7 +32,7 @@ test("Android CSV exports preserve complete phone numbers and use the native sav
   assert.equal(messages.length, 1);
   assert.equal(messages[0].type, "export");
   assert.equal(messages[0].mime, "text/csv");
-  assert.equal(messages[0].text, "nome,telefone\r\nEmpresa,+5534998883900");
+  assert.equal(messages[0].text, "\uFEFFnome,telefone\r\nEmpresa,+5534998883900");
 });
 test("Android JSON exports retain provenance and Unicode", async () => {
   const text = JSON.stringify({ attribution: "© OpenStreetMap contributors", results: [{ name: "Nauan Baí", phone: "+5534998883900" }] });

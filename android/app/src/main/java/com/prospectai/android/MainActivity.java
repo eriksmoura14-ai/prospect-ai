@@ -261,6 +261,12 @@ public final class MainActivity extends Activity {
         title.setPadding(0, dp(20), 0, dp(12)); state.addView(title);
         TextView subtitle = new TextView(this); subtitle.setText(error ? R.string.error_message : R.string.loading);
         subtitle.setTextColor(Color.rgb(165, 186, 204)); subtitle.setTextSize(16); subtitle.setGravity(Gravity.CENTER); state.addView(subtitle);
+        if (!error) {
+            ProgressBar spinner = new ProgressBar(this);
+            spinner.setIndeterminateTintList(android.content.res.ColorStateList.valueOf(ACCENT));
+            LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(dp(30), dp(30)); size.topMargin = dp(24);
+            state.addView(spinner, size);
+        }
         if (error) {
             Button retry = new Button(this); retry.setText(R.string.retry);
             retry.setOnClickListener(view -> {
