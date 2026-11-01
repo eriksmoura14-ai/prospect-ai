@@ -19,7 +19,7 @@ def dump(name):
  data=adb('shell','cat','/sdcard/prospect-ui.xml');(OUT/(name+'.xml')).write_bytes(data)
  return ET.fromstring(data)
 
-started=time.monotonic();socket=None;counter=0
+started=time.monotonic();socket=None;counter=0;last_error=''
 deadline=time.monotonic()+120
 while time.monotonic()<deadline:
  try:
@@ -28,8 +28,11 @@ while time.monotonic()<deadline:
   with urllib.request.urlopen('http://127.0.0.1:9222/json',timeout=3) as r:pages=json.load(r)
   page=next(p for p in pages if p.get('type')=='page' and p.get('url','').startswith(ORIGIN+'/'))
   socket=websocket.create_connection(page['webSocketDebuggerUrl'],timeout=10,suppress_origin=True);break
- except (subprocess.SubprocessError,OSError,ValueError,IndexError,StopIteration):time.sleep(2)
+ except (subprocess.SubprocessError,OSError,ValueError,IndexError,StopIteration) as error:
+  last_error=type(error).__name__;time.sleep(2)
 if socket is None:
+ (OUT/'startup-crash-log.txt').write_bytes(adb('logcat','-d','-b','crash'))
+ (OUT/'startup-last-error.txt').write_text(last_error)
  screenshot('startup-failure');dump('startup-failure');raise RuntimeError('webview_did_not_open_approved_origin')
 
 def cdp(method,params=None):
