@@ -1,7 +1,7 @@
 # Prospect AI para Android
 
 Primeira versão: aplicativo Android instalável, conectado ao SaaS existente em
-`https://prospect-ai-eriksmoura.netlify.app/`. Android 8.0 (API 26) ou posterior;
+`https://prospect-ai-a90q.onrender.com/`. Android 8.0 (API 26) ou posterior;
 SDK de compilação e target 36. Usa o mesmo login Gmail/senha, conta, buscas,
 listas, histórico, assistente, mapas e banco do site. Não duplica nem empacota
 o catálogo mundial, senhas ou chaves de APIs no APK. Precisa de internet.

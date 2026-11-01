@@ -6,7 +6,7 @@ from pathlib import Path
 import websocket
 
 OUT=Path('.artifacts/android-device');OUT.mkdir(parents=True,exist_ok=True)
-APP='com.prospectai.android';ORIGIN='https://prospect-ai-eriksmoura.netlify.app'
+APP='com.prospectai.android';ORIGIN='https://prospect-ai-a90q.onrender.com'
 
 def adb(*args):
  return subprocess.run(['adb',*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=20).stdout
@@ -64,7 +64,7 @@ def evaluate(expression):
 deadline=time.monotonic()+100;state={}
 while time.monotonic()<deadline:
  state=evaluate("({title:document.title,url:location.href,exporter:!!window.__prospectAndroidExports,login:!!document.querySelector('#login-panel')&&!document.querySelector('#login-panel').hidden})")
- if state['title']=='Prospect AI' and state['exporter'] and state['login']:break
+ if state['title'].endswith('Prospect AI') and state['exporter'] and state['login']:break
  time.sleep(2)
 else:
  screenshot('login-failure');dump('login-failure');raise RuntimeError('prospect_login_or_export_bridge_not_ready')
@@ -85,8 +85,15 @@ while time.monotonic()<deadline:
 if save is None:raise RuntimeError('native_document_picker_not_opened')
 screenshot('native-export-picker');numbers=list(map(int,re.findall(r'\d+',save.get('bounds',''))));assert len(numbers)==4
 adb('shell','input','tap',str((numbers[0]+numbers[2])//2),str((numbers[1]+numbers[3])//2));time.sleep(2)
-exported=adb('shell','cat','/sdcard/Download/'+filename)
-if exported!=fixture.encode('utf-8'):raise RuntimeError('csv_bytes_or_phone_number_changed')
+expected=fixture.encode('utf-8');deadline=time.monotonic()+10;exported=b''
+while time.monotonic()<deadline:
+ exported=adb('exec-out','cat','/sdcard/Download/'+filename)
+ if exported==expected:break
+ time.sleep(.5)
+if exported!=expected:
+ (OUT/'exported-fixture.csv').write_bytes(exported);(OUT/'expected-fixture.csv').write_bytes(expected)
+ (OUT/'export-byte-comparison.json').write_text(json.dumps({'expectedBytes':len(expected),'actualBytes':len(exported),'expectedHex':expected.hex(),'actualHex':exported.hex()}))
+ raise RuntimeError('csv_bytes_or_phone_number_changed')
 
 cdp('Network.enable');cdp('Network.emulateNetworkConditions',{'offline':True,'latency':0,'downloadThroughput':0,'uploadThroughput':0});cdp('Page.reload',{'ignoreCache':True})
 deadline=time.monotonic()+20;offline=False

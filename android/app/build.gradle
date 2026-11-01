@@ -9,7 +9,7 @@ android {
         targetSdk 36
         versionCode 1
         versionName '0.1.0'
-        buildConfigField 'String', 'APP_URL', '"https://prospect-ai-eriksmoura.netlify.app/"'
+        buildConfigField 'String', 'APP_URL', '"https://prospect-ai-a90q.onrender.com/"'
     }
     buildFeatures { buildConfig true }
     buildTypes {

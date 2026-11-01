@@ -46,8 +46,8 @@ import java.util.concurrent.Executors;
 
 public final class MainActivity extends ComponentActivity {
     private static final int SAVE_EXPORT = 41;
-    private static final int BACKGROUND = Color.rgb(3, 18, 31);
-    private static final int ACCENT = Color.rgb(0, 219, 235);
+    private static final int BACKGROUND = Color.rgb(9, 6, 17);
+    private static final int ACCENT = Color.rgb(185, 144, 252);
     private final NavigationPolicy policy = new NavigationPolicy(BuildConfig.APP_URL);
     private final ExecutorService files = Executors.newSingleThreadExecutor();
     private WebView web;
