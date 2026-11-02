@@ -54,6 +54,10 @@ jobs:
         run: python -m unittest discover -s test -p 'catalog_hierarchy_test.py' -v
       - name: Incremental full-inventory audit requires every live country fingerprint
         run: python -m unittest discover -s test -p 'catalog_audit_incremental_test.py' -v
+      - name: Whole-app source sweep preserves every city and never promotes candidate counts
+        run: python -m unittest discover -s test -p 'catalog_world_sweep_test.py' -v
+      - name: Projected public Places reads retain TLS, source identity, and bounded resource use
+        run: python -m unittest discover -s test -p 'catalog_place_ranges_test.py' -v
       - name: Coastal recovery requires exact reviewed polygons and preserves previous observations
         run: python -m unittest discover -s test -p 'catalog_coastal_test.py' -v
       - name: Country publication integrity, isolation and resumable failures

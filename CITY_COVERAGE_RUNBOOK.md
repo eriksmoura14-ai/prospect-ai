@@ -1,5 +1,58 @@
 # Cobertura mínima por cidade
 
+## Uma execução para a lista inteira do aplicativo
+
+`catalog-world-sweep.py` percorre **todas as localidades enumeradas pelo mesmo
+módulo `locations.cjs`**, sem argumento para selecionar um subconjunto de países.
+Confere igualdade exata das chaves com o inventário de cobertura. Os 152.970
+locais pertencem a 223 países/territórios com cidades enumeradas e 4.279
+subdivisões com cidades. O seletor completo também oferece países/subdivisões
+sem cidades enumeradas; suas opções manuais não formam uma lista finita adicional.
+
+O comando lê cada partição de empresas uma vez para a lista inteira e os 24
+segmentos. Reutiliza os arquivos brutos com SHA-256 conferido; a opção explícita
+`--read-remote-missing` lê as partições faltantes via HTTPS/Range. Não usa Nominatim
+em massa. Não escreve no catálogo canônico, em contas de clientes ou em produção.
+
+```bash
+.artifacts/venv-catalog/bin/python scripts/catalog-world-sweep.py \
+  --inventory .artifacts/coverage-20261023/inventory.json \
+  --baseline .artifacts/coverage-resume-20261101/final/all-city-coverage.csv \
+  --source-plan .artifacts/world-boundaries-20261026/world-source-plan/country-source-plan.json \
+  --niches .artifacts/coverage-20261023/niches.json \
+  --root .artifacts/all-app-cities-sweep-20261102 \
+  --read-remote-missing
+```
+
+O mesmo comando retoma os checkpoints; não inicia uma coleta mundial contínua.
+É uma execução finita. A chave de cada partição e as observações agregadas são
+gravadas na mesma transação SQLite; interromper uma partição não duplica suas
+linhas na retomada. Inventário, baseline, taxonomia e plano diferentes exigem
+uma raiz diferente. Os resultados de cada local ficam em
+`all-app-cities.ndjson.gz`; `sweep.sqlite` conserva as contagens por partição,
+país, estado publicado, cidade publicada e segmento para investigação posterior.
+
+**Essa etapa descobre evidências; não transforma contagens de fonte em empresas
+únicas confirmadas.** Nomes publicados só geram candidatos quando país, estado
+e nome concordam exatamente e de forma unívoca. Homônimos, estados ausentes,
+territórios sem polígono e ausência de correspondência ficam explícitos. As
+contagens confirmadas anteriores permanecem intactas. A confirmação da meta
+continua exigindo polígono revisado e reconciliação conservadora das empresas.
+Nenhuma correspondência ou fonte completa comprova ausência de empresas.
+
+Cada leitura remota tem prazo de 600 s, orçamento de bytes equivalente ao tamanho
+da partição mais 32 MiB, sem repetição HTTP oculta e com ETag estável. O cache
+em memória tem 16 MiB; a leitura antecipada de até 4 MiB pode conter colunas
+adjacentes e esses bytes entram no recibo. Os SHA-256 são de intervalos, e não
+do arquivo remoto inteiro. Um arquivo bruto adicional não é salvo no disco.
+429/503 conservam a espera indicada pela fonte e bloqueiam novas tentativas
+durante esse prazo; há no máximo três tentativas remotas incompletas por partição.
+
+O SQLite derivado tem orçamento de 160 MiB, DuckDB usa 192 MiB e uma thread,
+e o processo preserva pelo menos 32 MiB de disco livre. A memória total inclui
+o inventário Python, o cache e outros objetos; 192 MiB não é um limite de RSS.
+Esses controles não elevam quotas do Neon nem habilitam cobranças.
+
 O [snapshot de 01/11/2026](COBERTURA_MUNDIAL_20261101.md) registra a retomada
 após conferir a renovação do período gratuito. Avisos de quota de outubro são
 históricos; nunca presumir renovação ou usar o último contador sem reconferir.

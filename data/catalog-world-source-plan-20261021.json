@@ -1,0 +1,1534 @@
+{
+  "version": 1,
+  "release": "2026-10-21.0",
+  "source": "Overture Maps Foundation Places",
+  "sourceDocumentation": "https://docs.overturemaps.org/guides/places/",
+  "countryPlanAttribution": "Countries States Cities Database (ODbL-1.0); Natural Earth 1:10m (public domain)",
+  "partitions": [
+    {
+      "id": "00000",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00000-a0a9949b-7e8e-59fe-803b-6cc55b17f790-c000.zstd.parquet",
+      "bytes": 729511821,
+      "cache": null
+    },
+    {
+      "id": "00001",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00001-95b3bb67-399f-571e-9503-61421d57661c-c000.zstd.parquet",
+      "bytes": 810722286,
+      "cache": null
+    },
+    {
+      "id": "00002",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00002-6f03d044-7fc3-539e-842b-7b15c796e629-c000.zstd.parquet",
+      "bytes": 814700009,
+      "cache": null
+    },
+    {
+      "id": "00003",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00003-755a53ba-2d37-54c8-b30e-8c14897bc3f3-c000.zstd.parquet",
+      "bytes": 826418126,
+      "cache": null
+    },
+    {
+      "id": "00004",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00004-14b83d8c-d850-51f9-85b2-8f8a0b4634af-c000.zstd.parquet",
+      "bytes": 712441815,
+      "cache": null
+    },
+    {
+      "id": "00005",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00005-c3667754-428e-500c-bf3b-a0b5921b7cc0-c000.zstd.parquet",
+      "bytes": 720677975,
+      "cache": null
+    },
+    {
+      "id": "00006",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00006-55d446f6-129a-556e-b79e-e1cfd5735068-c000.zstd.parquet",
+      "bytes": 755632071,
+      "cache": null
+    },
+    {
+      "id": "00007",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00007-a2c7689b-daa2-5233-9780-d37ccfc3ea74-c000.zstd.parquet",
+      "bytes": 725017426,
+      "cache": null
+    },
+    {
+      "id": "00008",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00008-8b09f6c1-f726-581a-9b39-f891088cc2ad-c000.zstd.parquet",
+      "bytes": 721833497,
+      "cache": null
+    },
+    {
+      "id": "00009",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00009-fe90ff49-733f-5fa3-9755-c6cd4438305c-c000.zstd.parquet",
+      "bytes": 713205738,
+      "cache": null
+    },
+    {
+      "id": "00010",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00010-c680fdf1-f03b-5be1-93f1-56c835a00765-c000.zstd.parquet",
+      "bytes": 723633922,
+      "cache": null
+    },
+    {
+      "id": "00011",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00011-472205f3-e3ff-5474-98a4-b9b3361f7306-c000.zstd.parquet",
+      "bytes": 714390669,
+      "cache": null
+    },
+    {
+      "id": "00012",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00012-8cf9bdfe-d946-56f8-84c0-19493d0fbb9c-c000.zstd.parquet",
+      "bytes": 730097847,
+      "cache": null
+    },
+    {
+      "id": "00013",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00013-6c366648-1364-543e-894b-d6e65d03c056-c000.zstd.parquet",
+      "bytes": 719333214,
+      "cache": null
+    },
+    {
+      "id": "00014",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00014-dcceff87-235e-5a0e-a4b4-5f25ccb873e7-c000.zstd.parquet",
+      "bytes": 744601106,
+      "cache": null
+    },
+    {
+      "id": "00015",
+      "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-10-21.0/theme=places/type=place/part-00015-eb1c1331-f519-5db6-8fef-74a77e5776ff-c000.zstd.parquet",
+      "bytes": 733499664,
+      "cache": null
+    }
+  ],
+  "countries": [
+    {
+      "country": "AD",
+      "partitionIds": [
+        "00007"
+      ]
+    },
+    {
+      "country": "AE",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "AF",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "AG",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "AL",
+      "partitionIds": [
+        "00008",
+        "00009"
+      ]
+    },
+    {
+      "country": "AM",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "AO",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "AR",
+      "partitionIds": [
+        "00004"
+      ]
+    },
+    {
+      "country": "AS",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "AT",
+      "partitionIds": [
+        "00009",
+        "00010"
+      ]
+    },
+    {
+      "country": "AU",
+      "partitionIds": [
+        "00012",
+        "00013"
+      ]
+    },
+    {
+      "country": "AW",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "AX",
+      "partitionIds": [
+        "00011"
+      ]
+    },
+    {
+      "country": "AZ",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "BA",
+      "partitionIds": [
+        "00009"
+      ]
+    },
+    {
+      "country": "BB",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "BD",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "BE",
+      "partitionIds": [
+        "00007",
+        "00010",
+        "00011"
+      ]
+    },
+    {
+      "country": "BF",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "BG",
+      "partitionIds": [
+        "00008",
+        "00009"
+      ]
+    },
+    {
+      "country": "BH",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "BI",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "BJ",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "BL",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "BM",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "BN",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "BO",
+      "partitionIds": [
+        "00004",
+        "00005"
+      ]
+    },
+    {
+      "country": "BQ",
+      "partitionIds": []
+    },
+    {
+      "country": "BR",
+      "partitionIds": [
+        "00004",
+        "00005"
+      ]
+    },
+    {
+      "country": "BS",
+      "partitionIds": [
+        "00000",
+        "00005"
+      ]
+    },
+    {
+      "country": "BT",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "BW",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "BY",
+      "partitionIds": [
+        "00010",
+        "00011"
+      ]
+    },
+    {
+      "country": "BZ",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "CA",
+      "partitionIds": [
+        "00002",
+        "00003",
+        "00006"
+      ]
+    },
+    {
+      "country": "CD",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "CF",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "CG",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "CH",
+      "partitionIds": [
+        "00009",
+        "00010"
+      ]
+    },
+    {
+      "country": "CI",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "CL",
+      "partitionIds": [
+        "00000",
+        "00004",
+        "00005"
+      ]
+    },
+    {
+      "country": "CM",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "CN",
+      "partitionIds": [
+        "00013",
+        "00014",
+        "00015"
+      ]
+    },
+    {
+      "country": "CO",
+      "partitionIds": [
+        "00000",
+        "00005"
+      ]
+    },
+    {
+      "country": "CR",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "CU",
+      "partitionIds": [
+        "00000",
+        "00005"
+      ]
+    },
+    {
+      "country": "CV",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "CY",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "CZ",
+      "partitionIds": [
+        "00010"
+      ]
+    },
+    {
+      "country": "DE",
+      "partitionIds": [
+        "00009",
+        "00010",
+        "00011"
+      ]
+    },
+    {
+      "country": "DJ",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "DK",
+      "partitionIds": [
+        "00011"
+      ]
+    },
+    {
+      "country": "DM",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "DO",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "DZ",
+      "partitionIds": [
+        "00005",
+        "00008"
+      ]
+    },
+    {
+      "country": "EC",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "EE",
+      "partitionIds": [
+        "00011"
+      ]
+    },
+    {
+      "country": "EG",
+      "partitionIds": [
+        "00008",
+        "00014"
+      ]
+    },
+    {
+      "country": "ER",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "ES",
+      "partitionIds": [
+        "00005",
+        "00006",
+        "00007"
+      ]
+    },
+    {
+      "country": "ET",
+      "partitionIds": [
+        "00008",
+        "00012"
+      ]
+    },
+    {
+      "country": "FI",
+      "partitionIds": [
+        "00011"
+      ]
+    },
+    {
+      "country": "FJ",
+      "partitionIds": [
+        "00000",
+        "00013"
+      ]
+    },
+    {
+      "country": "FM",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "FO",
+      "partitionIds": [
+        "00006"
+      ]
+    },
+    {
+      "country": "FR",
+      "partitionIds": [
+        "00000",
+        "00005",
+        "00006",
+        "00007",
+        "00008",
+        "00009",
+        "00010",
+        "00012"
+      ]
+    },
+    {
+      "country": "GA",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "GB",
+      "partitionIds": [
+        "00006",
+        "00007"
+      ]
+    },
+    {
+      "country": "GD",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "GE",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "GF",
+      "partitionIds": []
+    },
+    {
+      "country": "GG",
+      "partitionIds": [
+        "00006"
+      ]
+    },
+    {
+      "country": "GH",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "GL",
+      "partitionIds": [
+        "00006"
+      ]
+    },
+    {
+      "country": "GM",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "GN",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "GP",
+      "partitionIds": []
+    },
+    {
+      "country": "GQ",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "GR",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "GT",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "GU",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "GW",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "GY",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "HK",
+      "partitionIds": [
+        "00015"
+      ]
+    },
+    {
+      "country": "HN",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "HR",
+      "partitionIds": [
+        "00009"
+      ]
+    },
+    {
+      "country": "HT",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "HU",
+      "partitionIds": [
+        "00009",
+        "00010"
+      ]
+    },
+    {
+      "country": "ID",
+      "partitionIds": [
+        "00012",
+        "00013"
+      ]
+    },
+    {
+      "country": "IE",
+      "partitionIds": [
+        "00006"
+      ]
+    },
+    {
+      "country": "IL",
+      "partitionIds": [
+        "00008",
+        "00014"
+      ]
+    },
+    {
+      "country": "IM",
+      "partitionIds": [
+        "00006"
+      ]
+    },
+    {
+      "country": "IN",
+      "partitionIds": [
+        "00012",
+        "00014"
+      ]
+    },
+    {
+      "country": "IQ",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "IR",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "IS",
+      "partitionIds": [
+        "00006"
+      ]
+    },
+    {
+      "country": "IT",
+      "partitionIds": [
+        "00008",
+        "00009"
+      ]
+    },
+    {
+      "country": "JE",
+      "partitionIds": [
+        "00006"
+      ]
+    },
+    {
+      "country": "JM",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "JO",
+      "partitionIds": [
+        "00008",
+        "00014"
+      ]
+    },
+    {
+      "country": "JP",
+      "partitionIds": [
+        "00015"
+      ]
+    },
+    {
+      "country": "KE",
+      "partitionIds": [
+        "00008",
+        "00012"
+      ]
+    },
+    {
+      "country": "KG",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "KH",
+      "partitionIds": [
+        "00012",
+        "00013"
+      ]
+    },
+    {
+      "country": "KI",
+      "partitionIds": [
+        "00000",
+        "00013"
+      ]
+    },
+    {
+      "country": "KM",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "KN",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "KP",
+      "partitionIds": [
+        "00015"
+      ]
+    },
+    {
+      "country": "KR",
+      "partitionIds": [
+        "00015"
+      ]
+    },
+    {
+      "country": "KW",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "KY",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "KZ",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "LA",
+      "partitionIds": [
+        "00012",
+        "00013",
+        "00014",
+        "00015"
+      ]
+    },
+    {
+      "country": "LB",
+      "partitionIds": [
+        "00008",
+        "00014"
+      ]
+    },
+    {
+      "country": "LC",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "LI",
+      "partitionIds": [
+        "00009"
+      ]
+    },
+    {
+      "country": "LK",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "LR",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "LS",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "LT",
+      "partitionIds": [
+        "00011"
+      ]
+    },
+    {
+      "country": "LU",
+      "partitionIds": [
+        "00010"
+      ]
+    },
+    {
+      "country": "LV",
+      "partitionIds": [
+        "00011"
+      ]
+    },
+    {
+      "country": "LY",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "MA",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "MC",
+      "partitionIds": [
+        "00009"
+      ]
+    },
+    {
+      "country": "MD",
+      "partitionIds": [
+        "00009",
+        "00010"
+      ]
+    },
+    {
+      "country": "ME",
+      "partitionIds": [
+        "00008",
+        "00009"
+      ]
+    },
+    {
+      "country": "MF",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "MG",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "MH",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "MK",
+      "partitionIds": [
+        "00008",
+        "00009"
+      ]
+    },
+    {
+      "country": "ML",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "MM",
+      "partitionIds": [
+        "00012",
+        "00014"
+      ]
+    },
+    {
+      "country": "MN",
+      "partitionIds": [
+        "00014",
+        "00015"
+      ]
+    },
+    {
+      "country": "MQ",
+      "partitionIds": []
+    },
+    {
+      "country": "MR",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "MT",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "MU",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "MV",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "MW",
+      "partitionIds": [
+        "00008",
+        "00012"
+      ]
+    },
+    {
+      "country": "MX",
+      "partitionIds": [
+        "00000",
+        "00001"
+      ]
+    },
+    {
+      "country": "MY",
+      "partitionIds": [
+        "00012",
+        "00013"
+      ]
+    },
+    {
+      "country": "MZ",
+      "partitionIds": [
+        "00008",
+        "00012"
+      ]
+    },
+    {
+      "country": "NA",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "NC",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "NE",
+      "partitionIds": [
+        "00005",
+        "00008"
+      ]
+    },
+    {
+      "country": "NG",
+      "partitionIds": [
+        "00005",
+        "00008"
+      ]
+    },
+    {
+      "country": "NI",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "NL",
+      "partitionIds": [
+        "00005",
+        "00007",
+        "00010",
+        "00011"
+      ]
+    },
+    {
+      "country": "NO",
+      "partitionIds": [
+        "00004",
+        "00006",
+        "00011"
+      ]
+    },
+    {
+      "country": "NP",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "NR",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "NZ",
+      "partitionIds": [
+        "00000",
+        "00013"
+      ]
+    },
+    {
+      "country": "OM",
+      "partitionIds": [
+        "00012",
+        "00014"
+      ]
+    },
+    {
+      "country": "PA",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "PE",
+      "partitionIds": [
+        "00000",
+        "00005"
+      ]
+    },
+    {
+      "country": "PF",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "PG",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "PH",
+      "partitionIds": [
+        "00013",
+        "00015"
+      ]
+    },
+    {
+      "country": "PK",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "PL",
+      "partitionIds": [
+        "00010",
+        "00011"
+      ]
+    },
+    {
+      "country": "PM",
+      "partitionIds": [
+        "00006"
+      ]
+    },
+    {
+      "country": "PR",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "PS",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "PT",
+      "partitionIds": [
+        "00005",
+        "00006"
+      ]
+    },
+    {
+      "country": "PW",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "PY",
+      "partitionIds": [
+        "00004",
+        "00005"
+      ]
+    },
+    {
+      "country": "QA",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "RE",
+      "partitionIds": []
+    },
+    {
+      "country": "RO",
+      "partitionIds": [
+        "00009",
+        "00010"
+      ]
+    },
+    {
+      "country": "RS",
+      "partitionIds": [
+        "00009"
+      ]
+    },
+    {
+      "country": "RU",
+      "partitionIds": [
+        "00002",
+        "00009",
+        "00010",
+        "00011",
+        "00014",
+        "00015"
+      ]
+    },
+    {
+      "country": "RW",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "SA",
+      "partitionIds": [
+        "00008",
+        "00012",
+        "00014"
+      ]
+    },
+    {
+      "country": "SB",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "SC",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "SD",
+      "partitionIds": [
+        "00008",
+        "00012",
+        "00014"
+      ]
+    },
+    {
+      "country": "SE",
+      "partitionIds": [
+        "00011"
+      ]
+    },
+    {
+      "country": "SG",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "SI",
+      "partitionIds": [
+        "00009"
+      ]
+    },
+    {
+      "country": "SK",
+      "partitionIds": [
+        "00010"
+      ]
+    },
+    {
+      "country": "SL",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "SM",
+      "partitionIds": [
+        "00009"
+      ]
+    },
+    {
+      "country": "SN",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "SO",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "SR",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "SS",
+      "partitionIds": [
+        "00008",
+        "00012"
+      ]
+    },
+    {
+      "country": "ST",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "SV",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "SY",
+      "partitionIds": [
+        "00008",
+        "00014"
+      ]
+    },
+    {
+      "country": "SZ",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "TD",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "TF",
+      "partitionIds": [
+        "00012"
+      ]
+    },
+    {
+      "country": "TG",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "TH",
+      "partitionIds": [
+        "00012",
+        "00014"
+      ]
+    },
+    {
+      "country": "TJ",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "TL",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "TM",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "TN",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "TO",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "TR",
+      "partitionIds": [
+        "00008",
+        "00014"
+      ]
+    },
+    {
+      "country": "TT",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "TV",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "TW",
+      "partitionIds": [
+        "00015"
+      ]
+    },
+    {
+      "country": "TZ",
+      "partitionIds": [
+        "00008",
+        "00012"
+      ]
+    },
+    {
+      "country": "UA",
+      "partitionIds": [
+        "00009",
+        "00010",
+        "00011",
+        "00014"
+      ]
+    },
+    {
+      "country": "UG",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "US",
+      "partitionIds": [
+        "00000",
+        "00001",
+        "00002",
+        "00003",
+        "00005",
+        "00006",
+        "00015"
+      ]
+    },
+    {
+      "country": "UY",
+      "partitionIds": [
+        "00004"
+      ]
+    },
+    {
+      "country": "UZ",
+      "partitionIds": [
+        "00014"
+      ]
+    },
+    {
+      "country": "VC",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "VE",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "VI",
+      "partitionIds": [
+        "00005"
+      ]
+    },
+    {
+      "country": "VN",
+      "partitionIds": [
+        "00012",
+        "00013",
+        "00014",
+        "00015"
+      ]
+    },
+    {
+      "country": "VU",
+      "partitionIds": [
+        "00013"
+      ]
+    },
+    {
+      "country": "WF",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "WS",
+      "partitionIds": [
+        "00000"
+      ]
+    },
+    {
+      "country": "XK",
+      "partitionIds": [
+        "00008",
+        "00009"
+      ]
+    },
+    {
+      "country": "YE",
+      "partitionIds": [
+        "00012",
+        "00014"
+      ]
+    },
+    {
+      "country": "YT",
+      "partitionIds": []
+    },
+    {
+      "country": "ZA",
+      "partitionIds": [
+        "00008",
+        "00012"
+      ]
+    },
+    {
+      "country": "ZM",
+      "partitionIds": [
+        "00008"
+      ]
+    },
+    {
+      "country": "ZW",
+      "partitionIds": [
+        "00008"
+      ]
+    }
+  ]
+}
