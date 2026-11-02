@@ -52,6 +52,20 @@ class WholeAppSweep(unittest.TestCase):
             with self.assertRaises(ValueError):
                 m.collect_parts([{'country': 'US', 'parts': [{'id': '00000', 'url': url, 'bytes': 10}]}])
 
+    def test_compact_world_plan_preserves_territories_with_no_boundary_mapping(self):
+        part = {'id': '00000', 'url': URL, 'bytes': 10, 'cache': None}
+        compact = {'version': 1, 'release': m.RELEASE, 'partitions': [part],
+                   'countries': [{'country': 'US', 'partitionIds': ['00000']},
+                                 {'country': 'BQ', 'partitionIds': []}]}
+        countries, parts = m.collect_parts(compact)
+        self.assertEqual(set(countries), {'US', 'BQ'})
+        self.assertEqual(countries['BQ']['parts'], [])
+        self.assertEqual(set(parts), {'00000'})
+        with self.assertRaises(ValueError):
+            m.collect_parts({**compact, 'release': 'latest'})
+        with self.assertRaises(ValueError):
+            m.collect_parts({**compact, 'partitions': [part, part]})
+
     def test_candidate_observations_do_not_prove_fifty_unique_businesses(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

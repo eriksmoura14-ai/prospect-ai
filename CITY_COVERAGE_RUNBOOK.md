@@ -53,6 +53,43 @@ e o processo preserva pelo menos 32 MiB de disco livre. A memória total inclui
 o inventário Python, o cache e outros objetos; 192 MiB não é um limite de RSS.
 Esses controles não elevam quotas do Neon nem habilitam cobranças.
 
+### Runner independente gratuito
+
+`.github/workflows/catalog-world-sweep.yml` executa a mesma varredura em um
+runner público `ubuntu-latest`, sem credencial de banco. Somente um commit
+explicitamente marcado `[run-world-sweep]` na branch do próprio repositório
+inicia a coleta pelo PR; outros commits não repetem a varredura. Há também
+`workflow_dispatch` para quando o arquivo estiver disponível na branch padrão.
+O prazo máximo do job é 90 minutos; não há cron nem coletor mundial contínuo.
+
+`catalog-world-sweep-ci.py` verifica o SHA-256 completo do pacote público de
+cobertura de novembro, extrai somente o CSV autorizado e gera novamente o
+inventário com `locations.cjs`. O plano compacto versionado em `data/` preserva
+as mesmas 223 associações de país e 16 partições; não remove os territórios
+que aguardam revisão de limites. Nenhum catálogo canônico é apagado ou refeito.
+Como esse runner não possui os 12 brutos locais do workspace, ele precisa reler
+as colunas das partições públicas. Isso está marcado no relatório; não se
+declara tráfego bruto zero nessa alternativa.
+
+O pacote de resultados é publicado como prerelease `catalog-sweep-RUN_ID`, com
+SHA-256, SQLite retomável, inventário e uma linha de evidência para cada local.
+O artefato do workflow também conserva checkpoints interrompidos por 14 dias.
+O prerelease é a cópia durável; uma coleta com falhas continua identificada
+como parcial no relatório e não comprova a meta de 50. O job não concede
+escrita no banco, não usa contas de clientes e não faz deploy em produção.
+
+Para retomar um pacote já publicado no mesmo código e Node 22, extraí-lo em
+`.artifacts/ci-world-sweep` e executar:
+
+```bash
+.artifacts/venv-catalog/bin/python scripts/catalog-world-sweep-ci.py --root .artifacts/ci-world-sweep
+```
+
+O bootstrap recupera apenas o baseline público conhecido e reproduz o inventário;
+as partições presentes no SQLite são retomadas. Se os inputs não reproduzirem
+os hashes do checkpoint, a execução para e exige outra raiz; não sobrescreve
+a evidência anterior.
+
 O [snapshot de 01/11/2026](COBERTURA_MUNDIAL_20261101.md) registra a retomada
 após conferir a renovação do período gratuito. Avisos de quota de outubro são
 históricos; nunca presumir renovação ou usar o último contador sem reconferir.

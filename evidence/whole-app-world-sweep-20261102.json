@@ -1,0 +1,91 @@
+{
+  "id": "whole-app-world-source-sweep-20261102",
+  "stage": "independent_job_running",
+  "allAppLocalitiesInScope": 152970,
+  "countriesWithEnumeratedLocalities": 223,
+  "allSelectableCountries": 250,
+  "allSelectableSubdivisions": 5308,
+  "subdivisionsWithLocalities": 4279,
+  "confirmedCitiesAtLeast50": 12923,
+  "remainingBelowOrUnconfirmed50": 140047,
+  "fullInventoryComparedWithCurrentLocationModule": {
+    "currentAppCityCount": 152970,
+    "currentAppCountries": 250,
+    "currentAppSubdivisions": 5308,
+    "allCityIdentitiesNamesAndCoordinatesMatch": true,
+    "sortedInventorySha256": "57b0e372afcbee4eb3947fee42982e29be57a15664746a82b1b768ccdcb294fd",
+    "dataset": {
+      "name": "Countries States Cities Database",
+      "url": "https://github.com/dr5hn/countries-states-cities-database",
+      "license": "ODbL-1.0",
+      "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+      "version": "1.0.9"
+    }
+  },
+  "canonicalPreservation": {
+    "originalMillionRetained": true,
+    "bytes": 137403018,
+    "sha256": "f0d691f744c9cc55b5ed7213b6f8758061ddc694334ca879406119804f520314",
+    "existingCatalogRecreated": false,
+    "activeAssetsPreserved": 294,
+    "totalAssetIdentitiesPreserved": 304,
+    "readyArchiveRows": 5680824,
+    "allAssetIdentitiesAndHashesMatchedLiveDatabase": true,
+    "assetsFingerprint": "6b456ff9a233e2f1c80e5729c1c5f1a3"
+  },
+  "localSourcePass": {
+    "examinedSourcePartitions": [
+      "00000",
+      "00001",
+      "00002",
+      "00003",
+      "00004",
+      "00005",
+      "00006",
+      "00007",
+      "00008",
+      "00009",
+      "00010",
+      "00011"
+    ],
+    "pendingSourcePartitions": [
+      "00012",
+      "00013",
+      "00014",
+      "00015"
+    ],
+    "eligibleSourceObservations": 5852657,
+    "belowTargetCitiesWithCandidateObservations": 39957,
+    "candidateObservationsAreNotUniqueBusinesses": true,
+    "newUniqueBusinessesPublished": 0
+  },
+  "localNetworkFailure": "HTTP 503 from environment envoy cloudflare_https_tunnel; both public S3 and git push failed",
+  "sourceSweepCodeCommit": "cbae5786ca90142378b1c7532011afebfbf22338",
+  "localEquivalentTreeSha": "b11a1b84cf1a7338294a1376cbf81dfd73253a96",
+  "independentRunUrl": "https://github.com/eriksmoura14-ai/prospect-ai/actions/runs/41444268654",
+  "independentRunId": 41444268654,
+  "localTestsPassed": 122,
+  "ciAuthentication": "success",
+  "ciGeospatial": "success",
+  "productionModified": false,
+  "paidServicesEnabled": false,
+  "optimizationParity": {
+    "id": "00000",
+    "sourceIdentityHash": "833f4aa09ba8ce4b7ee181f0a8b52263218c57eafa89e180ade35bb89e6fbcfe",
+    "bytes": 729511821,
+    "localityCategoryGroups": 33356,
+    "eligibleSourceObservations": 595494,
+    "elapsedMs": 48004,
+    "fullFileSha256Verified": true,
+    "networkBytes": 0,
+    "sameEligibleSourceObservations": true,
+    "sameLocalityCategoryGroups": true,
+    "previousElapsedMs": 242709,
+    "previousEligibleSourceObservations": 595494,
+    "previousLocalityCategoryGroups": 33356
+  },
+  "continuousWorldwideCollectorConfigured": false,
+  "finiteIndependentJobActuallyStarted": true,
+  "neonCapacityReservation": "capacity-ledger:20261102:github-world-bootstrap-v1",
+  "neonProgressManifest": "world-sweep:20261102:cbae5786"
+}
