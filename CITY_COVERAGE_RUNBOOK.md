@@ -44,7 +44,12 @@ Cada leitura remota tem prazo de 600 s, orçamento de bytes equivalente ao taman
 da partição mais 32 MiB, sem repetição HTTP oculta e com ETag estável. O cache
 em memória tem 16 MiB; a leitura antecipada de até 4 MiB pode conter colunas
 adjacentes e esses bytes entram no recibo. Os SHA-256 são de intervalos, e não
-do arquivo remoto inteiro. Um arquivo bruto adicional não é salvo no disco.
+do arquivo remoto inteiro. Não se acrescenta um arquivo bruto permanente ao acervo.
+Blocos fixos não sobrepostos são mantidos também em scratch temporário de uma
+única partição, com SHA-256 conferido nas releituras. Isso impede que a expulsão
+do cache de memória repita transferências. O scratch preserva 32 MiB livres,
+nunca cresce além dos blocos dessa partição e é removido ao fechar o leitor;
+ele não inclui nem apaga os arquivos do acervo existente.
 429/503 conservam a espera indicada pela fonte e bloqueiam novas tentativas
 durante esse prazo; há no máximo três tentativas remotas incompletas por partição.
 
@@ -67,9 +72,13 @@ cobertura de novembro, extrai somente o CSV autorizado e gera novamente o
 inventário com `locations.cjs`. O plano compacto versionado em `data/` preserva
 as mesmas 223 associações de país e 16 partições; não remove os territórios
 que aguardam revisão de limites. Nenhum catálogo canônico é apagado ou refeito.
-Como esse runner não possui os 12 brutos locais do workspace, ele precisa reler
-as colunas das partições públicas. Isso está marcado no relatório; não se
-declara tráfego bruto zero nessa alternativa.
+O seed público comprimido versionado em `data/` reutiliza as 780.591 agregações
+das 12 partições já examinadas localmente, com SHA-256, país, categoria, identidade
+de fonte e totais verificados. Ele não contém novas empresas confirmadas nem
+credenciais. A importação é transacional e idempotente: uma partição com o mesmo
+hash não é inserida novamente; um conflito interrompe o importador. Só as quatro
+partições restantes precisam ser consultadas pela rede. O relatório separa
+observações reutilizadas, leituras novas e empresas efetivamente publicadas.
 
 O pacote de resultados é publicado como prerelease `catalog-sweep-RUN_ID`, com
 SHA-256, SQLite retomável, inventário e uma linha de evidência para cada local.

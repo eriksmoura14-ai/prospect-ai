@@ -1,6 +1,6 @@
 {
   "id": "whole-app-world-source-sweep-20261102",
-  "stage": "independent_job_running",
+  "stage": "first_independent_pass_incomplete_cache_fix_verified",
   "allAppLocalitiesInScope": 152970,
   "countriesWithEnumeratedLocalities": 223,
   "allSelectableCountries": 250,
@@ -64,7 +64,7 @@
   "localEquivalentTreeSha": "b11a1b84cf1a7338294a1376cbf81dfd73253a96",
   "independentRunUrl": "https://github.com/eriksmoura14-ai/prospect-ai/actions/runs/41444268654",
   "independentRunId": 41444268654,
-  "localTestsPassed": 122,
+  "localTestsPassed": 125,
   "ciAuthentication": "success",
   "ciGeospatial": "success",
   "productionModified": false,
@@ -87,5 +87,32 @@
   "continuousWorldwideCollectorConfigured": false,
   "finiteIndependentJobActuallyStarted": true,
   "neonCapacityReservation": "capacity-ledger:20261102:github-world-bootstrap-v1",
-  "neonProgressManifest": "world-sweep:20261102:cbae5786"
+  "neonProgressManifest": "world-sweep:20261102:cbae5786",
+  "firstIndependentRun": {
+    "url": "https://github.com/eriksmoura14-ai/prospect-ai/actions/runs/41444268654",
+    "githubJobConclusion": "success",
+    "sourceSweepComplete": false,
+    "sourcePartitionsCompleted": 0,
+    "sourcePartitionsFailed": 16,
+    "reason": "overlapping read-ahead and memory eviction repeated HTTP ranges until the per-file budget stopped the queries",
+    "packageUrl": "https://github.com/eriksmoura14-ai/prospect-ai/releases/download/catalog-sweep-41444268654/prospect-all-app-cities-source-sweep.zip",
+    "packageSha256": "f033dd85ea03f042acc34ee8b93f2f3ed4ddaf698cd7b1db42887e6403a4907b",
+    "canonicalBusinessesAdded": 0
+  },
+  "cacheFix": {
+    "nonoverlappingFixedBlocks": true,
+    "boundedVerifiedScratchCache": true,
+    "quotasIncreased": false,
+    "partialSourcePassNowFailsCI": true
+  },
+  "sourceSeed": {
+    "file": "data/catalog-world-evidence-seed-20261102.ndjson.gz",
+    "bytes": 5192629,
+    "sha256": "13e89b7293d65b94f091b272897809f4b9680592df1e857e31ba96f4fa3bf3e3",
+    "sourcePartitions": 12,
+    "sourceObservations": 5852657,
+    "aggregateRows": 780591,
+    "newBusinesses": 0,
+    "duplicateRowsAddedOnRealResumeTest": 0
+  }
 }

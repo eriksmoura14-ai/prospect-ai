@@ -122,7 +122,7 @@ def scan_part(db, part, root, groups, remote=False):
         spec = importlib.util.spec_from_file_location('place_ranges', Path(__file__).with_name('catalog-place-ranges.py'))
         ranges = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(ranges)
-        transport = ranges.PlaceRanges(part, read_ahead_bytes=4 * 1024 * 1024)
+        transport = ranges.PlaceRanges(part, read_ahead_bytes=4 * 1024 * 1024, scratch_root=root)
         source = transport.start()
         receipt = {'url': part['url'], 'bytes': part['bytes'], 'projectedColumnRead': True, 'fullFileSha256Verified': False}
     else:
@@ -288,6 +288,8 @@ def export_report(db, root, cities, baseline, country_plan, parts, inputs, inven
             country_stats[cc]['confirmedAtLeast50'] += int(n is not None and n >= 50)
             target_met += int(n is not None and n >= 50)
     scanned_observations = db.execute('SELECT coalesce(sum(observations),0) FROM locality_evidence').fetchone()[0]
+    reused_parts = [(row[0], json.loads(row[1])) for row in db.execute('SELECT id,receipt FROM completed_parts')
+                    if json.loads(row[1]).get('seedReused')]
     report = {'id': 'all-app-city-source-sweep-v1', 'asOf': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
               'scope': 'every_enumerated_app_city_no_selected_country_subset', 'inputs': inputs,
               'inventoryCities': len(cities), 'inventoryCountries': len(country_stats),
@@ -295,12 +297,15 @@ def export_report(db, root, cities, baseline, country_plan, parts, inputs, inven
               'confirmedCitiesAtLeast50Unchanged': target_met,
               'confirmedCoveragePercent': round(100 * target_met / len(cities), 4),
               'newUniqueBusinessesPublished': 0, 'sourceObservationsExamined': scanned_observations,
+              'sourcePartitionsReusedFromSeed': [row[0] for row in reused_parts],
+              'sourceObservationsReusedFromSeed': sum(row[1]['eligibleSourceObservations'] for row in reused_parts),
               'sourceObservationsMatchedUnambiguouslyToAddressLabels': sum(evidence.values()),
               'unmatchedSourceObservationsRetainedInSweepDatabase': unmatched,
               'citiesWithCandidateObservations': sum(value > 0 for value in evidence.values()),
               'belowTargetCitiesWithCandidateObservations': sum(value > 0 and (baseline[key]['unique_supported'] or 0) < 50 for key, value in evidence.items()),
               'statuses': dict(statuses), 'sourcePartitionsRequired': len(parts), 'sourcePartitionsExamined': sorted(completed),
               'sourcePartitionsPending': sorted(set(parts) - completed),
+              'sourceSweepComplete': set(parts) == completed,
               'countries': [{'countryCode': cc, **dict(value)} for cc, value in sorted(country_stats.items())],
               'resultsSha256': digest(root / 'all-app-cities.ndjson.gz'),
               'resultsBytes': (root / 'all-app-cities.ndjson.gz').stat().st_size,
@@ -318,6 +323,61 @@ def export_report(db, root, cities, baseline, country_plan, parts, inputs, inven
     return report
 
 
+def import_seed(db, root, path, expected_sha, parts, countries, niches_sha, niche_names):
+    """Reuse verified locality aggregates, never import them as businesses."""
+    if not re.fullmatch('[a-f0-9]{64}', expected_sha or '') or digest(path) != expected_sha:
+        raise ValueError('source_seed_sha256_mismatch')
+    with gzip.open(path, 'rt') as source:
+        header = json.loads(source.readline(200000))
+        if (header['version'] != 1 or header['release'] != RELEASE or header['individualBusinesses'] is not False
+                or header['countryCodes'] != sorted(countries) or header['nichesSha256'] != niches_sha):
+            raise ValueError('source_seed_scope_mismatch')
+        prepared = {}
+        existing = dict(db.execute('SELECT id,sha256 FROM completed_parts'))
+        for value in header['parts']:
+            identity = value['id']
+            if (identity in prepared or identity not in parts or value['url'] != parts[identity]['url']
+                    or value['bytes'] != parts[identity]['bytes'] or not re.fullmatch('[a-f0-9]{64}', value['sha256'])):
+                raise ValueError('source_seed_partition_identity')
+            if identity in existing and existing[identity] != value['sha256']:
+                raise ValueError('source_seed_existing_checkpoint_conflict')
+            prepared[identity] = value
+        totals = collections.Counter()
+        rows = 0
+        batch = []
+        with db:
+            for line in source:
+                if len(line) > 20000:
+                    raise ValueError('source_seed_row_budget')
+                value = json.loads(line)
+                if (not isinstance(value, list) or len(value) != 8 or not all(isinstance(v, str) for v in value[:5])
+                        or value[0] not in prepared or value[1] not in countries or value[4] not in niche_names
+                        or not all(type(v) is int for v in value[5:]) or value[5] < 1
+                        or not 0 <= value[6] <= value[5] or not 0 <= value[7] <= value[5]):
+                    raise ValueError('source_seed_invalid_observation')
+                rows += 1
+                totals[value[0]] += value[5]
+                if value[0] not in existing:
+                    batch.append(value)
+                if len(batch) >= 3000:
+                    room(root)
+                    db.executemany('INSERT INTO locality_evidence VALUES(?,?,?,?,?,?,?,?)', batch)
+                    batch.clear()
+            room(root)
+            db.executemany('INSERT INTO locality_evidence VALUES(?,?,?,?,?,?,?,?)', batch)
+            if rows != header['rows'] or sum(totals.values()) != header['sourceObservations']:
+                raise ValueError('source_seed_observation_totals')
+            for identity, value in prepared.items():
+                if totals[identity] != value['receipt']['eligibleSourceObservations']:
+                    raise ValueError('source_seed_partition_totals')
+                if identity not in existing:
+                    receipt = {**value['receipt'], 'seedReused': True, 'networkBytes': 0,
+                               'sourceOriginalElapsedMs': value['receipt']['elapsedMs'], 'elapsedMs': 0}
+                    db.execute('INSERT INTO completed_parts VALUES(?,?,?)', (identity, value['sha256'], json.dumps(receipt)))
+    return {'seedSourcesReused': len(prepared), 'seedSourceObservations': sum(totals.values()),
+            'seedRows': rows, 'newVerifiedBusinesses': 0}
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--inventory', required=True)
@@ -326,11 +386,17 @@ def main():
     p.add_argument('--niches', required=True)
     p.add_argument('--root', required=True)
     p.add_argument('--read-remote-missing', action='store_true', help='Read projected columns with pinned public HTTPS ranges; no whole-file download')
+    p.add_argument('--seed')
+    p.add_argument('--seed-sha256')
     args = p.parse_args()
     root = Path(args.root)
     root.mkdir(parents=True, exist_ok=True)
     inputs = {key: {'file': str(getattr(args, key)), 'sha256': digest(getattr(args, key))}
               for key in ('inventory', 'baseline', 'source_plan', 'niches')}
+    if args.seed:
+        inputs['seed'] = {'file': args.seed, 'sha256': digest(args.seed)}
+        if inputs['seed']['sha256'] != args.seed_sha256:
+            raise ValueError('source_seed_sha256_mismatch')
     fingerprint = hashlib.sha256(json.dumps(inputs, sort_keys=True).encode()).hexdigest()
     with (root / 'sweep.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -361,6 +427,9 @@ def main():
             db.execute('INSERT OR IGNORE INTO metadata VALUES(?)', (fingerprint,))
             db.executemany('INSERT OR IGNORE INTO app_cities VALUES(?,?)', [(city['key'], city['countryCode']) for city in cities])
         groups = json.loads(Path(args.niches).read_text())
+        if args.seed:
+            print(json.dumps(import_seed(db, root, args.seed, args.seed_sha256, parts, country_plan,
+                                         inputs['niches']['sha256'], set(groups))), flush=True)
         progress = {'scopeCities': len(cities), 'scopeCountries': len(country_plan), 'countrySubsetSelected': False,
                     'fingerprint': fingerprint, 'parts': {}, 'backgroundProcessConfigured': False}
         for identity, part in sorted(parts.items()):

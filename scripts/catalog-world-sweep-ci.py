@@ -17,6 +17,8 @@ import requests
 BASELINE_URL = 'https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/archives/20261101/coverage-resume-v1.zip'
 BASELINE_SHA = '73f3cd7c71ae4353790cca9c375089c497504ecdd632732a347c8a313f13c032'
 BASELINE_ENTRY = '.artifacts/coverage-resume-20261101/final/all-city-coverage.csv'
+SEED = 'data/catalog-world-evidence-seed-20261102.ndjson.gz'
+SEED_SHA = '13e89b7293d65b94f091b272897809f4b9680592df1e857e31ba96f4fa3bf3e3'
 
 
 def main():
@@ -54,7 +56,8 @@ def main():
     subprocess.run(['node', 'scripts/catalog-inventory.cjs', str(root / 'inventory.json')], check=True)
     subprocess.run([sys.executable, 'scripts/catalog-world-sweep.py', '--inventory', str(root / 'inventory.json'),
                     '--baseline', str(root / 'baseline.csv'), '--source-plan', 'data/catalog-world-source-plan-20261021.json',
-                    '--niches', 'data/catalog-active-niches-20261021.json', '--root', str(root), '--read-remote-missing'], check=True)
+                    '--niches', 'data/catalog-active-niches-20261021.json', '--root', str(root), '--read-remote-missing',
+                    '--seed', SEED, '--seed-sha256', SEED_SHA], check=True)
     report = json.loads((root / 'report.json').read_text())
     report.update(runnerElapsedMs=round((time.monotonic() - started) * 1000),
                   baselineArchiveSha256=BASELINE_SHA, baselineArchiveBytes=archive.stat().st_size,
@@ -83,7 +86,8 @@ def main():
     print(json.dumps({'package': str(package), 'sha256': checksum, 'bytes': package.stat().st_size,
                       'inventoryCities': report['inventoryCities'], 'sourcePartitionsPending': report['sourcePartitionsPending'],
                       'targetCompletionClaimed': False}), flush=True)
+    return 0 if report['sourceSweepComplete'] else 2
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

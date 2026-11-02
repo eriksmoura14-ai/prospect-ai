@@ -7,6 +7,7 @@ on:
       - 'scripts/catalog-world-sweep*.py'
       - 'scripts/catalog-place-ranges.py'
       - 'data/catalog-*.json'
+      - 'data/catalog-*.ndjson.gz'
   workflow_dispatch:
 permissions:
   contents: read
@@ -69,7 +70,7 @@ jobs:
             .artifacts/ci-world-sweep/prospect-all-app-cities-source-sweep.zip
             .artifacts/ci-world-sweep/SHA256SUMS.txt
       - name: Save the public evidence as a durable prerelease
-        if: success() && steps.requested.outputs.run == 'true'
+        if: always() && steps.requested.outputs.run == 'true' && hashFiles('.artifacts/ci-world-sweep/prospect-all-app-cities-source-sweep.zip') != ''
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}

@@ -7,10 +7,13 @@ range digests are recorded explicitly, never called a full-file SHA-256.
 import collections
 import hashlib
 import re
+import shutil
+import tempfile
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
+from pathlib import Path
 
 import requests
 
@@ -23,7 +26,7 @@ def validate_range(start, end, size):
 
 
 class PlaceRanges:
-    def __init__(self, part, seconds=600, read_ahead_bytes=0):
+    def __init__(self, part, seconds=600, read_ahead_bytes=0, scratch_root=None):
         self.part = part
         parsed = urlsplit(part['url'])
         if (parsed.scheme != 'https' or parsed.netloc != 'overturemaps-us-west-2.s3.us-west-2.amazonaws.com'
@@ -37,12 +40,15 @@ class PlaceRanges:
         self.maximum = self.size + 32 * 1024 * 1024
         self.deadline = time.monotonic() + seconds
         self.received = self.requested = self.reused = self.cache_bytes = 0
+        self.memory_reused = self.scratch_reused = 0
         self.etag = None
         self.retry_after_unix = 0
         self.last_http_status = None
         self.ranges = []
         self.errors = []
         self.cache = collections.OrderedDict()
+        self.scratch = tempfile.TemporaryDirectory(prefix='prospect-place-ranges-', dir=scratch_root)
+        self.disk_entries = {}
         self.lock = threading.Lock()
         self.server = None
         self.session = requests.Session()
@@ -52,56 +58,78 @@ class PlaceRanges:
         with self.lock:
             if time.monotonic() > self.deadline:
                 raise RuntimeError('places_range_deadline')
-            requested_start, requested_end = start, end
-            for (first, last), cached in list(self.cache.items()):
-                if first <= start <= end <= last:
-                    self.cache.move_to_end((first, last))
-                    self.reused += end - start + 1
-                    return cached[start-first:end-first+1]
             if self.read_ahead_bytes:
-                start = start // self.read_ahead_bytes * self.read_ahead_bytes
-                end = min(self.size - 1, max(end, start + self.read_ahead_bytes - 1))
-                if end - start + 1 > 32 * 1024 * 1024:
-                    start, end = requested_start, requested_end
-            key = (start, end)
-            if self.requested + end - start + 1 > self.maximum:
-                raise RuntimeError('places_source_transfer_budget')
-            self.requested += end - start + 1
-            headers = {'Range': f'bytes={start}-{end}', 'Accept-Encoding': 'identity',
-                       'User-Agent': 'ProspectAI-finite-global-inventory-sweep/1.0'}
-            if self.etag:
-                headers['If-Match'] = self.etag
-            with self.session.get(self.part['url'], headers=headers, stream=True, timeout=(10, 35), allow_redirects=False) as response:
-                self.last_http_status = response.status_code
-                if response.status_code in (429, 503):
-                    retry = response.headers.get('Retry-After', '')
-                    self.retry_after_unix = int(time.time()) + max(60, int(retry) if str(retry).isdigit() else 60)
-                    raise RuntimeError('places_source_shared_cooldown')
-                if response.status_code != 206 or response.headers.get('Content-Range') != f'bytes {start}-{end}/{self.size}':
-                    raise RuntimeError('places_source_invalid_range_response')
-                etag = response.headers.get('ETag', '')
-                if not etag or etag.startswith('W/') or self.etag and etag != self.etag:
-                    raise RuntimeError('places_source_identity_changed')
-                self.etag = etag
-                chunks = []
-                size = 0
-                for chunk in response.iter_content(65536):
-                    size += len(chunk)
-                    self.received += len(chunk)
-                    if size > end - start + 1 or time.monotonic() > self.deadline:
-                        raise RuntimeError('places_range_response_budget')
-                    chunks.append(chunk)
-                if size != end - start + 1:
-                    raise RuntimeError('places_range_truncated')
-            body = b''.join(chunks)
-            self.ranges.append({'start': start, 'end': end, 'sha256': hashlib.sha256(body).hexdigest()})
-            if len(body) <= MAX_CACHE:
-                while self.cache and self.cache_bytes + len(body) > MAX_CACHE:
-                    _, value = self.cache.popitem(last=False)
-                    self.cache_bytes -= len(value)
-                self.cache[key] = body
-                self.cache_bytes += len(body)
-            return body[requested_start-start:requested_end-start+1]
+                # Fixed, nonoverlapping blocks. An overlapping larger range
+                # must not download the previous prefix a second time.
+                pieces = []
+                first = start // self.read_ahead_bytes * self.read_ahead_bytes
+                while first <= end:
+                    last = min(self.size - 1, first + self.read_ahead_bytes - 1)
+                    block = self._range(first, last)
+                    pieces.append(block[max(start, first)-first:min(end, last)-first+1])
+                    first = last + 1
+                return b''.join(pieces)
+            return self._range(start, end)
+
+    def _range(self, start, end):
+        key = (start, end)
+        if key in self.cache:
+            self.cache.move_to_end(key)
+            self.reused += end - start + 1
+            self.memory_reused += end - start + 1
+            return self.cache[key]
+        if key in self.disk_entries:
+            path, expected_sha = self.disk_entries[key]
+            body = path.read_bytes()
+            if len(body) != end-start+1 or hashlib.sha256(body).hexdigest() != expected_sha:
+                raise RuntimeError('places_scratch_integrity')
+            self.reused += len(body)
+            self.scratch_reused += len(body)
+            return body
+        if shutil.disk_usage(self.scratch.name).free < end-start+1 + 32 * 1024 * 1024:
+            raise RuntimeError('places_scratch_disk_reserve')
+        if self.requested + end - start + 1 > self.maximum:
+            raise RuntimeError('places_source_transfer_budget')
+        self.requested += end - start + 1
+        headers = {'Range': f'bytes={start}-{end}', 'Accept-Encoding': 'identity',
+                   'User-Agent': 'ProspectAI-finite-global-inventory-sweep/1.0'}
+        if self.etag:
+            headers['If-Match'] = self.etag
+        with self.session.get(self.part['url'], headers=headers, stream=True, timeout=(10, 35), allow_redirects=False) as response:
+            self.last_http_status = response.status_code
+            if response.status_code in (429, 503):
+                retry = response.headers.get('Retry-After', '')
+                self.retry_after_unix = int(time.time()) + max(60, int(retry) if str(retry).isdigit() else 60)
+                raise RuntimeError('places_source_shared_cooldown')
+            if response.status_code != 206 or response.headers.get('Content-Range') != f'bytes {start}-{end}/{self.size}':
+                raise RuntimeError('places_source_invalid_range_response')
+            etag = response.headers.get('ETag', '')
+            if not etag or etag.startswith('W/') or self.etag and etag != self.etag:
+                raise RuntimeError('places_source_identity_changed')
+            self.etag = etag
+            chunks = []
+            size = 0
+            for chunk in response.iter_content(65536):
+                size += len(chunk)
+                self.received += len(chunk)
+                if size > end - start + 1 or time.monotonic() > self.deadline:
+                    raise RuntimeError('places_range_response_budget')
+                chunks.append(chunk)
+            if size != end - start + 1:
+                raise RuntimeError('places_range_truncated')
+        body = b''.join(chunks)
+        checksum = hashlib.sha256(body).hexdigest()
+        path = Path(self.scratch.name) / (str(start)+'-'+str(end))
+        path.write_bytes(body)
+        self.disk_entries[key] = (path, checksum)
+        self.ranges.append({'start': start, 'end': end, 'sha256': checksum})
+        if len(body) <= MAX_CACHE:
+            while self.cache and self.cache_bytes + len(body) > MAX_CACHE:
+                _, value = self.cache.popitem(last=False)
+                self.cache_bytes -= len(value)
+            self.cache[key] = body
+            self.cache_bytes += len(body)
+        return body
 
     def start(self):
         source = self
@@ -144,7 +172,10 @@ class PlaceRanges:
                 'retryAfterUnix': self.retry_after_unix,
                 'lastHttpStatus': self.last_http_status,
                 'readAheadBytes': self.read_ahead_bytes, 'readAheadCanIncludeAdjacentColumns': bool(self.read_ahead_bytes),
-                'cachedMemoryBytesReused': self.reused, 'ranges': self.ranges,
+                'scratchBytes': sum(last-first+1 for first,last in self.disk_entries),
+                'scratchRemovedOnClose': True,
+                'cachedPayloadBytesReused': self.reused, 'cachedMemoryBytesReused': self.memory_reused,
+                'cachedScratchBytesReused': self.scratch_reused, 'ranges': self.ranges,
                 'maximumNetworkBytes': self.maximum, 'maximumMemoryCacheBytes': MAX_CACHE,
                 'fullFileSha256Verified': False, 'projectedColumnRead': True, 'rawFileSaved': False}
 
@@ -153,3 +184,4 @@ class PlaceRanges:
             self.server.shutdown()
             self.server.server_close()
         self.session.close()
+        self.scratch.cleanup()

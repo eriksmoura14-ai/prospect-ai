@@ -80,10 +80,34 @@ class ProjectedPlacesTransport(unittest.TestCase):
         self.assertEqual(source.read(300, 399), b'A' * 100)
         source.session.get.assert_called_once()
         self.assertEqual(source.receipt()['networkBytes'], 1000)
-        self.assertEqual(source.receipt()['cachedMemoryBytesReused'], 100)
+        self.assertEqual(source.receipt()['cachedMemoryBytesReused'], 1000)
         self.assertTrue(source.receipt()['readAheadCanIncludeAdjacentColumns'])
         self.assertLessEqual(source.cache_bytes, m.MAX_CACHE)
         source.close()
+
+    def test_evicted_and_overlapping_blocks_are_not_downloaded_twice(self):
+        block_size = 4 * 1024 * 1024
+        part = {**PART, 'bytes': 5 * block_size}
+        source = m.PlaceRanges(part, read_ahead_bytes=block_size)
+
+        def block_response(url, headers, **kwargs):
+            first, last = map(int, headers['Range'][6:].split('-'))
+            self.assertEqual(first % block_size, 0)
+            self.assertEqual(last-first+1, block_size)
+            response = self.response(first, last, body=bytes([first//block_size]) * block_size)
+            response.headers['Content-Range'] = f'bytes {first}-{last}/{part["bytes"]}'
+            return response
+
+        source.session.get = Mock(side_effect=block_response)
+        for index in range(5):
+            self.assertEqual(source.read(index*block_size, index*block_size+2), bytes([index])*3)
+        self.assertEqual(source.read(block_size-2, block_size+2), b'\x00\x00\x01\x01\x01')
+        self.assertEqual(source.session.get.call_count, 5)
+        self.assertEqual(source.receipt()['networkBytes'], part['bytes'])
+        self.assertLessEqual(source.cache_bytes, m.MAX_CACHE)
+        scratch = Path(source.scratch.name)
+        source.close()
+        self.assertFalse(scratch.exists())
 
     def test_source_rate_limit_records_retry_after_without_hidden_retries(self):
         source = m.PlaceRanges(PART)

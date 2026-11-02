@@ -4,6 +4,7 @@ import sqlite3
 import struct
 import tempfile
 import unittest
+import gzip
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -95,6 +96,40 @@ class WholeAppSweep(unittest.TestCase):
             report = m.export_report(db, root, [CITY], baseline, {'US': {'parts': [{'id': '00000'}]}}, {'00000': {}}, {})
             self.assertEqual(report['statuses'], {'no_exact_address_match_not_evidence_of_absence': 1})
             self.assertTrue(report['noAddressMatchDoesNotMeanNoBusinesses'])
+            db.close()
+
+    def test_seed_import_is_atomic_idempotent_and_bound_to_source_and_scope(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            db = self.database(root)
+            seed = root / 'seed.gz'
+            part = {'id': '00000', 'url': URL, 'bytes': 10}
+            header = {'version': 1, 'release': m.RELEASE, 'individualBusinesses': False,
+                      'countryCodes': ['US'], 'nichesSha256': 'niche-proof', 'rows': 1, 'sourceObservations': 2,
+                      'parts': [{**part, 'sha256': '0'*64, 'receipt': {'eligibleSourceObservations': 2, 'elapsedMs': 10}}]}
+            row = ['00000', 'US', 'NY', 'Springfield', 'Food', 2, 1, 0]
+
+            def write(data):
+                with gzip.open(seed, 'wt') as out:
+                    out.write(json.dumps(data)+'\n'+json.dumps(row)+'\n')
+                return m.digest(seed)
+
+            checksum = write({**header, 'rows': 2})
+            with self.assertRaisesRegex(ValueError, 'observation_totals'):
+                m.import_seed(db, root, seed, checksum, {'00000': part}, {'US'}, 'niche-proof', {'Food'})
+            self.assertEqual(db.execute('SELECT count(*) FROM locality_evidence').fetchone()[0], 0)
+            checksum = write(header)
+            args = (db, root, seed, checksum, {'00000': part}, {'US'}, 'niche-proof', {'Food'})
+            m.import_seed(*args)
+            m.import_seed(*args)
+            self.assertEqual(db.execute('SELECT count(*),sum(observations) FROM locality_evidence').fetchone(), (1, 2))
+            with self.assertRaisesRegex(ValueError, 'scope_mismatch'):
+                m.import_seed(db, root, seed, checksum, {'00000': part}, {'CA'}, 'niche-proof', {'Food'})
+            db.execute('UPDATE completed_parts SET sha256=?', ('1'*64,))
+            db.commit()
+            with self.assertRaisesRegex(ValueError, 'checkpoint_conflict'):
+                m.import_seed(*args)
+            self.assertEqual(db.execute('SELECT count(*) FROM locality_evidence').fetchone()[0], 1)
             db.close()
 
     @staticmethod
