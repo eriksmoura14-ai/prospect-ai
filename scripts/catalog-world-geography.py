@@ -26,6 +26,8 @@ crosswalk = w.module('world_crosswalk', 'catalog-world-boundaries.py')
 MAX_GEOMETRY = 256 * 1024 * 1024
 MAP_URL = w.ORIGIN + 'operations/20261103/city-areas-7ef9fc190302e5f8.ndjson.gz'
 MAP_SHA = '7ef9fc190302e5f8eefc179d6db437d0f2499f3cdb8d9c689db4bccd30baaf39'
+UNSUPPORTED_URL=w.ORIGIN+'operations/20261103/unsupported-target-identities-897fdafc35155fd4.ndjson.gz'
+UNSUPPORTED_SHA='897fdafc35155fd44e8dd5b62154cc5b3e53682b50344c66ed59e914ddb87357'
 
 
 def runtime_scope(geom):
@@ -176,12 +178,18 @@ def discover_scopes(index, root, folder, cities):
             w.save(root / ('division-ranges-' + asset['id'] + '.json'), transport.receipt())
             print(json.dumps({'stage': 'world_city_polygons', 'partition': asset['id'], 'examined': seen, 'candidateMappings': matches}), flush=True)
         except Exception as error:
-            errors.append({'partition': asset['id'], 'reason': str(error)[:180]})
+            reason=transport.errors[0] if transport.errors else str(error)
+            errors.append({'partition': asset['id'], 'reason': reason[:180]})
             w.save(root / ('division-ranges-failed-' + asset['id'] + '.json'), transport.receipt())
+            index.checkpoint('division-failed:'+asset['id'],{'reason':reason[:180],'receipt':transport.receipt()})
         finally:
             c.close()
             transport.close()
     with index.db:
+        # These are unpublished staging associations. A newly read partition
+        # may introduce ambiguity; rebuild them from all accumulated evidence.
+        # Native and previously published city_areas are never removed.
+        index.db.execute('DELETE FROM new_city_areas')
         for key, in index.db.execute('SELECT DISTINCT city_key FROM boundary_candidates').fetchall():
             rows = index.db.execute('SELECT metadata,geometry FROM boundary_candidates WHERE city_key=?', (key,)).fetchall()
             hits = [{**json.loads(meta), 'geom': shapely.from_wkb(geom)} for meta, geom in rows]
@@ -321,7 +329,7 @@ def coverage(index, root, folder, cities):
                 promoted += outcome=='new_unique'
                 index.db.execute('DELETE FROM pending WHERE identity=?',(ident,))
         if new_ids.intersection(by_id):
-            cursor = index.db.execute('SELECT latitude,longitude FROM roots WHERE country=?', (cc,))
+            cursor = index.db.execute('SELECT latitude,longitude FROM roots WHERE country=? AND id NOT IN (SELECT root FROM target_exclusions)', (cc,))
             while batch := cursor.fetchmany(2000):
                 assign(batch, totals, new_ids)
         cursor = index.db.execute('SELECT r.latitude,r.longitude FROM additions a JOIN roots r ON r.id=a.root WHERE a.country=?', (cc,))
@@ -372,6 +380,42 @@ def coverage(index, root, folder, cities):
         'allCitiesAt50': metrics['met50']==len(cities), 'newCityMappings': len(new_keys)}
 
 
+def target_membership(index,root,folder):
+    """Preserve the original million's other sectors without counting them
+    towards the current 24 niches. Supported aliases/legacy evidence can
+    override a sector exclusion; source observations remain untouched.
+    """
+    index.db.executescript('''CREATE TABLE IF NOT EXISTS target_identity_flags(identity TEXT PRIMARY KEY,supported INT) WITHOUT ROWID;
+      CREATE TABLE IF NOT EXISTS target_exclusions(root INTEGER PRIMARY KEY);''')
+    if index.done('target_membership_v1'):
+        return
+    path=root/'unsupported-target-identities.ndjson.gz'
+    w.download({'url':UNSUPPORTED_URL,'bytes':12524454,'sha256':UNSUPPORTED_SHA},path)
+    with index.db,gzip.open(path,'rt') as inp:
+        for line in inp:
+            row=json.loads(line)
+            index.db.execute('INSERT OR IGNORE INTO target_identity_flags VALUES(?,0)',(w.identity('overture',row['source_id'],row['country']),))
+        groups=json.loads(Path('data/catalog-active-niches-20261021.json').read_text())
+        flat={v for values in groups.values() for v in values}
+        with gzip.open(folder/'legacy-records.ndjson.gz','rt') as legacy:
+            for line in legacy:
+                row=json.loads(line);category=row.get('category') or ''
+                supported=category in groups or category.removeprefix('Overture: ') in flat
+                ident=w.identity(row['source'],row['source_id'],row['country_code'])
+                index.db.execute('INSERT INTO target_identity_flags VALUES(?,?) ON CONFLICT(identity) DO UPDATE SET supported=max(supported,excluded.supported)',(ident,int(supported)))
+        index.db.execute('DELETE FROM target_exclusions')
+        index.db.execute('''INSERT INTO target_exclusions(root)
+          SELECT DISTINCT i.root FROM target_identity_flags f JOIN identities i ON i.identity=f.identity WHERE f.supported=0''')
+        # One sequential identity pass, not one nine-million-row scan for each
+        # excluded root. Existing primary keys serve all membership lookups.
+        index.db.execute('''DELETE FROM target_exclusions WHERE root IN (
+          SELECT i.root FROM identities i CROSS JOIN target_exclusions e ON e.root=i.root
+          LEFT JOIN target_identity_flags f ON f.identity=i.identity WHERE coalesce(f.supported,1)=1)''')
+        index.db.execute('DELETE FROM target_exclusions WHERE root IN (SELECT e.root FROM target_exclusions e JOIN additions a ON a.root=e.root)')
+    index.checkpoint('target_membership_v1',{'excludedRoots':index.db.execute('SELECT count(*) FROM target_exclusions').fetchone()[0],
+        'originalBusinessesDeleted':False,'sourceUnsupportedIdentities':556068})
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--root', default='.artifacts/ci-world-ingest')
@@ -390,6 +434,7 @@ def main():
     errors = [] if a.skip_new_polygons else discover_scopes(index, root, folder, cities)
     uploads = [] if a.skip_new_polygons else geometry_exports(index, root, cities, snapshot)
     repair_legacy_overlap(index, folder)
+    target_membership(index,root,folder)
     report = coverage(index, root, folder, cities)
     report['sourceErrors'] = errors
     report['geometryBytes'] = sum(v['bytes'] for v in uploads)

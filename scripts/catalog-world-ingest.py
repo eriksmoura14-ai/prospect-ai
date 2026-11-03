@@ -108,6 +108,7 @@ class Index:
           CREATE TABLE IF NOT EXISTS city_areas(city_key TEXT PRIMARY KEY,area_id TEXT) WITHOUT ROWID;
           CREATE TABLE IF NOT EXISTS city_deltas(city_key TEXT PRIMARY KEY,n INTEGER,phones INTEGER,websites INTEGER,
             addresses INTEGER,categories TEXT) WITHOUT ROWID;
+          CREATE TABLE IF NOT EXISTS target_exclusions(root INTEGER PRIMARY KEY);
         ''')
 
     def done(self, key):

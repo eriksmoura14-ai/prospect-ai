@@ -49,8 +49,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh run watch 41637339762 --interval 30
-          gh run download 41637339762 --name full-business-import-41637339762 --dir .artifacts/ci-world-ingest
+          gh release download catalog-geography-41644818615 --pattern 'world-checkpoint.part*' --pattern checkpoint-parts.json --dir .artifacts/ci-world-ingest
+          python scripts/catalog-world-restore.py
+          gh release download catalog-businesses-41637339762 --pattern report.json --dir .artifacts/ci-world-ingest
       - name: Verify geographic identity, overlap and existing serving budgets
         if: steps.requested.outputs.run == 'true'
         run: python -m unittest discover -s test -p '*test.py'

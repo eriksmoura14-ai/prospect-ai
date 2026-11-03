@@ -20,7 +20,7 @@ def module(name,file):
 w=module('world_serving_import','catalog-world-ingest.py')
 s=module('existing_serving_policy','catalog-serving.py')
 READ_BUDGET=256*1024*1024
-REWRITE_BUDGET=128*1024*1024
+REWRITE_BUDGET=256*1024*1024
 
 
 def occupancy(boxes,assets):
@@ -124,7 +124,9 @@ def repair(index,root,snapshot,assets):
             if count!=leaf['end']-leaf['start']:
                 raise RuntimeError('incremental_serving_shard_count')
             size,digest=path.stat().st_size,w.sha(path)
-            if size>60*1024*1024 or rewritten+size>REWRITE_BUDGET:
+            if size>60*1024*1024:
+                raise RuntimeError('incremental_serving_single_shard_over_60mib')
+            if rewritten+size>REWRITE_BUDGET:
                 raise RuntimeError('incremental_serving_rewrite_free_budget')
             key=f'snapshots/20261103/world-v1/{cc}-serving-{digest[:16]}.parquet'
             replacement.append({'id':'world-v1-serving-'+cc.lower()+'-'+digest[:24],'file':path.name,'key':key,

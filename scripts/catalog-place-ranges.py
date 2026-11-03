@@ -20,8 +20,8 @@ import requests
 MAX_CACHE = 16 * 1024 * 1024
 
 
-def validate_range(start, end, size):
-    if not (type(start) is int and type(end) is int and 0 <= start <= end < size and end - start + 1 <= 32 * 1024 * 1024):
+def validate_range(start, end, size, maximum=32*1024*1024):
+    if not (type(start) is int and type(end) is int and 0 <= start <= end < size and end - start + 1 <= maximum):
         raise RuntimeError('places_range_budget')
 
 
@@ -35,6 +35,10 @@ class PlaceRanges:
                 or parsed.query or parsed.fragment or type(part['bytes']) is not int or not 0 < part['bytes'] < 900 * 1024 * 1024):
             raise ValueError('unreviewed_places_partition')
         self.size = part['bytes']
+        # Division row groups measured at 39.8MB exceed the Places' 32MB
+        # incoming window. Only this offline polygon worker gets 64MB; its
+        # actual network blocks remain fixed at 4MB and reuse the same cache.
+        self.maximum_window = (64 if layer=='division_area' else 32)*1024*1024
         if type(read_ahead_bytes) is not int or not 0 <= read_ahead_bytes <= 4 * 1024 * 1024:
             raise ValueError('places_read_ahead_budget')
         self.read_ahead_bytes = read_ahead_bytes
@@ -55,7 +59,7 @@ class PlaceRanges:
         self.session = requests.Session()
 
     def read(self, start, end):
-        validate_range(start, end, self.size)
+        validate_range(start, end, self.size,self.maximum_window)
         with self.lock:
             if time.monotonic() > self.deadline:
                 raise RuntimeError('places_range_deadline')
