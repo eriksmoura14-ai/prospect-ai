@@ -64,3 +64,5 @@ jobs:
         run: python -m unittest discover -s test -p 'catalog_publication_test.py' -v
       - name: Free resource budgets, application reserve and stale quota snapshots
         run: python -m unittest discover -s test -p 'catalog_capacity_test.py' -v
+      - name: Full-record import, bounded publication and resumable activation
+        run: python -m unittest discover -s test -p 'catalog_world*_test.py' -v

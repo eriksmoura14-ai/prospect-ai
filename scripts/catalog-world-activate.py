@@ -68,29 +68,37 @@ def geography(db,root):
         raise ValueError('full_geometry_remote_hash_verification_required')
     checkpoint=root/'registered-world-geometry.json'
     done=json.loads(checkpoint.read_text()) if checkpoint.exists() else {}
-    for item in plan['manifests']:
-        identity,payload=item['id'],item['payload']
-        new_sha=digest(payload)
-        if done.get(identity)==new_sha:
-            continue
-        current=db.sql('SELECT payload,sha256 FROM catalog_manifests WHERE id=$1',[identity])
-        if current and digest(current[0]['payload'])==new_sha:
-            done[identity]=new_sha;p.w.save(checkpoint,done);continue
-        if current:
-            if digest(current[0]['payload'])!=item['previousPayloadSha256']:
-                raise RuntimeError('published_geometry_changed_retry_from_fresh_snapshot')
-            # The exact existing parts must still be present, unchanged.
-            if any(part not in payload['parts'] for part in current[0]['payload']['parts']):
-                raise ValueError('existing_geography_must_be_retained')
-        elif item['previousPayloadSha256'] is not None:
-            raise ValueError('previous_geometry_manifest_missing')
-        db.room()
-        result=db.sql('''INSERT INTO catalog_manifests(id,payload,sha256) VALUES($1,$2::jsonb,$3)
-          ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,sha256=excluded.sha256
-          WHERE catalog_manifests.sha256=$4 RETURNING id''',[identity,json.dumps(payload),new_sha,current[0]['sha256'] if current else None])
-        if not result:
-            raise RuntimeError('geometry_compare_and_swap_rejected')
-        done[identity]=new_sha;p.w.save(checkpoint,done)
+    pending=[item for item in plan['manifests'] if done.get(item['id'])!=digest(item['payload'])]
+    for offset in range(0,len(pending),25):
+        batch=pending[offset:offset+25]
+        current={row['id']:row for row in db.sql('SELECT id,payload,sha256 FROM catalog_manifests WHERE id=ANY($1::text[])',[[item['id'] for item in batch]])}
+        prepared=[]
+        for item in batch:
+            identity,payload=item['id'],item['payload'];new_sha=digest(payload)
+            previous=current.get(identity)
+            if previous and digest(previous['payload'])==new_sha:
+                continue
+            if previous:
+                if digest(previous['payload'])!=item['previousPayloadSha256']:
+                    raise RuntimeError('published_geometry_changed_retry_from_fresh_snapshot')
+                if any(part not in payload['parts'] for part in previous['payload']['parts']):
+                    raise ValueError('existing_geography_must_be_retained')
+            elif item['previousPayloadSha256'] is not None:
+                raise ValueError('previous_geometry_manifest_missing')
+            prepared.append({'id':identity,'payload':payload,'sha256':new_sha,'previous_sha':previous['sha256'] if previous else None})
+        if prepared:
+            db.room()
+            result=db.sql('''WITH proposed AS (SELECT * FROM jsonb_to_recordset($1::jsonb)
+              AS r(id text,payload jsonb,sha256 text,previous_sha text))
+              INSERT INTO catalog_manifests(id,payload,sha256) SELECT id,payload,sha256 FROM proposed
+              ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,sha256=excluded.sha256
+              WHERE catalog_manifests.sha256=(SELECT previous_sha FROM proposed WHERE proposed.id=excluded.id)
+              RETURNING id''',[json.dumps(prepared,ensure_ascii=False,separators=(',',':'))])
+            if {row['id'] for row in result}!={row['id'] for row in prepared}:
+                raise RuntimeError('geometry_compare_and_swap_rejected')
+        for item in batch:done[item['id']]=digest(item['payload'])
+        p.w.save(checkpoint,done)
+        if len(done)%250==0:print(json.dumps({'geometryManifestsRegistered':len(done)}),flush=True)
     return len(done)
 
 

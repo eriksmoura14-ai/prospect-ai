@@ -115,6 +115,12 @@ count, never reduce it, and checkpoint every 100 rows. Ordinary vacuum can reuse
 dead pages; no FULL vacuum or quota increase is performed. A guard stops safely
 if the small database fills.
 
+Geography manifests use batches of 25, with the old payload hash and immutable
+parts checked before each batch. A compare-and-swap guards each update. If a
+concurrent change rejects one item, a retry recognizes the already-applied
+payloads without overwriting them. The geospatial pull-request workflow runs
+these operator regressions without triggering a new world data scan.
+
 ## Resume and verification
 
 The source job retains a temporary Actions SQLite checkpoint. The geographic
