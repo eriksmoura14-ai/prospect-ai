@@ -116,7 +116,9 @@ def coverage(db,root):
         if int(status['before'])!=len(batch):
             raise RuntimeError('city_coverage_changed_retry_from_fresh_snapshot')
         db.room()
-        changed=db.sql('''UPDATE catalog_city_inventory c SET unique_supported=r.unique_supported,unique_all=r.unique_all,
+        changed=db.sql('''UPDATE catalog_city_inventory c SET unique_supported=r.unique_supported,
+          unique_all=CASE WHEN r.previous_supported IS NOT NULL AND c.unique_all IS NOT NULL
+            THEN c.unique_all+r.unique_supported-r.previous_supported ELSE r.unique_all END,
           source_rows=r.source_rows,category_count=coalesce(r.category_count,c.category_count),sources=r.sources,
           limitations=r.limitations,coverage_status=r.coverage_status,next_action=r.next_action,
           association_status=r.association_status,updated_at=now()

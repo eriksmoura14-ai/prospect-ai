@@ -214,37 +214,49 @@ def geometry_exports(index, root, cities, snapshot):
         area_key = w.hashlib.sha256((aid + json.dumps(geometry, separators=(',', ':'))).encode()).hexdigest()
         groups[(city['countryCode'], city['stateCode'])].append({**area, 'name': city['name'], 'state_name': city['stateName'],
             'city_id': city['id'], 'city_key': key, 'geometry': geometry, 'bounds': [south, north, west, east], 'area_key': area_key})
-    manifests, uploads, used = [], [], 0
+    manifests, uploads, used,stored_used,skipped = [], [], 0,0,[]
     for (cc, state), rows in groups.items():
         identity = 'geometry-v1:' + cc + ':' + state
         previous = old.get(identity, {'version': 1, 'countryCode': cc, 'stateCode': state, 'parts': [], 'notACurrentCadastralSurvey': True})
         parts, batch = [], []
         def flush():
-            nonlocal used, batch
+            nonlocal used,stored_used,batch
             if not batch:
                 return
             data = {'version': 1, 'countryCode': cc, 'stateCode': state, 'areas': batch}
             body = json.dumps(data, ensure_ascii=False, separators=(',', ':')).encode()
-            if len(body) > 2*1024*1024 or used + len(body) > MAX_GEOMETRY or len(previous['parts']) + len(parts) >= 200:
-                raise RuntimeError('new_geometry_free_storage_or_runtime_budget')
+            encoded=gzip.compress(body,compresslevel=6,mtime=0)
+            reason=('geometry_decoded_reader_budget' if len(body)>2*1024*1024 else
+                'geometry_state_reader_part_budget' if len(previous['parts'])+len(parts)>=200 else
+                'geometry_free_stored_bytes_budget' if stored_used+len(encoded)>MAX_GEOMETRY else None)
+            if reason:
+                for area in batch:
+                    skipped.append({'city_key':area['city_key'],'reason':reason})
+                    index.db.execute('DELETE FROM new_city_areas WHERE city_key=?',(area['city_key'],))
+                batch=[]
+                return
             digest = w.hashlib.sha256(body).hexdigest()
             file = folder / (cc + '-' + state + '-' + digest[:16] + '.json')
             file.write_bytes(body)
             key = f'geography/20261103/world-v1/{file.name}'
             part = {'url': w.ORIGIN + key, 'sha256': digest, 'bytes': len(body), 'cityIds': [a['city_id'] for a in batch]}
             parts.append(part)
-            uploads.append({**part, 'file': file.name, 'key': key})
+            uploads.append({**part,'file':file.name,'key':key,'contentEncoding':'gzip',
+                'storedBytes':len(encoded),'compressedSha256':w.hashlib.sha256(encoded).hexdigest()})
             used += len(body)
+            stored_used+=len(encoded)
             batch = []
         for area in rows:
             if batch and (len(batch) >= 100 or sum(len(json.dumps(a).encode()) for a in batch) + len(json.dumps(area).encode()) > 1024*1024):
                 flush()
             batch.append(area)
         flush()
-        manifests.append({'id': identity, 'previousPayloadSha256': w.hashlib.sha256(json.dumps(previous, sort_keys=True, separators=(',', ':')).encode()).hexdigest() if identity in old else None,
-            'payload': {**previous, 'parts': previous['parts'] + parts}})
+        if parts:
+            manifests.append({'id': identity, 'previousPayloadSha256': w.hashlib.sha256(json.dumps(previous, sort_keys=True, separators=(',', ':')).encode()).hexdigest() if identity in old else None,
+                'payload': {**previous, 'parts': previous['parts'] + parts}})
+    index.db.commit()
     w.save(root / 'geometry-publication.json', {'version': 1, 'manifests': manifests, 'uploads': uploads,
-        'bytes': used, 'existingPartsRetained': True})
+        'bytes':used,'storedBytes':stored_used,'gzipTransport':True,'skippedCityScopes':skipped,'existingPartsRetained':True})
     return uploads
 
 

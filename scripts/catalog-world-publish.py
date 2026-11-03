@@ -7,6 +7,7 @@ check precedes ready registration; interrupted bundles are safely resumable.
 import argparse
 import concurrent.futures
 import hashlib
+import gzip
 import importlib.util
 import json
 import os
@@ -109,8 +110,14 @@ def upload_and_verify(root,item,selector):
         raise ValueError('presigned_item_identity')
     head=requests.head(item['url'],timeout=(10,30),allow_redirects=False)
     if head.status_code==404:
-        with file.open('rb') as body:
-            r=requests.request(selector.get('method','PUT'),selector['url'],headers=selector.get('headers',{}),data=body,timeout=(10,120),allow_redirects=False)
+        if item.get('contentEncoding')=='gzip':
+            body=gzip.compress(file.read_bytes(),compresslevel=6,mtime=0)
+            if len(body)!=item['storedBytes'] or hashlib.sha256(body).hexdigest()!=item['compressedSha256']:
+                raise ValueError('compressed_geometry_integrity')
+            r=requests.request(selector.get('method','PUT'),selector['url'],headers={**selector.get('headers',{}),'Content-Encoding':'gzip'},data=body,timeout=(10,120),allow_redirects=False)
+        else:
+            with file.open('rb') as body:
+                r=requests.request(selector.get('method','PUT'),selector['url'],headers=selector.get('headers',{}),data=body,timeout=(10,120),allow_redirects=False)
         if r.status_code not in (200,201,204):
             raise RuntimeError('immutable_item_upload_http_'+str(r.status_code))
     elif head.status_code!=200:
@@ -164,7 +171,8 @@ def capacity(path,items):
     if cfg.get('transferQuotaBytes')!=5000000000 or cfg.get('storageQuotaBytes')!=5000000000:
         raise ValueError('free_quotas_cannot_be_raised')
     planned=sum(item['bytes'] for item in items)
-    if cfg['storageCommittedBytes']+planned+256*1024*1024>cfg['storageQuotaBytes']:
+    stored=sum(item.get('storedBytes',item['bytes']) for item in items)
+    if cfg['storageCommittedBytes']+stored+256*1024*1024>cfg['storageQuotaBytes']:
         raise RuntimeError('free_storage_budget')
     if cfg['transferCommittedBytes']+2*planned+50*1024*1024>cfg['transferQuotaBytes']:
         raise RuntimeError('free_transfer_budget')
