@@ -207,20 +207,14 @@ def geometry_exports(index, root, cities, snapshot):
     groups = collections.defaultdict(list)
     for key, aid in index.db.execute('SELECT city_key,area_id FROM new_city_areas ORDER BY city_key'):
         city = cities[key]
-        metadata, binary = index.db.execute('SELECT metadata,geometry FROM areas WHERE id=?', (aid,)).fetchone()
-        area, geom = json.loads(metadata), shapely.from_wkb(binary)
-        geometry = mapping(geom)
-        west, south, east, north = geom.bounds
-        area_key = w.hashlib.sha256((aid + json.dumps(geometry, separators=(',', ':'))).encode()).hexdigest()
-        groups[(city['countryCode'], city['stateCode'])].append({**area, 'name': city['name'], 'state_name': city['stateName'],
-            'city_id': city['id'], 'city_key': key, 'geometry': geometry, 'bounds': [south, north, west, east], 'area_key': area_key})
+        groups[(city['countryCode'],city['stateCode'])].append((key,aid))
     manifests, uploads, used,stored_used,skipped = [], [], 0,0,[]
     for (cc, state), rows in groups.items():
         identity = 'geometry-v1:' + cc + ':' + state
         previous = old.get(identity, {'version': 1, 'countryCode': cc, 'stateCode': state, 'parts': [], 'notACurrentCadastralSurvey': True})
-        parts, batch = [], []
+        parts, batch, batch_bytes = [], [], 0
         def flush():
-            nonlocal used,stored_used,batch
+            nonlocal used,stored_used,batch,batch_bytes
             if not batch:
                 return
             data = {'version': 1, 'countryCode': cc, 'stateCode': state, 'areas': batch}
@@ -234,6 +228,7 @@ def geometry_exports(index, root, cities, snapshot):
                     skipped.append({'city_key':area['city_key'],'reason':reason})
                     index.db.execute('DELETE FROM new_city_areas WHERE city_key=?',(area['city_key'],))
                 batch=[]
+                batch_bytes=0
                 return
             digest = w.hashlib.sha256(body).hexdigest()
             file = folder / (cc + '-' + state + '-' + digest[:16] + '.json')
@@ -246,10 +241,20 @@ def geometry_exports(index, root, cities, snapshot):
             used += len(body)
             stored_used+=len(encoded)
             batch = []
-        for area in rows:
-            if batch and (len(batch) >= 100 or sum(len(json.dumps(a).encode()) for a in batch) + len(json.dumps(area).encode()) > 1024*1024):
+            batch_bytes=0
+        for key,aid in rows:
+            city=cities[key]
+            metadata,binary=index.db.execute('SELECT metadata,geometry FROM areas WHERE id=?',(aid,)).fetchone()
+            source,geom=json.loads(metadata),shapely.from_wkb(binary)
+            geometry=mapping(geom);west,south,east,north=geom.bounds
+            area_key=w.hashlib.sha256((aid+json.dumps(geometry,separators=(',',':'))).encode()).hexdigest()
+            area={**source,'name':city['name'],'state_name':city['stateName'],'city_id':city['id'],'city_key':key,
+                'geometry':geometry,'bounds':[south,north,west,east],'area_key':area_key}
+            size=len(json.dumps(area,ensure_ascii=False,separators=(',',':')).encode())
+            if batch and (len(batch)>=100 or batch_bytes+size>1024*1024):
                 flush()
             batch.append(area)
+            batch_bytes+=size
         flush()
         if parts:
             manifests.append({'id': identity, 'previousPayloadSha256': w.hashlib.sha256(json.dumps(previous, sort_keys=True, separators=(',', ':')).encode()).hexdigest() if identity in old else None,

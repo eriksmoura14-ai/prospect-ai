@@ -111,6 +111,7 @@ class Index:
           CREATE INDEX IF NOT EXISTS nearby ON roots(country,name,x,y);
           CREATE TABLE IF NOT EXISTS checkpoints(id TEXT PRIMARY KEY,payload TEXT) WITHOUT ROWID;
           CREATE TABLE IF NOT EXISTS additions(root INTEGER PRIMARY KEY,country TEXT,payload TEXT);
+          CREATE INDEX IF NOT EXISTS additions_country ON additions(country,root);
           CREATE TABLE IF NOT EXISTS aliases(identity TEXT PRIMARY KEY,root INTEGER,provenance TEXT) WITHOUT ROWID;
           CREATE TABLE IF NOT EXISTS pending(identity TEXT PRIMARY KEY,country TEXT,reason TEXT,payload TEXT) WITHOUT ROWID;
           CREATE TABLE IF NOT EXISTS areas(id TEXT PRIMARY KEY,country TEXT,metadata TEXT,geometry BLOB) WITHOUT ROWID;
