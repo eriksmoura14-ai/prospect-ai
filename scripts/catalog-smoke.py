@@ -1,7 +1,7 @@
 """Real read/search smoke test against the existing isolated staging service.
 Basic test credentials on stdin; never use a production customer's credentials.
 """
-import argparse,hashlib,json,sys,time
+import argparse,hashlib,json,subprocess,sys,time
 from pathlib import Path
 import requests
 def main():
@@ -20,6 +20,15 @@ def main():
   print(json.dumps({'segment':niche,'rows':len(data['rows']),'combinedUnique':len(rows)}),flush=True)
  report={'environment':'existing free isolated Render staging','country':a.country,'state':a.state,'cityId':a.city_id,'unique':len(rows),'byNiche':by_niche,'sources':sorted(sources),'scope':scope,'withPhone':sum(bool(r.get('phone')) for r in rows.values()),'withWebsite':sum(bool(r.get('website')) for r in rows.values()),'withAddress':sum(bool(r.get('address')) for r in rows.values()),'examples':[{'name':r['name'],'id':k} for k,r in list(rows.items())[:3]],'elapsedMs':round((time.monotonic()-start)*1000),'contactsVerified':False}
  report['sourceIdentitySha256']=hashlib.sha256(json.dumps(sorted(rows),separators=(',',':')).encode()).hexdigest()
+ # Source IDs and physical businesses are different measures. Match the
+ # application's conservative name/contact/address/distance deduplication
+ # across segments as well as within a single search.
+ dedup=subprocess.run(['node','-e','let s="";process.stdin.on("data",c=>s+=c);process.stdin.on("end",()=>{const r=require("./discovery/records.cjs").merge(JSON.parse(s));process.stdout.write(JSON.stringify({uniqueBusinesses:r.length}));});'],
+   input=json.dumps(list(rows.values()),ensure_ascii=False),text=True,capture_output=True,
+   cwd=Path(__file__).resolve().parents[1],timeout=30)
+ if dedup.returncode:raise RuntimeError('runtime_business_dedup_verification_failed')
+ report['uniqueBusinesses']=json.loads(dedup.stdout)['uniqueBusinesses']
+ report['uniqueSourceIdentities']=len(rows)
  report['expectedUnique']=a.expected_unique;report['expectedSourceIdentitySha256']=a.expected_source_sha256
  (root/'live-city-verification.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
  if a.expected_unique is not None and len(rows)!=a.expected_unique:raise RuntimeError('city_coverage_runtime_mismatch')

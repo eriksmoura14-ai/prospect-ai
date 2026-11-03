@@ -1,5 +1,10 @@
 # Full-record world import — 2026-11-03
 
+The verified publication result is in [COBERTURA_MUNDIAL_20261103.md](COBERTURA_MUNDIAL_20261103.md).
+It records 3,429,255 new identities, 15,437/152,970 localities meeting 50 and
+the remaining 137,533 below target or pending. Every inventory fingerprint was
+compared with the database. This is not a claim of worldwide target completion.
+
 This is an incremental import, not a replacement catalog. The baseline contains
 5,680,824 ready archive rows and 12,466 additional conservative legacy identities:
 5,693,290 estimated unique businesses. Its 294 ready objects total 746,341,508
@@ -130,6 +135,19 @@ manifest order and decompress to `.artifacts/ci-world-ingest/ingest.sqlite`.
 Then continue the same source/geometry release and original fingerprint:
 
 ```sh
+WORLD_ROOT=.artifacts/ci-world-ingest
+mkdir -p "$WORLD_ROOT"
+gh release download catalog-geography-41661789699 --repo eriksmoura14-ai/prospect-ai --pattern checkpoint-parts.json --dir "$WORLD_ROOT"
+python - "$WORLD_ROOT" <<'PY'
+import json, shutil, sys
+from pathlib import Path
+root = Path(sys.argv[1])
+manifest = json.loads((root / 'checkpoint-parts.json').read_text())
+required = manifest['sqliteBytes'] + sum(p['bytes'] for p in manifest['parts']) + 2 * 1024**3
+assert shutil.disk_usage(root).free >= required, 'Use a runner with enough free disk; preserve the existing catalog'
+PY
+gh release download catalog-geography-41661789699 --repo eriksmoura14-ai/prospect-ai --pattern 'world-checkpoint.part*' --dir "$WORLD_ROOT"
+python scripts/catalog-world-restore.py --root "$WORLD_ROOT"
 python scripts/catalog-world-ingest.py --root .artifacts/ci-world-ingest
 python scripts/catalog-world-geography.py --root .artifacts/ci-world-ingest
 ```

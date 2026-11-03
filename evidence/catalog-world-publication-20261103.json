@@ -1,0 +1,6104 @@
+{
+  "id": "catalog-world-publication-20261103",
+  "asOf": "2026-11-03T17:23:57.030306+00:00",
+  "previousUniqueConservative": 5693290,
+  "newUniqueByIngestRules": 3429255,
+  "finalUniqueConservative": 9122545,
+  "readyCanonicalRows": 9110079,
+  "legacySourceObservationsPreserved": 13960,
+  "legacyNetAdditionalUniqueConservative": 12466,
+  "originalOtherSectorIdentitiesExcludedFromTargets": 556068,
+  "newBusinessCountries": 197,
+  "finalCatalogCountriesIncludingLegacy": 214,
+  "activeCanonicalCountries": 213,
+  "fullInventoryCountries": 223,
+  "fullInventoryCities": 152970,
+  "citiesWithAtLeastOneConfirmedSupportedBusiness": 71816,
+  "countriesWithMappedBusinessCoverage": 125,
+  "coverage": {
+    "inventory": "152970",
+    "met50": "15437",
+    "met100": "8575",
+    "met200": "4199",
+    "location_pending": "67610",
+    "confirmed_below_50": "69923",
+    "database_bytes": "216154112",
+    "ready_archive_rows": "9110079",
+    "percentAt50": 10.091521,
+    "allCitiesAt50": false
+  },
+  "coverageBefore": {
+    "met50": 12923,
+    "met100": 6873,
+    "met200": 3241
+  },
+  "newCitiesReaching50": 2514,
+  "newGeographicMappings": 13555,
+  "remainingBelow50OrPending": 137533,
+  "confirmedBelow50": 69923,
+  "locationPending": 67610,
+  "newRecordQuality": {
+    "newRecordsWithPhone": 2834118,
+    "newRecordsWithWebsite": 1297986,
+    "newRecordsWithAddress": 3192946,
+    "newRecordsValidCoordinates": 3429255
+  },
+  "websiteCountIncludesPublishedProfileURLs": true,
+  "contactsVerified": false,
+  "websiteAbsenceProven": false,
+  "identifiedCrossSourceAliasesInitialStage": 12144,
+  "finalAliasCountNotIndependentlyRecounted": true,
+  "knownSourceIdentitiesReobservedInitialStage": 5122174,
+  "deduplication": "source identity family; same normalized name/country, <=60m, shared published phone or non-conflicting equal address; branches retained; undetected overlaps remain possible",
+  "sourceRelease": "Overture 2026-10-21.0",
+  "sourcePartitionsRead": 16,
+  "sourceErrors": [],
+  "sourceStageElapsedMs": 3216524,
+  "geographicServingStageElapsedMs": 1196858,
+  "workerNewRecordsPerSecondExcludingPublication": 777.01,
+  "businessAssetsPublished": 302,
+  "businessStoredBytes": 650212997,
+  "geometryObjectsPublished": 1304,
+  "geometryStoredGzipBytes": 93449498,
+  "geometryDecodedBytes": 326992747,
+  "geographyManifestsRegistered": 1093,
+  "physicalRowsInNewAssets": 5206501,
+  "oldRowsIncludedInReplacementAssets": 1777246,
+  "finalReadyAssets": 481,
+  "originalPreservation": {
+    "originalAssetMetadataChecked": 294,
+    "allOriginalFieldsAndIdsPreserved": true,
+    "retiredServingMetadata": 115,
+    "originalObjectsDeleted": 0,
+    "originalMillionBytes": 137403018,
+    "originalMillionSha256": "f0d691f744c9cc55b5ed7213b6f8758061ddc694334ca879406119804f520314",
+    "nativeAreas": 20954
+  },
+  "fullInventoryFingerprintProof": {
+    "countries": 223,
+    "cities": 152970,
+    "allFingerprintsMatch": true,
+    "fingerprints": [
+      {
+        "country": "AD",
+        "cities": 10,
+        "sha256": "d8862b2a407050c5ae4b2029ddf661e978c279e08fe39b2356518b59379eca09",
+        "databaseMatches": true
+      },
+      {
+        "country": "AE",
+        "cities": 30,
+        "sha256": "628839a60f46693dc3792ce2ced0f7b07d476522644792d0a2a0c3225d33ae30",
+        "databaseMatches": true
+      },
+      {
+        "country": "AF",
+        "cities": 100,
+        "sha256": "be8f790a5f485c012d8c54e70140371566a9a8f128bf6210c7b67397f3ca4228",
+        "databaseMatches": true
+      },
+      {
+        "country": "AG",
+        "cities": 9,
+        "sha256": "dfd62b54b31cd6c2afad15d0ae901c3ef42f6fd91cb3c425eb87a8c9439b2a30",
+        "databaseMatches": true
+      },
+      {
+        "country": "AL",
+        "cities": 143,
+        "sha256": "4a1bb67f852022c66fc70149b80ce1aae8a2b445dcc7d431c43bbdcf598fdeca",
+        "databaseMatches": true
+      },
+      {
+        "country": "AM",
+        "cities": 308,
+        "sha256": "9be95bdaee6b68604448bad490b340347b7bbdc160eeb09b652d43b16d568e99",
+        "databaseMatches": true
+      },
+      {
+        "country": "AO",
+        "cities": 72,
+        "sha256": "861666b31a84827483e08744347d1880b42f44656f8205a2316fc53d42f9ff3f",
+        "databaseMatches": true
+      },
+      {
+        "country": "AR",
+        "cities": 1136,
+        "sha256": "b5625f3acc3f28fb6e7b2459c7e5c3d327866ea986b05898367c2915f36bcb34",
+        "databaseMatches": true
+      },
+      {
+        "country": "AS",
+        "cities": 14,
+        "sha256": "d24566ad7afa7f235e002605cf9d75456ac7260610655920a9730dd8a5279eb0",
+        "databaseMatches": true
+      },
+      {
+        "country": "AT",
+        "cities": 2360,
+        "sha256": "d84aa426572895273e5935a273a70b5fc1bb0271eb482c8579fea6ee5b52c9b9",
+        "databaseMatches": true
+      },
+      {
+        "country": "AU",
+        "cities": 4147,
+        "sha256": "16231fd5a0943443bd922204566bef0ee9eb6cfa367992c9d39b5247588f2198",
+        "databaseMatches": true
+      },
+      {
+        "country": "AW",
+        "cities": 12,
+        "sha256": "526d54374000b0c0096a5627a9f0ee75db68659220df27a05c41d412359e86ac",
+        "databaseMatches": true
+      },
+      {
+        "country": "AX",
+        "cities": 12,
+        "sha256": "929617ab3f488f39dabebc4eb10423aa2bd6dddbddbcb0dc66cfd8dd022e69fe",
+        "databaseMatches": true
+      },
+      {
+        "country": "AZ",
+        "cities": 180,
+        "sha256": "b50f9a5c3f18a644276058760c22f94e040e90a09d1587cf50d4d40a77d5fa69",
+        "databaseMatches": true
+      },
+      {
+        "country": "BA",
+        "cities": 232,
+        "sha256": "dc3042167d19cc517b33b9bc6e1b06374e761a6373f96fd9cd65cebf024b66e9",
+        "databaseMatches": true
+      },
+      {
+        "country": "BB",
+        "cities": 7,
+        "sha256": "4802af2e67d2be611487d72a6cb67e8e679ccae59ce8c8cdbea889284ccde008",
+        "databaseMatches": true
+      },
+      {
+        "country": "BD",
+        "cities": 64,
+        "sha256": "a9c301363ffc1abd55a95b5fad2e798b1f888652efb6ded449919a86b9043254",
+        "databaseMatches": true
+      },
+      {
+        "country": "BE",
+        "cities": 549,
+        "sha256": "be515dbaa1b45906500f685b5e01e178d8b0b08b62995c3ad309a940de380fe5",
+        "databaseMatches": true
+      },
+      {
+        "country": "BF",
+        "cities": 92,
+        "sha256": "a41ab847f481968672ebd01cdcf60b29eaaa24bbd0f9db01d5bcae4e38b15227",
+        "databaseMatches": true
+      },
+      {
+        "country": "BG",
+        "cities": 504,
+        "sha256": "9681a0c59ca53ae9a6dbc66528fa75ac8f4c7379a6c773812ca224caa2d3a4e5",
+        "databaseMatches": true
+      },
+      {
+        "country": "BH",
+        "cities": 9,
+        "sha256": "38b7c4f3719fc3ea273ae0c7c178f4b1a55c11915d19c3c822bbf7819644f144",
+        "databaseMatches": true
+      },
+      {
+        "country": "BI",
+        "cities": 17,
+        "sha256": "32e3e43fb242cc3da860f273a2fd9b1ab45a6c92b806d1c296cb3c9ebfcbd7b1",
+        "databaseMatches": true
+      },
+      {
+        "country": "BJ",
+        "cities": 36,
+        "sha256": "508c75a1cb946afeb63692e46e4acec48af1a8b1ce7377d8467bd758268d13d2",
+        "databaseMatches": true
+      },
+      {
+        "country": "BL",
+        "cities": 1,
+        "sha256": "1e1daf791483dbbed1b84e7082d8c639436b4050e30a403f9dd70d1ffd9e0686",
+        "databaseMatches": true
+      },
+      {
+        "country": "BM",
+        "cities": 9,
+        "sha256": "144285518e746ee8ebf5f65ac247fd8f91e7bdac94880e80ce89e58cb44c5752",
+        "databaseMatches": true
+      },
+      {
+        "country": "BN",
+        "cities": 9,
+        "sha256": "e6b5bdea7eb5befaa15e9bba41148232c9bbde7410b8dc20c4293ad72b048ce3",
+        "databaseMatches": true
+      },
+      {
+        "country": "BO",
+        "cities": 228,
+        "sha256": "a28e1a2549a1d0f1da87f1990dd1e6fd71aa7ff56b989e750b56decdddcfd961",
+        "databaseMatches": true
+      },
+      {
+        "country": "BQ",
+        "cities": 8,
+        "sha256": "487662380966576eb469e8205b8112ebf6c4f09183e35ceed475ddbbe3978c28",
+        "databaseMatches": true
+      },
+      {
+        "country": "BR",
+        "cities": 5629,
+        "sha256": "4db377da01a8f7cc15f7ec9707e2fc3451537c215b461e78bbabf41618d6b33c",
+        "databaseMatches": true
+      },
+      {
+        "country": "BS",
+        "cities": 21,
+        "sha256": "99ea5f3ffa98d58cb188e03c2c5255253305974992f8ca9b98d4a1ee528b7040",
+        "databaseMatches": true
+      },
+      {
+        "country": "BT",
+        "cities": 57,
+        "sha256": "9a535231b533d7bfe6dfb87ed5e8e5478c7f986b6805c65919b38bb29d06fb82",
+        "databaseMatches": true
+      },
+      {
+        "country": "BW",
+        "cities": 75,
+        "sha256": "8978db642aebd485d4f060750494a3b1051ce778db06df1c3169023426599b2f",
+        "databaseMatches": true
+      },
+      {
+        "country": "BY",
+        "cities": 329,
+        "sha256": "45288452cad5b29b6ee9d0544b5f652638dcc175320b14eebc09925a151912c6",
+        "databaseMatches": true
+      },
+      {
+        "country": "BZ",
+        "cities": 13,
+        "sha256": "947d176dade3976f72d1836a4253c19231edeb53878d51bbd1689c3d7bd7c939",
+        "databaseMatches": true
+      },
+      {
+        "country": "CA",
+        "cities": 1080,
+        "sha256": "517de27441a2da7e2072dd3dce348dc22f9eb947f0b14b7a29711466c1cbeb9e",
+        "databaseMatches": true
+      },
+      {
+        "country": "CD",
+        "cities": 67,
+        "sha256": "30383b7efd410a9e64ab67ded778fb285427c5ccddb71662c0981c8a97949c4a",
+        "databaseMatches": true
+      },
+      {
+        "country": "CF",
+        "cities": 42,
+        "sha256": "e00892b3a8250c282b5abd4cb29873e31fe004cf0eefd884944810d51c8c370c",
+        "databaseMatches": true
+      },
+      {
+        "country": "CG",
+        "cities": 17,
+        "sha256": "7b12261748ec27ad3ba1646f0617e44160e7653c81c2b42bbeb1c5997f291b61",
+        "databaseMatches": true
+      },
+      {
+        "country": "CH",
+        "cities": 1507,
+        "sha256": "425e857db5efa2cd747411f2bcefe4bdf20a617f8507a0f41e96392d703f376f",
+        "databaseMatches": true
+      },
+      {
+        "country": "CI",
+        "cities": 95,
+        "sha256": "8503a4d8ea2ddff2dd2dfdb0a1d6e82f42a5853b8da7950b41d0ed9c091bebf5",
+        "databaseMatches": true
+      },
+      {
+        "country": "CL",
+        "cities": 300,
+        "sha256": "4d7b1241a7466204c5b49bbfdaa5db08303b9a6bd532e461e4bde7756e384aca",
+        "databaseMatches": true
+      },
+      {
+        "country": "CM",
+        "cities": 139,
+        "sha256": "75a9a50af51e6dc488ef3394f14e1817503c2dff7f3ca27f526b0211ea5bba29",
+        "databaseMatches": true
+      },
+      {
+        "country": "CN",
+        "cities": 4133,
+        "sha256": "6294e320c437eae12b0280d77a34276132c2b81eded7ecf09c7ab287c75796e8",
+        "databaseMatches": true
+      },
+      {
+        "country": "CO",
+        "cities": 1122,
+        "sha256": "e27fa055d26b00bbfc72ae60797c88ef3b1434389b65bd30d1e3e8682bf1fa7c",
+        "databaseMatches": true
+      },
+      {
+        "country": "CR",
+        "cities": 159,
+        "sha256": "214b7ba7007e267a94edc48c227b3c09e05b0c96bf5335c6f0c170b949f8439c",
+        "databaseMatches": true
+      },
+      {
+        "country": "CU",
+        "cities": 187,
+        "sha256": "e126768626344a10b11ae318d7c584b8ced5f6a55ebee9e12a42a4e519468c7e",
+        "databaseMatches": true
+      },
+      {
+        "country": "CV",
+        "cities": 28,
+        "sha256": "fd2eb4720436f22e07aa29b6c97b8a31850e700c97daffd706afceadaeac313c",
+        "databaseMatches": true
+      },
+      {
+        "country": "CY",
+        "cities": 95,
+        "sha256": "1202bc74ec3e767a27972ad0f942bb3f01cc8d0895134e5629cbe8e8be66b1b4",
+        "databaseMatches": true
+      },
+      {
+        "country": "CZ",
+        "cities": 1355,
+        "sha256": "2f1a3fda3fb58fc765f8f836b58109a47c4f35108d13266f7d5a4ff074786471",
+        "databaseMatches": true
+      },
+      {
+        "country": "DE",
+        "cities": 7104,
+        "sha256": "22e47e6afb1e883b47cfadb92711a7c15f1d585fab5679481bcb3e6e85f09680",
+        "databaseMatches": true
+      },
+      {
+        "country": "DJ",
+        "cities": 12,
+        "sha256": "f265a04e45dedf7405daa30433ea56aac0f4215e72f3ba3189e90e22c8f72037",
+        "databaseMatches": true
+      },
+      {
+        "country": "DK",
+        "cities": 430,
+        "sha256": "b9e18f72fcfc51b8500f6e94b9e0eab8b6dce45e73aac983fb013d41ec54cc0b",
+        "databaseMatches": true
+      },
+      {
+        "country": "DM",
+        "cities": 17,
+        "sha256": "baf0e283dff55b3187296730fbd5010f42b5dea67e0edd9a7b08f45a02f55cc9",
+        "databaseMatches": true
+      },
+      {
+        "country": "DO",
+        "cities": 207,
+        "sha256": "58bf16a45bb2fd53f08366bf4b67646d2e9c9fe8aa19ff644d30eda1f1b4582a",
+        "databaseMatches": true
+      },
+      {
+        "country": "DZ",
+        "cities": 293,
+        "sha256": "16eeff272c9b512b5ac4c74ebd5ca231c59e4c30f64d16b9ef7a3a33c1fdeb3a",
+        "databaseMatches": true
+      },
+      {
+        "country": "EC",
+        "cities": 114,
+        "sha256": "4404b3e653074344530d24b77156c50aa7ce5fc6c8cd54b3772d99afa683c9ae",
+        "databaseMatches": true
+      },
+      {
+        "country": "EE",
+        "cities": 162,
+        "sha256": "e3cfd812ce7236f981c4a27b943cd7ef78b782d013b4f6ee5328ec23d9136e9f",
+        "databaseMatches": true
+      },
+      {
+        "country": "EG",
+        "cities": 163,
+        "sha256": "c1b8888fedd381bc023a24410ff7ec3a7c3e5a7f7f2266b06b2c3430c0c7f778",
+        "databaseMatches": true
+      },
+      {
+        "country": "ER",
+        "cities": 11,
+        "sha256": "b21f01063fe72ff102b1ad5b702062c2e6e3771c3121889189af7951cdafa699",
+        "databaseMatches": true
+      },
+      {
+        "country": "ES",
+        "cities": 8405,
+        "sha256": "3e319577e6a401697d20df32fba6ff6099b04316a9d8033f33735c033d2d9b33",
+        "databaseMatches": true
+      },
+      {
+        "country": "ET",
+        "cities": 144,
+        "sha256": "2722b4dec67cacc7b8db3bdb08a63c35812c2b9ee973e0d698c178e279baeb05",
+        "databaseMatches": true
+      },
+      {
+        "country": "FI",
+        "cities": 437,
+        "sha256": "333bf51697b8004bc51678f023e2dbf5eca7d96d4c2277299d97e4c7641f0b2c",
+        "databaseMatches": true
+      },
+      {
+        "country": "FJ",
+        "cities": 20,
+        "sha256": "44610ce8adc8a43a8d42179d220cd769dc51a51a346ee332de721fe4cf2cc5bd",
+        "databaseMatches": true
+      },
+      {
+        "country": "FM",
+        "cities": 80,
+        "sha256": "32f2f955779bea947bd1cb2b67a76d729529f9dc905e59610f86fdcc0feb383f",
+        "databaseMatches": true
+      },
+      {
+        "country": "FO",
+        "cities": 27,
+        "sha256": "34930d3966f636dd9f0d35fdab13690c811f8a80e586776c9c30a7446ce76695",
+        "databaseMatches": true
+      },
+      {
+        "country": "FR",
+        "cities": 10534,
+        "sha256": "1bf1f350b27aa463566c6e96cbfe7abacd62f1eb0c57a4a43761740a3295cd20",
+        "databaseMatches": true
+      },
+      {
+        "country": "GA",
+        "cities": 28,
+        "sha256": "90c04570586a9629d74ac5c9207526300a8b2713d65c7358111827f1ff9b718c",
+        "databaseMatches": true
+      },
+      {
+        "country": "GB",
+        "cities": 3879,
+        "sha256": "965dc8140e2ee6ff686cc9f45348cb5c3a5f616ad981d6ef5dde0de1c72a0fa6",
+        "databaseMatches": true
+      },
+      {
+        "country": "GD",
+        "cities": 7,
+        "sha256": "86e4450675e9d361d78ece06299526cc0244544994b2bc8f8fbb6735ee6614ef",
+        "databaseMatches": true
+      },
+      {
+        "country": "GE",
+        "cities": 110,
+        "sha256": "afd5d6512ba46cf3a3261ae395fd1b998cc0c8f02de64c3c3ae28c472f16e71b",
+        "databaseMatches": true
+      },
+      {
+        "country": "GF",
+        "cities": 22,
+        "sha256": "49217f6ffc2698c06494d44fcd8b02dc41f0b44face286b12c99fc12348ce3a6",
+        "databaseMatches": true
+      },
+      {
+        "country": "GG",
+        "cities": 5,
+        "sha256": "1d66c51b97be472f7be187299082db724f1a25a826a6bba12d794e8e5ab9b69a",
+        "databaseMatches": true
+      },
+      {
+        "country": "GH",
+        "cities": 121,
+        "sha256": "892c044eed33d6bb9537d50b71e6c8d41613d51d68f7fc52d0d2151f495291d3",
+        "databaseMatches": true
+      },
+      {
+        "country": "GL",
+        "cities": 18,
+        "sha256": "62d74058006f819a316ee27de456abc633e0350d69437d1686e5d527954b55a0",
+        "databaseMatches": true
+      },
+      {
+        "country": "GM",
+        "cities": 104,
+        "sha256": "8d64d026d9435876263e4a49a701c5525101165a72e6bdc4a5eb663f4f3e011b",
+        "databaseMatches": true
+      },
+      {
+        "country": "GN",
+        "cities": 54,
+        "sha256": "c5fbe774f7ba7a60dafb3f5fd7640b6cce17d20d9e2e3dc86d3dbdf2698f029f",
+        "databaseMatches": true
+      },
+      {
+        "country": "GP",
+        "cities": 32,
+        "sha256": "5a7b22bc4c100d48f352cb0afe53a1da6fbb7ce7c166ab994249b1f25f869c29",
+        "databaseMatches": true
+      },
+      {
+        "country": "GQ",
+        "cities": 26,
+        "sha256": "5dca9be2a48b2cfe47c3a20413a05d69a80a7cab16374b1c63da5e1d448787aa",
+        "databaseMatches": true
+      },
+      {
+        "country": "GR",
+        "cities": 1103,
+        "sha256": "b6b21060658ae845f8f2767202931834439fb291659a1ff0c66220c6beec23b6",
+        "databaseMatches": true
+      },
+      {
+        "country": "GT",
+        "cities": 382,
+        "sha256": "3194d95734dfd986b1f22de14f237d4e9b1791a4fdcc2e729c776e4dc6a02ffd",
+        "databaseMatches": true
+      },
+      {
+        "country": "GU",
+        "cities": 25,
+        "sha256": "4cdbb3d843fb93bb1fc0e7bf341610fc93db2feab4fc26c267100c881d0edc39",
+        "databaseMatches": true
+      },
+      {
+        "country": "GW",
+        "cities": 15,
+        "sha256": "60b944d2c38cb5817285dcbd9d6a775c408dda71dce17a318c7852a18eb6538a",
+        "databaseMatches": true
+      },
+      {
+        "country": "GY",
+        "cities": 14,
+        "sha256": "1216371f0105900321b35c938af20882283610fbc7cd714fd884338105d6466a",
+        "databaseMatches": true
+      },
+      {
+        "country": "HK",
+        "cities": 27,
+        "sha256": "93353925392637153edcab358bbc9bcab3423682760f61449d9943dac8c67ef7",
+        "databaseMatches": true
+      },
+      {
+        "country": "HN",
+        "cities": 545,
+        "sha256": "9ec2d2363009b7b1bb34b52f9531c733004c0d0c465c5ee03b21e20fa5b666c7",
+        "databaseMatches": true
+      },
+      {
+        "country": "HR",
+        "cities": 663,
+        "sha256": "1b442001a330c33b419c2f2bbc7e6e60852141ba5442b1751e1e806e253b5679",
+        "databaseMatches": true
+      },
+      {
+        "country": "HT",
+        "cities": 124,
+        "sha256": "0f1b3a0790a9062fdbef070a418f698bf9f5bb1a46bb607ee846b12688c54349",
+        "databaseMatches": true
+      },
+      {
+        "country": "HU",
+        "cities": 1074,
+        "sha256": "f46069f3baf49c993b01c466d76e92a4532697d16a4365714abc928a1a3cb79a",
+        "databaseMatches": true
+      },
+      {
+        "country": "ID",
+        "cities": 799,
+        "sha256": "5d782fee1f2e52d2373762b5de3df279712824a97b998a69df17d8a10afcd4b3",
+        "databaseMatches": true
+      },
+      {
+        "country": "IE",
+        "cities": 370,
+        "sha256": "43235bed37f0732f895b9b33defb9b0ed6bb991ba2b68ee85cb8ad8bb45f7b85",
+        "databaseMatches": true
+      },
+      {
+        "country": "IL",
+        "cities": 150,
+        "sha256": "9d88a689fe0bb88a05ac2fb17543ec6d3288100735163a5adc1a208abe8fd90d",
+        "databaseMatches": true
+      },
+      {
+        "country": "IM",
+        "cities": 16,
+        "sha256": "c025eb4658774c0a341b73ac37b0babd71774c86f13cd5494b3b11222a503b17",
+        "databaseMatches": true
+      },
+      {
+        "country": "IN",
+        "cities": 4198,
+        "sha256": "2da1f507008aa6c6e45a43a529b177f3ad9354e32a891385f8aba46bebef39d0",
+        "databaseMatches": true
+      },
+      {
+        "country": "IQ",
+        "cities": 135,
+        "sha256": "be5e52a586ad62a32f58553a57822d3ca9777adc16d94316eb2241808ff554dc",
+        "databaseMatches": true
+      },
+      {
+        "country": "IR",
+        "cities": 1847,
+        "sha256": "e3daa001ef2c3b525151f6360337d8c81e0389cf9dface8d3135820740ec2c3d",
+        "databaseMatches": true
+      },
+      {
+        "country": "IS",
+        "cities": 73,
+        "sha256": "632a40ac282e1ea9dac3ad07eaefdbedd2b1f5f2a2af9b40189205258e2c767e",
+        "databaseMatches": true
+      },
+      {
+        "country": "IT",
+        "cities": 9852,
+        "sha256": "8dccbfb68baa7b32ed286f82dd70ce5b16b90d2d5995614cec821343dc84791a",
+        "databaseMatches": true
+      },
+      {
+        "country": "JE",
+        "cities": 51,
+        "sha256": "543858eaf5ccd90f648b2e5b508bd69696b7cec55c0bfcd149ee34d999b2eefe",
+        "databaseMatches": true
+      },
+      {
+        "country": "JM",
+        "cities": 837,
+        "sha256": "a996f1b73b7189d1d9fb8ad51950665d1955f71ee923411d0f2a4ff7bd0ab788",
+        "databaseMatches": true
+      },
+      {
+        "country": "JO",
+        "cities": 82,
+        "sha256": "d7db7711e9ada52d211946694906c79c8b080dcb168f5c0aa1231df06ce90444",
+        "databaseMatches": true
+      },
+      {
+        "country": "JP",
+        "cities": 1655,
+        "sha256": "bba0d52fb9e0d1f56506c4044725298ab9d69e9ebbc4f4f0ad9e5a4289ad0e01",
+        "databaseMatches": true
+      },
+      {
+        "country": "KE",
+        "cities": 145,
+        "sha256": "4622c12ea741c93c72ce17c8e89e7b155bc57bf6bb1cb6fb769b623a0a82a4b4",
+        "databaseMatches": true
+      },
+      {
+        "country": "KG",
+        "cities": 53,
+        "sha256": "d7f3e5f6f357701942a3b554406dd3af5465174944c3d82ae082b1e0cdc691f2",
+        "databaseMatches": true
+      },
+      {
+        "country": "KH",
+        "cities": 107,
+        "sha256": "685396ea1b5b9d6daec3410f234097322d3dc1275a923cbbcbdfafe8a7d1cc56",
+        "databaseMatches": true
+      },
+      {
+        "country": "KI",
+        "cities": 37,
+        "sha256": "b339d20a1db9ea8f12202021c4ffbffd66f93edabc4c54b5051c0a78709ee6db",
+        "databaseMatches": true
+      },
+      {
+        "country": "KM",
+        "cities": 88,
+        "sha256": "a0a3ba94fed360b60f19101d3c00e857fafc9562bc34e045b9534bf116b0805a",
+        "databaseMatches": true
+      },
+      {
+        "country": "KN",
+        "cities": 13,
+        "sha256": "24e959d489937600037deb114e9a83e0cd0fd418f75f13777819bd58a8474ac5",
+        "databaseMatches": true
+      },
+      {
+        "country": "KP",
+        "cities": 80,
+        "sha256": "cc3a6fbb21bbc8317fd299c339dbf1e3e668bb83756b9c21b66c87fb767ba868",
+        "databaseMatches": true
+      },
+      {
+        "country": "KR",
+        "cities": 308,
+        "sha256": "c4c81249ed3d1bed16b81c21a32db745001a865962a31e71683020708de7ab58",
+        "databaseMatches": true
+      },
+      {
+        "country": "KW",
+        "cities": 25,
+        "sha256": "849edf195997d003da1ed4228060eef97aeb6b215540556b8417a7443e6b1276",
+        "databaseMatches": true
+      },
+      {
+        "country": "KY",
+        "cities": 7,
+        "sha256": "0f9afe415e9e9cfd8f53f9be68a13d73dc8cf648f1512daa07a907557d0929dc",
+        "databaseMatches": true
+      },
+      {
+        "country": "KZ",
+        "cities": 259,
+        "sha256": "004688884ba5f814878040f90297044a70a116ec3d0d55cb54d9cd636f404a08",
+        "databaseMatches": true
+      },
+      {
+        "country": "LA",
+        "cities": 76,
+        "sha256": "fe423bd6ff222f802b1624fd0f01dd74a1379793be709cb9b71b577f415c3e14",
+        "databaseMatches": true
+      },
+      {
+        "country": "LB",
+        "cities": 26,
+        "sha256": "82c82a726f4d21ede95f5eaefcc4717ee3334415eed479a6120a2e895021d8f1",
+        "databaseMatches": true
+      },
+      {
+        "country": "LC",
+        "cities": 479,
+        "sha256": "12c538b456620b109c78c49a21ef6b3abc58462f7fe17789b9dee9ce993c8c29",
+        "databaseMatches": true
+      },
+      {
+        "country": "LI",
+        "cities": 11,
+        "sha256": "d8e2b39452f5da53b7c31f470a5f1ce3c288d7863b8d935f4aa4ba2befc88318",
+        "databaseMatches": true
+      },
+      {
+        "country": "LK",
+        "cities": 147,
+        "sha256": "d9e3df7b11e7cbf86383c410ae475ac82cbbd8041e80f0cdcb6fbdc3466429a7",
+        "databaseMatches": true
+      },
+      {
+        "country": "LR",
+        "cities": 18,
+        "sha256": "da3b0b2fdfc31e6d2fa6960b7e19a2db516f3ed14dccc6d86ca16c7fff6c3b90",
+        "databaseMatches": true
+      },
+      {
+        "country": "LS",
+        "cities": 12,
+        "sha256": "72f43dd0e6d24708835b85161301aa8b3fdc76096ca57790b945ff188f632c30",
+        "databaseMatches": true
+      },
+      {
+        "country": "LT",
+        "cities": 128,
+        "sha256": "cff2de1f4233658f05c9cfb82cc7e9fd7078c6909686a78c9e40cc7e7fe656f3",
+        "databaseMatches": true
+      },
+      {
+        "country": "LU",
+        "cities": 144,
+        "sha256": "8ada2f970e11c0ff53b3d933ac22050eba6cb65daf9d31d3222b864398718be8",
+        "databaseMatches": true
+      },
+      {
+        "country": "LV",
+        "cities": 125,
+        "sha256": "17c172e6644df80bc3c73aca2e646337c49a039d7a5c01cd735fdd55f72161a9",
+        "databaseMatches": true
+      },
+      {
+        "country": "LY",
+        "cities": 54,
+        "sha256": "74af701b4fc857fb3f0ccca91ffc5b8aec8ea335c58d8b6ce9dc51178906b161",
+        "databaseMatches": true
+      },
+      {
+        "country": "MA",
+        "cities": 222,
+        "sha256": "4f6dfc1a5d108bdf99be47896412c2663352325db6b89e0f4c3857faa2a11833",
+        "databaseMatches": true
+      },
+      {
+        "country": "MC",
+        "cities": 17,
+        "sha256": "28ad7cde2310a42902fdb0669bb6bc9a84e41ab391b4c7b21e8b88eee5394c09",
+        "databaseMatches": true
+      },
+      {
+        "country": "MD",
+        "cities": 72,
+        "sha256": "34b202558e778f0d2ba7ea8556cbfc12f82d75ff7cd26a53e106d8bd15646558",
+        "databaseMatches": true
+      },
+      {
+        "country": "ME",
+        "cities": 40,
+        "sha256": "0f1c1b9353eaf140d8dbc89a9781a729940121b9a5dd4fd749e6a93f493697ce",
+        "databaseMatches": true
+      },
+      {
+        "country": "MF",
+        "cities": 1,
+        "sha256": "ead41c8245d5d9249c24d90c53112abebce4fd57abc9f2f22af91a4f3b09fc4d",
+        "databaseMatches": true
+      },
+      {
+        "country": "MG",
+        "cities": 9,
+        "sha256": "71bc94cb87b39f3e744c0db5095cef0c64eca2027f0a7fd6074358dd49a6b0c4",
+        "databaseMatches": true
+      },
+      {
+        "country": "MH",
+        "cities": 26,
+        "sha256": "bc298b92727b672a506ef5e5daaa297dd8784148ee4e9adf61a406ee048d9868",
+        "databaseMatches": true
+      },
+      {
+        "country": "MK",
+        "cities": 194,
+        "sha256": "ed21c2dbc73620cbe06ad679dea0b1f96448c75db1935c5c84ecde9af734908c",
+        "databaseMatches": true
+      },
+      {
+        "country": "ML",
+        "cities": 47,
+        "sha256": "8bc56f3032c04b8c788655db71b9fca0f143212763637f814fe667700a7948b9",
+        "databaseMatches": true
+      },
+      {
+        "country": "MM",
+        "cities": 74,
+        "sha256": "344f3c724ffd63dc1370905b3d805bbe0d5d99456ed5ccd8968f3162a0852497",
+        "databaseMatches": true
+      },
+      {
+        "country": "MN",
+        "cities": 40,
+        "sha256": "5d5738e546ca2101bc402f82ac461e458f97cf2bab4c126e49bd7c36aa74a371",
+        "databaseMatches": true
+      },
+      {
+        "country": "MQ",
+        "cities": 34,
+        "sha256": "6ff1054b42614f27e14bc2cb323a4c5e2199f2119126d8c3d84a037a1c4bfcc4",
+        "databaseMatches": true
+      },
+      {
+        "country": "MR",
+        "cities": 42,
+        "sha256": "4ee5777302025d30b632948b5c57337f46c0ab7ba8b15f3c803ae4c1eca125d3",
+        "databaseMatches": true
+      },
+      {
+        "country": "MT",
+        "cities": 87,
+        "sha256": "3aeeadd3d4a3b7921dae55674d0b8b6e5f55bdbb9eb995c7f288adff91f882dc",
+        "databaseMatches": true
+      },
+      {
+        "country": "MU",
+        "cities": 168,
+        "sha256": "9fbdcd70ed99552b356ecfe2ea267bdc93924bba688a65dcaeebbeb049dd784f",
+        "databaseMatches": true
+      },
+      {
+        "country": "MV",
+        "cities": 21,
+        "sha256": "77ac133cb468cf524cf6ba40cb120f872c90b7bb9c95f4d6f161b948e90e5866",
+        "databaseMatches": true
+      },
+      {
+        "country": "MW",
+        "cities": 61,
+        "sha256": "a865379337c87315f50aa7ad34e7f51b05cb73dd3a77a2d1d9395c6b047e92c0",
+        "databaseMatches": true
+      },
+      {
+        "country": "MX",
+        "cities": 9321,
+        "sha256": "2097b83bb94a1d37a3957e15017a22067a0e2454e1b82077d0c9d7b5c9c2b37c",
+        "databaseMatches": true
+      },
+      {
+        "country": "MY",
+        "cities": 223,
+        "sha256": "5db9c7a463ddb0b64189daf21dc5961f3bff64ec305ad00b99070fb134c6f23f",
+        "databaseMatches": true
+      },
+      {
+        "country": "MZ",
+        "cities": 38,
+        "sha256": "47051380cace139bcfa867defff60035d4ad3017de1c212ab5292b2c4e323ee4",
+        "databaseMatches": true
+      },
+      {
+        "country": "NA",
+        "cities": 48,
+        "sha256": "934e1e0bdfa8694aa659f841ef126389b94910fcf16d09ff713112d7f572f4eb",
+        "databaseMatches": true
+      },
+      {
+        "country": "NC",
+        "cities": 10,
+        "sha256": "8a9b818a95d56c4472f4a1c9fd728fec3d3e6c630d55c5e062a383810cee9945",
+        "databaseMatches": true
+      },
+      {
+        "country": "NE",
+        "cities": 71,
+        "sha256": "937b2e7b1987abb9c689acc9523f87a9bc22718f2077bfa37511c424d4a4f2bf",
+        "databaseMatches": true
+      },
+      {
+        "country": "NG",
+        "cities": 491,
+        "sha256": "37afe469f283beba528f202e52bbfca67bb272e496828a9b06608fc6874caeeb",
+        "databaseMatches": true
+      },
+      {
+        "country": "NI",
+        "cities": 155,
+        "sha256": "8c00481c7861029a4243d0992be5d95e126ee9fcefdb94ca803b479ef74e3723",
+        "databaseMatches": true
+      },
+      {
+        "country": "NL",
+        "cities": 1644,
+        "sha256": "222591e4f23791f8e66e6ad46b2d9fc4711d478b716047a2f4f2b31a9e947366",
+        "databaseMatches": true
+      },
+      {
+        "country": "NO",
+        "cities": 666,
+        "sha256": "eb3de4efcefd3fa3dbc4c3fdd287cc5d7ddfc981631d73d22a14da99106f27b2",
+        "databaseMatches": true
+      },
+      {
+        "country": "NP",
+        "cities": 77,
+        "sha256": "ba6d66e538894d326a532d759f5d9596b7e5234a72addb0573872fd34a71d3f8",
+        "databaseMatches": true
+      },
+      {
+        "country": "NR",
+        "cities": 7,
+        "sha256": "e3c9ce3fb5cecc095c315f74994ad41fd3e7eb6b22559773b37e3d77f61c6263",
+        "databaseMatches": true
+      },
+      {
+        "country": "NZ",
+        "cities": 160,
+        "sha256": "5360c032b0ca239a9f18559f5d358d07e316c0328a44153d6d66f174751fcea2",
+        "databaseMatches": true
+      },
+      {
+        "country": "OM",
+        "cities": 28,
+        "sha256": "c9da9254a9eaac3365b2cd2b02ba111a5c33a559b665b9f0758a0a2c35edc413",
+        "databaseMatches": true
+      },
+      {
+        "country": "PA",
+        "cities": 551,
+        "sha256": "23621fd1abca4a7018ef8ad527f570a474e35a8dcc92e228e1faf174655ff131",
+        "databaseMatches": true
+      },
+      {
+        "country": "PE",
+        "cities": 485,
+        "sha256": "72bd5c7ca929eee093f7f16ce752640d4999792ea4cce155be8ae09b485e3fc0",
+        "databaseMatches": true
+      },
+      {
+        "country": "PF",
+        "cities": 48,
+        "sha256": "f2fdcf1bbc68632489e635a8c449a0882144e6f08e481a5d472b03b36d1e41e7",
+        "databaseMatches": true
+      },
+      {
+        "country": "PG",
+        "cities": 100,
+        "sha256": "cdcc99cba6917dc0e2841ad76665932a5a48823c48bebdf43fc3274f169d2da3",
+        "databaseMatches": true
+      },
+      {
+        "country": "PH",
+        "cities": 5357,
+        "sha256": "999a26c6f975287534dc96b2d361084615da5b5537415562f0bcc64f4bcd1b49",
+        "databaseMatches": true
+      },
+      {
+        "country": "PK",
+        "cities": 456,
+        "sha256": "055b47c42b957bf3d1c06e0f7f9b707247bfe01144245b6444735587bff88ab7",
+        "databaseMatches": true
+      },
+      {
+        "country": "PL",
+        "cities": 2810,
+        "sha256": "c68e4a59177ed658d23089ec57662fbb64925999e688042168f17dffff2647ec",
+        "databaseMatches": true
+      },
+      {
+        "country": "PM",
+        "cities": 2,
+        "sha256": "f1c9ab073cbc73c6dc34cfbeeebb8dd188964ea33a836ac32f35f338b2a17e55",
+        "databaseMatches": true
+      },
+      {
+        "country": "PR",
+        "cities": 78,
+        "sha256": "a5c2aac863376bbec7af05f4d0eeb941e969a83560200d3164309d30f87ec6c0",
+        "databaseMatches": true
+      },
+      {
+        "country": "PS",
+        "cities": 132,
+        "sha256": "76f85ace7663183d7f19e9b90a273f46c88b4af6c3a66c1bb2345d2c709904be",
+        "databaseMatches": true
+      },
+      {
+        "country": "PT",
+        "cities": 1296,
+        "sha256": "ac9c016376973384a1dd661ae688368adee1c79f8396287652ea39bbe6655c88",
+        "databaseMatches": true
+      },
+      {
+        "country": "PW",
+        "cities": 15,
+        "sha256": "befc7663c492297ef4148fdb2999ecffe089f4ddf1102400993bc5501d1b6fd9",
+        "databaseMatches": true
+      },
+      {
+        "country": "PY",
+        "cities": 152,
+        "sha256": "e79b36581b53436cba9a51dd7d17463e48a2da8ad7b0380165b4cf4f8743b473",
+        "databaseMatches": true
+      },
+      {
+        "country": "QA",
+        "cities": 15,
+        "sha256": "8998052c534f80b2f5edd926702ee4d5179376153430dad77e6b492d533c4fe2",
+        "databaseMatches": true
+      },
+      {
+        "country": "RE",
+        "cities": 24,
+        "sha256": "b3423a03be114560b04f83f1d2c65c9a10c600508d59ac989291928a4169f12a",
+        "databaseMatches": true
+      },
+      {
+        "country": "RO",
+        "cities": 7949,
+        "sha256": "61580f975186d9073ea067bc2626cd865b1070685377842442a573821d7d1169",
+        "databaseMatches": true
+      },
+      {
+        "country": "RS",
+        "cities": 379,
+        "sha256": "30869a9a00594b303bc352d168c7a3ba8c5c7bb09c9270bf96e85e9abc5c5574",
+        "databaseMatches": true
+      },
+      {
+        "country": "RU",
+        "cities": 5523,
+        "sha256": "155aa7bcf7a2dc1150c419b60d954817b26e7084d1b167601c2c69e573d2e5f7",
+        "databaseMatches": true
+      },
+      {
+        "country": "RW",
+        "cities": 12,
+        "sha256": "86824edc3a73adbf641c4d7a9a2cc979b622ff4f7b94ff594785cccde9e4cf86",
+        "databaseMatches": true
+      },
+      {
+        "country": "SA",
+        "cities": 399,
+        "sha256": "9463ff5f035ab95c04a66c35cd0a3f18f5c7524635dafea37cfc9a6c268fc77a",
+        "databaseMatches": true
+      },
+      {
+        "country": "SB",
+        "cities": 7,
+        "sha256": "beeef9f637790aa725c1c16dda1842d447678e0d83a109c0f28afaf8b615f1ab",
+        "databaseMatches": true
+      },
+      {
+        "country": "SC",
+        "cities": 9,
+        "sha256": "f49e96d8acdb3fcae3c401e934f2d1f37b0c64c35bcf59b8e8e9f915e2aaad8e",
+        "databaseMatches": true
+      },
+      {
+        "country": "SD",
+        "cities": 71,
+        "sha256": "b7a65b6328a8394e8e2a6d8efe701e1d994ee32a32e78d8c414b23e05301ff38",
+        "databaseMatches": true
+      },
+      {
+        "country": "SE",
+        "cities": 800,
+        "sha256": "32d0af1fb3e737018e2ecff1d7fe5e4c11a84ff5e71c7fa4ef20cbdc5722c225",
+        "databaseMatches": true
+      },
+      {
+        "country": "SG",
+        "cities": 26,
+        "sha256": "c060b134b6b9a1818e3d2a0c8fdda8c3ea77f99383a847528e00376ffdb80e10",
+        "databaseMatches": true
+      },
+      {
+        "country": "SI",
+        "cities": 312,
+        "sha256": "eb24fd7be9882c535bf71e18ddeb6d2c897bc015bd28729606b23775ae9d56ac",
+        "databaseMatches": true
+      },
+      {
+        "country": "SK",
+        "cities": 233,
+        "sha256": "018a4392e5bb8d2c1675341cd15f5912f5cbaf22d1211e7532f32845fb387dfb",
+        "databaseMatches": true
+      },
+      {
+        "country": "SL",
+        "cities": 91,
+        "sha256": "3c6ff7e5fec3174b6ce2b0458873f034eb5b8da159f6b66b45802cd490db217c",
+        "databaseMatches": true
+      },
+      {
+        "country": "SM",
+        "cities": 9,
+        "sha256": "b952ea8d3f95c544d66ab82b73e203a8a07fe4544fa84f300b7f2a46e351aab9",
+        "databaseMatches": true
+      },
+      {
+        "country": "SN",
+        "cities": 73,
+        "sha256": "72978c881e877f6ccf1e6348e2cb49671c063644b4a1cb2cbcc21fbb04eb12f3",
+        "databaseMatches": true
+      },
+      {
+        "country": "SO",
+        "cities": 51,
+        "sha256": "25fb01b92865858987d7359d7d4ad78e35403d62761be1d082ec524e7896b72d",
+        "databaseMatches": true
+      },
+      {
+        "country": "SR",
+        "cities": 13,
+        "sha256": "e43804abc6b8965eff72fc5969bb969b1f26e6d08c60593434b2b8d8a37f988f",
+        "databaseMatches": true
+      },
+      {
+        "country": "SS",
+        "cities": 1,
+        "sha256": "83204b26ad0f869a72f63d209cd5fa977a8ff6895fa29b07a5b389a6a0df3b6a",
+        "databaseMatches": true
+      },
+      {
+        "country": "ST",
+        "cities": 7,
+        "sha256": "819c4fc806c7cb6c74261ef132fcd418ae99d0285026b1841c0e9f09fda37762",
+        "databaseMatches": true
+      },
+      {
+        "country": "SV",
+        "cities": 100,
+        "sha256": "3e027a037432552d6947d82e857c10f331a0352cdcb782263c2862469b0c353f",
+        "databaseMatches": true
+      },
+      {
+        "country": "SY",
+        "cities": 142,
+        "sha256": "1882e9df0bd2947aac8492809153b7dc0afe023e02de794e48e5b532e6d46c3b",
+        "databaseMatches": true
+      },
+      {
+        "country": "SZ",
+        "cities": 34,
+        "sha256": "40faf2395549371068b52e18d3cc82741fa3ce97a1f09a4b618bd2b64da0076b",
+        "databaseMatches": true
+      },
+      {
+        "country": "TD",
+        "cities": 49,
+        "sha256": "12d3ed70e0031a562994b35f37a2e42b2eb0e7b280dc8dacc7c2a7824c8ecc25",
+        "databaseMatches": true
+      },
+      {
+        "country": "TF",
+        "cities": 5,
+        "sha256": "f2b2e9a9255202fe11f4df9d85d8cab9e1f8eaf420a28927e3530bd5b0092809",
+        "databaseMatches": true
+      },
+      {
+        "country": "TG",
+        "cities": 22,
+        "sha256": "804d99b6ea3a9f57e3ac7cbc7c3db750efd8b22babeecf9050c3b49c9b27443e",
+        "databaseMatches": true
+      },
+      {
+        "country": "TH",
+        "cities": 1241,
+        "sha256": "21259209c1f7680b6ee553689479d263a89c657b55b77169ded3dca39944325f",
+        "databaseMatches": true
+      },
+      {
+        "country": "TJ",
+        "cities": 71,
+        "sha256": "816476bc3205edc4078142e0590c419f79cac42630c45a2df90197316a2ada38",
+        "databaseMatches": true
+      },
+      {
+        "country": "TL",
+        "cities": 55,
+        "sha256": "e1c6dce37d3678ef7b1f31b5f89757f82017342bd2ca32fd4ce855cf0d469d55",
+        "databaseMatches": true
+      },
+      {
+        "country": "TM",
+        "cities": 30,
+        "sha256": "ed3a8d4b172357ccb7b7bb5ec9007e3171c6c05458bfe0f21e76dd1f2e7ed262",
+        "databaseMatches": true
+      },
+      {
+        "country": "TN",
+        "cities": 165,
+        "sha256": "0e745bdc2493be9c7cfc96b2c022072177dbdde8439b8c1c44a06eec2f71bc43",
+        "databaseMatches": true
+      },
+      {
+        "country": "TO",
+        "cities": 8,
+        "sha256": "053eaf821b946c9df10f1df628d3fb0b9da5487ef84920e3669ab80ec4f5f011",
+        "databaseMatches": true
+      },
+      {
+        "country": "TR",
+        "cities": 980,
+        "sha256": "a5b9a86346f833a8eff1f1b7439da077ae26ce5f565c442a3a87fb0e93456d69",
+        "databaseMatches": true
+      },
+      {
+        "country": "TT",
+        "cities": 25,
+        "sha256": "9f7e7b4d4319f3d9402347ee81bd89b4deeb8b1b0130dc43fa77b2ae1567908c",
+        "databaseMatches": true
+      },
+      {
+        "country": "TV",
+        "cities": 9,
+        "sha256": "28ca18f804b69ede5668b89af0ce0aa2f2a5cb54eca815c3c8d66aee44b608b6",
+        "databaseMatches": true
+      },
+      {
+        "country": "TW",
+        "cities": 40,
+        "sha256": "54b08b066659d3de12a37b9373ee15aae6281bf2c6f3c44c7bba3f04c10eb53f",
+        "databaseMatches": true
+      },
+      {
+        "country": "TZ",
+        "cities": 303,
+        "sha256": "4a23ef43aa6c5c5046a2428ada30e2c5c9632e1ca52ccef0693c2b9907db9e6e",
+        "databaseMatches": true
+      },
+      {
+        "country": "UA",
+        "cities": 1819,
+        "sha256": "ff53fbd1b4c9f08a52c0044817823f0a991bdd9be7edd6cea282e4ee7c7ea8eb",
+        "databaseMatches": true
+      },
+      {
+        "country": "UG",
+        "cities": 91,
+        "sha256": "c45f304458c343a405d9dd47482977f59b781217946dd9216760a94820595bd8",
+        "databaseMatches": true
+      },
+      {
+        "country": "US",
+        "cities": 16731,
+        "sha256": "e6bf533e156f829d09bdc0c038d9027aead7a3b5fd84a6e0d6eeaccfbaa24643",
+        "databaseMatches": true
+      },
+      {
+        "country": "UY",
+        "cities": 2010,
+        "sha256": "e7cd7463879aff0670c9c9ae362764a702801eaf32bb4fdaefd63203359d2302",
+        "databaseMatches": true
+      },
+      {
+        "country": "UZ",
+        "cities": 135,
+        "sha256": "e40071ea74f756fe2daa0f40ccc610ebe21e0bfaa061eae0ce6e4a8d1bcaf122",
+        "databaseMatches": true
+      },
+      {
+        "country": "VC",
+        "cities": 9,
+        "sha256": "3563765fcae7aaa9a38271f65c11631edb2679e0ae1ef2a4895c8f6df7b74c00",
+        "databaseMatches": true
+      },
+      {
+        "country": "VE",
+        "cities": 136,
+        "sha256": "553a0450d86511201881afb0369d965b76b1caa180e56733c4206cd5b4a7a3c7",
+        "databaseMatches": true
+      },
+      {
+        "country": "VI",
+        "cities": 20,
+        "sha256": "32faf71fc623da9ff455e146aedfd9fdc558007b4e3af2dde1bd72e586e9eec2",
+        "databaseMatches": true
+      },
+      {
+        "country": "VN",
+        "cities": 488,
+        "sha256": "d6ec48c53cb0f9fa09b20d4e53be740772b2d23d8c494090523602e40ccf68ab",
+        "databaseMatches": true
+      },
+      {
+        "country": "VU",
+        "cities": 7,
+        "sha256": "86f165d876a0428a218dab07879af9826ae334ea5d6519b3940443d4b0ded5a6",
+        "databaseMatches": true
+      },
+      {
+        "country": "WF",
+        "cities": 3,
+        "sha256": "5b58852c93cc439a85e4aac18e2c9054f11bdf74168474aaf3ef141f6652e4b6",
+        "databaseMatches": true
+      },
+      {
+        "country": "WS",
+        "cities": 20,
+        "sha256": "c9d1dc5d6707839a7cc0798e69474799e3b0041901d88267c1fec3c02aa74c32",
+        "databaseMatches": true
+      },
+      {
+        "country": "XK",
+        "cities": 59,
+        "sha256": "e21b6d408db17df380687d51855fe2a023ade6f4843cad4d5043a8878c7eed90",
+        "databaseMatches": true
+      },
+      {
+        "country": "YE",
+        "cities": 339,
+        "sha256": "142c7298e07638fc8d7fedb805c34da8060097d0ba4938cbcfc972f5c0e6dd30",
+        "databaseMatches": true
+      },
+      {
+        "country": "YT",
+        "cities": 57,
+        "sha256": "756b93580e9d9ca44e69cf38be6f647ce9926bbf05384d29a68d1f9508683a90",
+        "databaseMatches": true
+      },
+      {
+        "country": "ZA",
+        "cities": 314,
+        "sha256": "2fb55e9da35ede236b53e96336eb1a3d65af7cad14d5225bac1d4554a5a9744c",
+        "databaseMatches": true
+      },
+      {
+        "country": "ZM",
+        "cities": 71,
+        "sha256": "94513d99b0f42d8425126a6ade3dbc6b2d445dd2f4a1151289a09219950a7ded",
+        "databaseMatches": true
+      },
+      {
+        "country": "ZW",
+        "cities": 109,
+        "sha256": "c8572df4d016558b980fa9422c3d5b0d41dcf11d73c3419f0221a57fe6e89661",
+        "databaseMatches": true
+      }
+    ]
+  },
+  "activeCountrySourceCounts": [
+    {
+      "country": "AD",
+      "source": "overture",
+      "sourcerows": "495",
+      "bytes": "64847",
+      "assets": "1"
+    },
+    {
+      "country": "AE",
+      "source": "overture",
+      "sourcerows": "17397",
+      "bytes": "1996908",
+      "assets": "1"
+    },
+    {
+      "country": "AG",
+      "source": "overture",
+      "sourcerows": "204",
+      "bytes": "32774",
+      "assets": "1"
+    },
+    {
+      "country": "AL",
+      "source": "overture",
+      "sourcerows": "4393",
+      "bytes": "464955",
+      "assets": "2"
+    },
+    {
+      "country": "AM",
+      "source": "overture",
+      "sourcerows": "2476",
+      "bytes": "265355",
+      "assets": "1"
+    },
+    {
+      "country": "AO",
+      "source": "overture",
+      "sourcerows": "735",
+      "bytes": "90556",
+      "assets": "1"
+    },
+    {
+      "country": "AR",
+      "source": "overture",
+      "sourcerows": "56737",
+      "bytes": "6326586",
+      "assets": "2"
+    },
+    {
+      "country": "AS",
+      "source": "overture",
+      "sourcerows": "50",
+      "bytes": "14924",
+      "assets": "1"
+    },
+    {
+      "country": "AT",
+      "source": "overture",
+      "sourcerows": "46145",
+      "bytes": "5909198",
+      "assets": "2"
+    },
+    {
+      "country": "AU",
+      "source": "overture",
+      "sourcerows": "127886",
+      "bytes": "16036336",
+      "assets": "1"
+    },
+    {
+      "country": "AW",
+      "source": "overture",
+      "sourcerows": "509",
+      "bytes": "65533",
+      "assets": "1"
+    },
+    {
+      "country": "AX",
+      "source": "overture",
+      "sourcerows": "28",
+      "bytes": "13116",
+      "assets": "1"
+    },
+    {
+      "country": "AZ",
+      "source": "overture",
+      "sourcerows": "4208",
+      "bytes": "427820",
+      "assets": "1"
+    },
+    {
+      "country": "BA",
+      "source": "overture",
+      "sourcerows": "6714",
+      "bytes": "660392",
+      "assets": "2"
+    },
+    {
+      "country": "BB",
+      "source": "overture",
+      "sourcerows": "442",
+      "bytes": "61479",
+      "assets": "1"
+    },
+    {
+      "country": "BD",
+      "source": "overture",
+      "sourcerows": "12680",
+      "bytes": "1443765",
+      "assets": "1"
+    },
+    {
+      "country": "BE",
+      "source": "overture",
+      "sourcerows": "75017",
+      "bytes": "9078692",
+      "assets": "2"
+    },
+    {
+      "country": "BF",
+      "source": "overture",
+      "sourcerows": "337",
+      "bytes": "46896",
+      "assets": "1"
+    },
+    {
+      "country": "BG",
+      "source": "overture",
+      "sourcerows": "19244",
+      "bytes": "2069630",
+      "assets": "2"
+    },
+    {
+      "country": "BH",
+      "source": "overture",
+      "sourcerows": "1853",
+      "bytes": "205509",
+      "assets": "1"
+    },
+    {
+      "country": "BI",
+      "source": "overture",
+      "sourcerows": "81",
+      "bytes": "18987",
+      "assets": "1"
+    },
+    {
+      "country": "BJ",
+      "source": "overture",
+      "sourcerows": "353",
+      "bytes": "49310",
+      "assets": "1"
+    },
+    {
+      "country": "BL",
+      "source": "overture",
+      "sourcerows": "89",
+      "bytes": "20858",
+      "assets": "1"
+    },
+    {
+      "country": "BM",
+      "source": "overture",
+      "sourcerows": "165",
+      "bytes": "29548",
+      "assets": "1"
+    },
+    {
+      "country": "BN",
+      "source": "overture",
+      "sourcerows": "1522",
+      "bytes": "163087",
+      "assets": "1"
+    },
+    {
+      "country": "BO",
+      "source": "overture",
+      "sourcerows": "8774",
+      "bytes": "927601",
+      "assets": "1"
+    },
+    {
+      "country": "BR",
+      "source": "overture",
+      "sourcerows": "466482",
+      "bytes": "53884084",
+      "assets": "31"
+    },
+    {
+      "country": "BS",
+      "source": "overture",
+      "sourcerows": "760",
+      "bytes": "92107",
+      "assets": "1"
+    },
+    {
+      "country": "BT",
+      "source": "overture",
+      "sourcerows": "205",
+      "bytes": "31584",
+      "assets": "1"
+    },
+    {
+      "country": "BW",
+      "source": "overture",
+      "sourcerows": "553",
+      "bytes": "70213",
+      "assets": "1"
+    },
+    {
+      "country": "BY",
+      "source": "overture",
+      "sourcerows": "3164",
+      "bytes": "355984",
+      "assets": "1"
+    },
+    {
+      "country": "BZ",
+      "source": "overture",
+      "sourcerows": "963",
+      "bytes": "111954",
+      "assets": "1"
+    },
+    {
+      "country": "CA",
+      "source": "overture",
+      "sourcerows": "207790",
+      "bytes": "26834687",
+      "assets": "17"
+    },
+    {
+      "country": "CD",
+      "source": "overture",
+      "sourcerows": "478",
+      "bytes": "65344",
+      "assets": "1"
+    },
+    {
+      "country": "CF",
+      "source": "overture",
+      "sourcerows": "7",
+      "bytes": "9105",
+      "assets": "1"
+    },
+    {
+      "country": "CG",
+      "source": "overture",
+      "sourcerows": "255",
+      "bytes": "38947",
+      "assets": "1"
+    },
+    {
+      "country": "CH",
+      "source": "overture",
+      "sourcerows": "52286",
+      "bytes": "6528583",
+      "assets": "2"
+    },
+    {
+      "country": "CI",
+      "source": "overture",
+      "sourcerows": "1102",
+      "bytes": "131195",
+      "assets": "1"
+    },
+    {
+      "country": "CL",
+      "source": "overture",
+      "sourcerows": "35198",
+      "bytes": "3883066",
+      "assets": "1"
+    },
+    {
+      "country": "CM",
+      "source": "overture",
+      "sourcerows": "755",
+      "bytes": "91143",
+      "assets": "1"
+    },
+    {
+      "country": "CN",
+      "source": "overture",
+      "sourcerows": "33333",
+      "bytes": "3284110",
+      "assets": "1"
+    },
+    {
+      "country": "CO",
+      "source": "overture",
+      "sourcerows": "62621",
+      "bytes": "7006865",
+      "assets": "5"
+    },
+    {
+      "country": "CR",
+      "source": "overture",
+      "sourcerows": "13400",
+      "bytes": "1456683",
+      "assets": "1"
+    },
+    {
+      "country": "CU",
+      "source": "overture",
+      "sourcerows": "1679",
+      "bytes": "188612",
+      "assets": "1"
+    },
+    {
+      "country": "CV",
+      "source": "overture",
+      "sourcerows": "294",
+      "bytes": "41324",
+      "assets": "1"
+    },
+    {
+      "country": "CY",
+      "source": "overture",
+      "sourcerows": "4559",
+      "bytes": "514232",
+      "assets": "1"
+    },
+    {
+      "country": "CZ",
+      "source": "overture",
+      "sourcerows": "30947",
+      "bytes": "3677457",
+      "assets": "2"
+    },
+    {
+      "country": "DE",
+      "source": "overture",
+      "sourcerows": "412340",
+      "bytes": "55304624",
+      "assets": "2"
+    },
+    {
+      "country": "DJ",
+      "source": "overture",
+      "sourcerows": "72",
+      "bytes": "17431",
+      "assets": "1"
+    },
+    {
+      "country": "DK",
+      "source": "overture",
+      "sourcerows": "28439",
+      "bytes": "3457818",
+      "assets": "2"
+    },
+    {
+      "country": "DM",
+      "source": "overture",
+      "sourcerows": "92",
+      "bytes": "19839",
+      "assets": "1"
+    },
+    {
+      "country": "DO",
+      "source": "overture",
+      "sourcerows": "5556",
+      "bytes": "602492",
+      "assets": "1"
+    },
+    {
+      "country": "DZ",
+      "source": "overture",
+      "sourcerows": "4863",
+      "bytes": "554455",
+      "assets": "1"
+    },
+    {
+      "country": "EC",
+      "source": "overture",
+      "sourcerows": "22439",
+      "bytes": "2497896",
+      "assets": "1"
+    },
+    {
+      "country": "EE",
+      "source": "overture",
+      "sourcerows": "3363",
+      "bytes": "369928",
+      "assets": "1"
+    },
+    {
+      "country": "EG",
+      "source": "overture",
+      "sourcerows": "27270",
+      "bytes": "3178804",
+      "assets": "1"
+    },
+    {
+      "country": "ER",
+      "source": "overture",
+      "sourcerows": "4",
+      "bytes": "7775",
+      "assets": "1"
+    },
+    {
+      "country": "ES",
+      "source": "overture",
+      "sourcerows": "277127",
+      "bytes": "34717954",
+      "assets": "2"
+    },
+    {
+      "country": "ET",
+      "source": "overture",
+      "sourcerows": "455",
+      "bytes": "62038",
+      "assets": "1"
+    },
+    {
+      "country": "FI",
+      "source": "overture",
+      "sourcerows": "26794",
+      "bytes": "3177027",
+      "assets": "2"
+    },
+    {
+      "country": "FJ",
+      "source": "overture",
+      "sourcerows": "412",
+      "bytes": "52418",
+      "assets": "1"
+    },
+    {
+      "country": "FM",
+      "source": "overture",
+      "sourcerows": "17",
+      "bytes": "11161",
+      "assets": "1"
+    },
+    {
+      "country": "FO",
+      "source": "overture",
+      "sourcerows": "126",
+      "bytes": "23550",
+      "assets": "1"
+    },
+    {
+      "country": "FR",
+      "source": "overture",
+      "sourcerows": "353976",
+      "bytes": "46329720",
+      "assets": "2"
+    },
+    {
+      "country": "GA",
+      "source": "overture",
+      "sourcerows": "183",
+      "bytes": "30151",
+      "assets": "1"
+    },
+    {
+      "country": "GB",
+      "source": "overture",
+      "sourcerows": "356721",
+      "bytes": "44668137",
+      "assets": "45"
+    },
+    {
+      "country": "GD",
+      "source": "overture",
+      "sourcerows": "120",
+      "bytes": "23703",
+      "assets": "1"
+    },
+    {
+      "country": "GE",
+      "source": "overture",
+      "sourcerows": "4447",
+      "bytes": "502121",
+      "assets": "1"
+    },
+    {
+      "country": "GG",
+      "source": "overture",
+      "sourcerows": "176",
+      "bytes": "31499",
+      "assets": "1"
+    },
+    {
+      "country": "GH",
+      "source": "overture",
+      "sourcerows": "1259",
+      "bytes": "148986",
+      "assets": "1"
+    },
+    {
+      "country": "GL",
+      "source": "overture",
+      "sourcerows": "21",
+      "bytes": "11348",
+      "assets": "1"
+    },
+    {
+      "country": "GM",
+      "source": "overture",
+      "sourcerows": "166",
+      "bytes": "27356",
+      "assets": "1"
+    },
+    {
+      "country": "GN",
+      "source": "overture",
+      "sourcerows": "157",
+      "bytes": "27835",
+      "assets": "1"
+    },
+    {
+      "country": "GQ",
+      "source": "overture",
+      "sourcerows": "23",
+      "bytes": "12055",
+      "assets": "1"
+    },
+    {
+      "country": "GR",
+      "source": "overture",
+      "sourcerows": "64313",
+      "bytes": "7292273",
+      "assets": "2"
+    },
+    {
+      "country": "GT",
+      "source": "overture",
+      "sourcerows": "10173",
+      "bytes": "1112120",
+      "assets": "2"
+    },
+    {
+      "country": "GU",
+      "source": "overture",
+      "sourcerows": "560",
+      "bytes": "70887",
+      "assets": "1"
+    },
+    {
+      "country": "GW",
+      "source": "overture",
+      "sourcerows": "32",
+      "bytes": "12685",
+      "assets": "1"
+    },
+    {
+      "country": "GY",
+      "source": "overture",
+      "sourcerows": "374",
+      "bytes": "51920",
+      "assets": "1"
+    },
+    {
+      "country": "HK",
+      "source": "overture",
+      "sourcerows": "23791",
+      "bytes": "2561567",
+      "assets": "1"
+    },
+    {
+      "country": "HN",
+      "source": "overture",
+      "sourcerows": "5393",
+      "bytes": "576544",
+      "assets": "1"
+    },
+    {
+      "country": "HR",
+      "source": "overture",
+      "sourcerows": "15271",
+      "bytes": "1603734",
+      "assets": "2"
+    },
+    {
+      "country": "HT",
+      "source": "overture",
+      "sourcerows": "289",
+      "bytes": "42009",
+      "assets": "1"
+    },
+    {
+      "country": "HU",
+      "source": "overture",
+      "sourcerows": "24486",
+      "bytes": "2785673",
+      "assets": "2"
+    },
+    {
+      "country": "ID",
+      "source": "overture",
+      "sourcerows": "201876",
+      "bytes": "22441723",
+      "assets": "1"
+    },
+    {
+      "country": "IE",
+      "source": "overture",
+      "sourcerows": "15109",
+      "bytes": "1788665",
+      "assets": "1"
+    },
+    {
+      "country": "IL",
+      "source": "overture",
+      "sourcerows": "16832",
+      "bytes": "1919870",
+      "assets": "1"
+    },
+    {
+      "country": "IM",
+      "source": "overture",
+      "sourcerows": "297",
+      "bytes": "45647",
+      "assets": "1"
+    },
+    {
+      "country": "IN",
+      "source": "overture",
+      "sourcerows": "208250",
+      "bytes": "25863619",
+      "assets": "1"
+    },
+    {
+      "country": "IQ",
+      "source": "overture",
+      "sourcerows": "5019",
+      "bytes": "563449",
+      "assets": "1"
+    },
+    {
+      "country": "IR",
+      "source": "overture",
+      "sourcerows": "3065",
+      "bytes": "368351",
+      "assets": "1"
+    },
+    {
+      "country": "IS",
+      "source": "overture",
+      "sourcerows": "1238",
+      "bytes": "142180",
+      "assets": "1"
+    },
+    {
+      "country": "IT",
+      "source": "overture",
+      "sourcerows": "385105",
+      "bytes": "50221087",
+      "assets": "2"
+    },
+    {
+      "country": "JE",
+      "source": "overture",
+      "sourcerows": "124",
+      "bytes": "26653",
+      "assets": "1"
+    },
+    {
+      "country": "JM",
+      "source": "overture",
+      "sourcerows": "1384",
+      "bytes": "152554",
+      "assets": "1"
+    },
+    {
+      "country": "JO",
+      "source": "overture",
+      "sourcerows": "6742",
+      "bytes": "742304",
+      "assets": "1"
+    },
+    {
+      "country": "JP",
+      "source": "overture",
+      "sourcerows": "657494",
+      "bytes": "80925694",
+      "assets": "27"
+    },
+    {
+      "country": "KE",
+      "source": "overture",
+      "sourcerows": "4148",
+      "bytes": "451628",
+      "assets": "1"
+    },
+    {
+      "country": "KG",
+      "source": "overture",
+      "sourcerows": "934",
+      "bytes": "109451",
+      "assets": "1"
+    },
+    {
+      "country": "KH",
+      "source": "overture",
+      "sourcerows": "11269",
+      "bytes": "1267074",
+      "assets": "1"
+    },
+    {
+      "country": "KI",
+      "source": "overture",
+      "sourcerows": "2",
+      "bytes": "7171",
+      "assets": "1"
+    },
+    {
+      "country": "KM",
+      "source": "overture",
+      "sourcerows": "31",
+      "bytes": "12318",
+      "assets": "1"
+    },
+    {
+      "country": "KN",
+      "source": "overture",
+      "sourcerows": "167",
+      "bytes": "29532",
+      "assets": "1"
+    },
+    {
+      "country": "KP",
+      "source": "overture",
+      "sourcerows": "14",
+      "bytes": "10993",
+      "assets": "1"
+    },
+    {
+      "country": "KR",
+      "source": "overture",
+      "sourcerows": "143482",
+      "bytes": "16677944",
+      "assets": "1"
+    },
+    {
+      "country": "KW",
+      "source": "overture",
+      "sourcerows": "5241",
+      "bytes": "557352",
+      "assets": "1"
+    },
+    {
+      "country": "KY",
+      "source": "overture",
+      "sourcerows": "326",
+      "bytes": "47950",
+      "assets": "1"
+    },
+    {
+      "country": "KZ",
+      "source": "overture",
+      "sourcerows": "5559",
+      "bytes": "589034",
+      "assets": "1"
+    },
+    {
+      "country": "LA",
+      "source": "overture",
+      "sourcerows": "5000",
+      "bytes": "560882",
+      "assets": "1"
+    },
+    {
+      "country": "LB",
+      "source": "overture",
+      "sourcerows": "5746",
+      "bytes": "620880",
+      "assets": "1"
+    },
+    {
+      "country": "LC",
+      "source": "overture",
+      "sourcerows": "285",
+      "bytes": "40809",
+      "assets": "1"
+    },
+    {
+      "country": "LI",
+      "source": "overture",
+      "sourcerows": "162",
+      "bytes": "28132",
+      "assets": "1"
+    },
+    {
+      "country": "LK",
+      "source": "overture",
+      "sourcerows": "7057",
+      "bytes": "770178",
+      "assets": "1"
+    },
+    {
+      "country": "LR",
+      "source": "overture",
+      "sourcerows": "86",
+      "bytes": "19769",
+      "assets": "1"
+    },
+    {
+      "country": "LS",
+      "source": "overture",
+      "sourcerows": "176",
+      "bytes": "29187",
+      "assets": "1"
+    },
+    {
+      "country": "LT",
+      "source": "overture",
+      "sourcerows": "4471",
+      "bytes": "482886",
+      "assets": "1"
+    },
+    {
+      "country": "LU",
+      "source": "overture",
+      "sourcerows": "2965",
+      "bytes": "344601",
+      "assets": "1"
+    },
+    {
+      "country": "LV",
+      "source": "overture",
+      "sourcerows": "3511",
+      "bytes": "375218",
+      "assets": "1"
+    },
+    {
+      "country": "LY",
+      "source": "overture",
+      "sourcerows": "2272",
+      "bytes": "253843",
+      "assets": "1"
+    },
+    {
+      "country": "MA",
+      "source": "overture",
+      "sourcerows": "12322",
+      "bytes": "1326635",
+      "assets": "1"
+    },
+    {
+      "country": "MC",
+      "source": "overture",
+      "sourcerows": "229",
+      "bytes": "36648",
+      "assets": "1"
+    },
+    {
+      "country": "MD",
+      "source": "overture",
+      "sourcerows": "2084",
+      "bytes": "230380",
+      "assets": "1"
+    },
+    {
+      "country": "ME",
+      "source": "overture",
+      "sourcerows": "1942",
+      "bytes": "211083",
+      "assets": "2"
+    },
+    {
+      "country": "MF",
+      "source": "overture",
+      "sourcerows": "181",
+      "bytes": "30854",
+      "assets": "1"
+    },
+    {
+      "country": "MG",
+      "source": "overture",
+      "sourcerows": "814",
+      "bytes": "95813",
+      "assets": "1"
+    },
+    {
+      "country": "MK",
+      "source": "overture",
+      "sourcerows": "4786",
+      "bytes": "490919",
+      "assets": "1"
+    },
+    {
+      "country": "ML",
+      "source": "overture",
+      "sourcerows": "160",
+      "bytes": "27789",
+      "assets": "1"
+    },
+    {
+      "country": "MM",
+      "source": "overture",
+      "sourcerows": "7222",
+      "bytes": "816659",
+      "assets": "1"
+    },
+    {
+      "country": "MN",
+      "source": "overture",
+      "sourcerows": "1380",
+      "bytes": "166245",
+      "assets": "1"
+    },
+    {
+      "country": "MR",
+      "source": "overture",
+      "sourcerows": "95",
+      "bytes": "21145",
+      "assets": "1"
+    },
+    {
+      "country": "MT",
+      "source": "overture",
+      "sourcerows": "2807",
+      "bytes": "322753",
+      "assets": "1"
+    },
+    {
+      "country": "MU",
+      "source": "overture",
+      "sourcerows": "1932",
+      "bytes": "212348",
+      "assets": "1"
+    },
+    {
+      "country": "MV",
+      "source": "overture",
+      "sourcerows": "536",
+      "bytes": "62687",
+      "assets": "1"
+    },
+    {
+      "country": "MW",
+      "source": "overture",
+      "sourcerows": "288",
+      "bytes": "40862",
+      "assets": "1"
+    },
+    {
+      "country": "MX",
+      "source": "overture",
+      "sourcerows": "400503",
+      "bytes": "43746269",
+      "assets": "19"
+    },
+    {
+      "country": "MY",
+      "source": "overture",
+      "sourcerows": "140704",
+      "bytes": "15551609",
+      "assets": "1"
+    },
+    {
+      "country": "MZ",
+      "source": "overture",
+      "sourcerows": "703",
+      "bytes": "84795",
+      "assets": "1"
+    },
+    {
+      "country": "NA",
+      "source": "overture",
+      "sourcerows": "600",
+      "bytes": "80331",
+      "assets": "1"
+    },
+    {
+      "country": "NC",
+      "source": "overture",
+      "sourcerows": "440",
+      "bytes": "55648",
+      "assets": "1"
+    },
+    {
+      "country": "NE",
+      "source": "overture",
+      "sourcerows": "78",
+      "bytes": "18728",
+      "assets": "1"
+    },
+    {
+      "country": "NG",
+      "source": "overture",
+      "sourcerows": "3449",
+      "bytes": "411852",
+      "assets": "1"
+    },
+    {
+      "country": "NI",
+      "source": "overture",
+      "sourcerows": "4519",
+      "bytes": "493835",
+      "assets": "1"
+    },
+    {
+      "country": "NL",
+      "source": "overture",
+      "sourcerows": "84187",
+      "bytes": "10822165",
+      "assets": "2"
+    },
+    {
+      "country": "NO",
+      "source": "overture",
+      "sourcerows": "18343",
+      "bytes": "2199650",
+      "assets": "2"
+    },
+    {
+      "country": "NP",
+      "source": "overture",
+      "sourcerows": "7788",
+      "bytes": "798337",
+      "assets": "1"
+    },
+    {
+      "country": "NR",
+      "source": "overture",
+      "sourcerows": "2",
+      "bytes": "7179",
+      "assets": "1"
+    },
+    {
+      "country": "NZ",
+      "source": "overture",
+      "sourcerows": "17566",
+      "bytes": "2004363",
+      "assets": "1"
+    },
+    {
+      "country": "OM",
+      "source": "overture",
+      "sourcerows": "2136",
+      "bytes": "234581",
+      "assets": "1"
+    },
+    {
+      "country": "PA",
+      "source": "overture",
+      "sourcerows": "3431",
+      "bytes": "377566",
+      "assets": "1"
+    },
+    {
+      "country": "PE",
+      "source": "overture",
+      "sourcerows": "45047",
+      "bytes": "4957881",
+      "assets": "1"
+    },
+    {
+      "country": "PF",
+      "source": "overture",
+      "sourcerows": "433",
+      "bytes": "56082",
+      "assets": "1"
+    },
+    {
+      "country": "PG",
+      "source": "overture",
+      "sourcerows": "217",
+      "bytes": "32798",
+      "assets": "1"
+    },
+    {
+      "country": "PH",
+      "source": "overture",
+      "sourcerows": "115030",
+      "bytes": "12678054",
+      "assets": "1"
+    },
+    {
+      "country": "PK",
+      "source": "overture",
+      "sourcerows": "17459",
+      "bytes": "1920390",
+      "assets": "1"
+    },
+    {
+      "country": "PL",
+      "source": "overture",
+      "sourcerows": "75115",
+      "bytes": "9015493",
+      "assets": "2"
+    },
+    {
+      "country": "PM",
+      "source": "overture",
+      "sourcerows": "16",
+      "bytes": "10637",
+      "assets": "1"
+    },
+    {
+      "country": "PR",
+      "source": "overture",
+      "sourcerows": "14615",
+      "bytes": "1558651",
+      "assets": "1"
+    },
+    {
+      "country": "PS",
+      "source": "overture",
+      "sourcerows": "2327",
+      "bytes": "273975",
+      "assets": "1"
+    },
+    {
+      "country": "PT",
+      "source": "overture",
+      "sourcerows": "55704",
+      "bytes": "6224057",
+      "assets": "2"
+    },
+    {
+      "country": "PW",
+      "source": "overture",
+      "sourcerows": "21",
+      "bytes": "11379",
+      "assets": "1"
+    },
+    {
+      "country": "PY",
+      "source": "overture",
+      "sourcerows": "7811",
+      "bytes": "794433",
+      "assets": "1"
+    },
+    {
+      "country": "QA",
+      "source": "overture",
+      "sourcerows": "3326",
+      "bytes": "367231",
+      "assets": "1"
+    },
+    {
+      "country": "RO",
+      "source": "overture",
+      "sourcerows": "28507",
+      "bytes": "3169612",
+      "assets": "2"
+    },
+    {
+      "country": "RS",
+      "source": "overture",
+      "sourcerows": "13817",
+      "bytes": "1448788",
+      "assets": "2"
+    },
+    {
+      "country": "RU",
+      "source": "overture",
+      "sourcerows": "65872",
+      "bytes": "7823081",
+      "assets": "2"
+    },
+    {
+      "country": "RW",
+      "source": "overture",
+      "sourcerows": "273",
+      "bytes": "40304",
+      "assets": "1"
+    },
+    {
+      "country": "SA",
+      "source": "overture",
+      "sourcerows": "25221",
+      "bytes": "2769493",
+      "assets": "1"
+    },
+    {
+      "country": "SB",
+      "source": "overture",
+      "sourcerows": "11",
+      "bytes": "9887",
+      "assets": "1"
+    },
+    {
+      "country": "SC",
+      "source": "overture",
+      "sourcerows": "157",
+      "bytes": "27382",
+      "assets": "1"
+    },
+    {
+      "country": "SD",
+      "source": "overture",
+      "sourcerows": "936",
+      "bytes": "106358",
+      "assets": "1"
+    },
+    {
+      "country": "SE",
+      "source": "overture",
+      "sourcerows": "48317",
+      "bytes": "5873631",
+      "assets": "2"
+    },
+    {
+      "country": "SG",
+      "source": "overture",
+      "sourcerows": "19532",
+      "bytes": "2151767",
+      "assets": "1"
+    },
+    {
+      "country": "SI",
+      "source": "overture",
+      "sourcerows": "4749",
+      "bytes": "520586",
+      "assets": "2"
+    },
+    {
+      "country": "SK",
+      "source": "overture",
+      "sourcerows": "11757",
+      "bytes": "1326765",
+      "assets": "2"
+    },
+    {
+      "country": "SL",
+      "source": "overture",
+      "sourcerows": "66",
+      "bytes": "17831",
+      "assets": "1"
+    },
+    {
+      "country": "SM",
+      "source": "overture",
+      "sourcerows": "136",
+      "bytes": "25998",
+      "assets": "1"
+    },
+    {
+      "country": "SN",
+      "source": "overture",
+      "sourcerows": "571",
+      "bytes": "74800",
+      "assets": "1"
+    },
+    {
+      "country": "SO",
+      "source": "overture",
+      "sourcerows": "144",
+      "bytes": "25361",
+      "assets": "1"
+    },
+    {
+      "country": "SR",
+      "source": "overture",
+      "sourcerows": "772",
+      "bytes": "88252",
+      "assets": "1"
+    },
+    {
+      "country": "SS",
+      "source": "overture",
+      "sourcerows": "72",
+      "bytes": "18162",
+      "assets": "1"
+    },
+    {
+      "country": "ST",
+      "source": "overture",
+      "sourcerows": "37",
+      "bytes": "13844",
+      "assets": "1"
+    },
+    {
+      "country": "SV",
+      "source": "overture",
+      "sourcerows": "6961",
+      "bytes": "734446",
+      "assets": "1"
+    },
+    {
+      "country": "SY",
+      "source": "overture",
+      "sourcerows": "2382",
+      "bytes": "260921",
+      "assets": "1"
+    },
+    {
+      "country": "SZ",
+      "source": "overture",
+      "sourcerows": "173",
+      "bytes": "30079",
+      "assets": "1"
+    },
+    {
+      "country": "TD",
+      "source": "overture",
+      "sourcerows": "53",
+      "bytes": "16537",
+      "assets": "1"
+    },
+    {
+      "country": "TG",
+      "source": "overture",
+      "sourcerows": "282",
+      "bytes": "40446",
+      "assets": "1"
+    },
+    {
+      "country": "TH",
+      "source": "overture",
+      "sourcerows": "415424",
+      "bytes": "49347773",
+      "assets": "16"
+    },
+    {
+      "country": "TJ",
+      "source": "overture",
+      "sourcerows": "328",
+      "bytes": "45859",
+      "assets": "1"
+    },
+    {
+      "country": "TL",
+      "source": "overture",
+      "sourcerows": "135",
+      "bytes": "24152",
+      "assets": "1"
+    },
+    {
+      "country": "TM",
+      "source": "overture",
+      "sourcerows": "114",
+      "bytes": "21863",
+      "assets": "1"
+    },
+    {
+      "country": "TN",
+      "source": "overture",
+      "sourcerows": "7510",
+      "bytes": "749935",
+      "assets": "1"
+    },
+    {
+      "country": "TO",
+      "source": "overture",
+      "sourcerows": "12",
+      "bytes": "10191",
+      "assets": "1"
+    },
+    {
+      "country": "TR",
+      "source": "overture",
+      "sourcerows": "203829",
+      "bytes": "22276975",
+      "assets": "1"
+    },
+    {
+      "country": "TT",
+      "source": "overture",
+      "sourcerows": "2186",
+      "bytes": "233426",
+      "assets": "1"
+    },
+    {
+      "country": "TW",
+      "source": "overture",
+      "sourcerows": "197324",
+      "bytes": "21989234",
+      "assets": "1"
+    },
+    {
+      "country": "TZ",
+      "source": "overture",
+      "sourcerows": "1035",
+      "bytes": "122716",
+      "assets": "1"
+    },
+    {
+      "country": "UA",
+      "source": "overture",
+      "sourcerows": "24714",
+      "bytes": "2828313",
+      "assets": "1"
+    },
+    {
+      "country": "UG",
+      "source": "overture",
+      "sourcerows": "1271",
+      "bytes": "146961",
+      "assets": "1"
+    },
+    {
+      "country": "US",
+      "source": "overture",
+      "sourcerows": "2012585",
+      "bytes": "301387837",
+      "assets": "86"
+    },
+    {
+      "country": "UY",
+      "source": "overture",
+      "sourcerows": "4581",
+      "bytes": "499665",
+      "assets": "2"
+    },
+    {
+      "country": "UZ",
+      "source": "overture",
+      "sourcerows": "2515",
+      "bytes": "268485",
+      "assets": "1"
+    },
+    {
+      "country": "VC",
+      "source": "overture",
+      "sourcerows": "44",
+      "bytes": "15029",
+      "assets": "1"
+    },
+    {
+      "country": "VE",
+      "source": "overture",
+      "sourcerows": "5523",
+      "bytes": "624877",
+      "assets": "1"
+    },
+    {
+      "country": "VI",
+      "source": "overture",
+      "sourcerows": "477",
+      "bytes": "63372",
+      "assets": "1"
+    },
+    {
+      "country": "VN",
+      "source": "overture",
+      "sourcerows": "214600",
+      "bytes": "23596164",
+      "assets": "1"
+    },
+    {
+      "country": "VU",
+      "source": "overture",
+      "sourcerows": "81",
+      "bytes": "19877",
+      "assets": "1"
+    },
+    {
+      "country": "WF",
+      "source": "overture",
+      "sourcerows": "2",
+      "bytes": "6894",
+      "assets": "1"
+    },
+    {
+      "country": "WS",
+      "source": "overture",
+      "sourcerows": "93",
+      "bytes": "19828",
+      "assets": "1"
+    },
+    {
+      "country": "XK",
+      "source": "overture",
+      "sourcerows": "2841",
+      "bytes": "278717",
+      "assets": "1"
+    },
+    {
+      "country": "YE",
+      "source": "overture",
+      "sourcerows": "340",
+      "bytes": "55353",
+      "assets": "1"
+    },
+    {
+      "country": "ZA",
+      "source": "overture",
+      "sourcerows": "39250",
+      "bytes": "4696732",
+      "assets": "1"
+    },
+    {
+      "country": "ZM",
+      "source": "overture",
+      "sourcerows": "1041",
+      "bytes": "127903",
+      "assets": "1"
+    },
+    {
+      "country": "ZW",
+      "source": "overture",
+      "sourcerows": "974",
+      "bytes": "116876",
+      "assets": "1"
+    }
+  ],
+  "legacySourceCounts": [
+    {
+      "source": "geofabrik",
+      "country_code": "AF",
+      "records": "1478"
+    },
+    {
+      "source": "overture",
+      "country_code": "AF",
+      "records": "1316"
+    },
+    {
+      "source": "qlever",
+      "country_code": "AF",
+      "records": "1473"
+    },
+    {
+      "source": "overture",
+      "country_code": "AR",
+      "records": "306"
+    },
+    {
+      "source": "qlever",
+      "country_code": "AU",
+      "records": "450"
+    },
+    {
+      "source": "overture",
+      "country_code": "BR",
+      "records": "1638"
+    },
+    {
+      "source": "qlever",
+      "country_code": "BR",
+      "records": "742"
+    },
+    {
+      "source": "overture",
+      "country_code": "CA",
+      "records": "565"
+    },
+    {
+      "source": "qlever",
+      "country_code": "CA",
+      "records": "765"
+    },
+    {
+      "source": "qlever",
+      "country_code": "CL",
+      "records": "150"
+    },
+    {
+      "source": "overture",
+      "country_code": "CO",
+      "records": "250"
+    },
+    {
+      "source": "qlever",
+      "country_code": "CO",
+      "records": "300"
+    },
+    {
+      "source": "overture",
+      "country_code": "DE",
+      "records": "93"
+    },
+    {
+      "source": "qlever",
+      "country_code": "DE",
+      "records": "681"
+    },
+    {
+      "source": "qlever",
+      "country_code": "ES",
+      "records": "176"
+    },
+    {
+      "source": "overture",
+      "country_code": "FI",
+      "records": "245"
+    },
+    {
+      "source": "overture",
+      "country_code": "FR",
+      "records": "250"
+    },
+    {
+      "source": "qlever",
+      "country_code": "FR",
+      "records": "150"
+    },
+    {
+      "source": "qlever",
+      "country_code": "GB",
+      "records": "138"
+    },
+    {
+      "source": "qlever",
+      "country_code": "GH",
+      "records": "150"
+    },
+    {
+      "source": "qlever",
+      "country_code": "GT",
+      "records": "150"
+    },
+    {
+      "source": "qlever",
+      "country_code": "ID",
+      "records": "150"
+    },
+    {
+      "source": "qlever",
+      "country_code": "IT",
+      "records": "138"
+    },
+    {
+      "source": "qlever",
+      "country_code": "JP",
+      "records": "450"
+    },
+    {
+      "source": "qlever",
+      "country_code": "KE",
+      "records": "150"
+    },
+    {
+      "source": "qlever",
+      "country_code": "MA",
+      "records": "150"
+    },
+    {
+      "source": "qlever",
+      "country_code": "NP",
+      "records": "150"
+    },
+    {
+      "source": "qlever",
+      "country_code": "NZ",
+      "records": "149"
+    },
+    {
+      "source": "qlever",
+      "country_code": "PH",
+      "records": "150"
+    },
+    {
+      "source": "overture",
+      "country_code": "PT",
+      "records": "197"
+    },
+    {
+      "source": "qlever",
+      "country_code": "PT",
+      "records": "204"
+    },
+    {
+      "source": "qlever",
+      "country_code": "RW",
+      "records": "150"
+    },
+    {
+      "source": "overture",
+      "country_code": "US",
+      "records": "6"
+    },
+    {
+      "source": "qlever",
+      "country_code": "US",
+      "records": "450"
+    }
+  ],
+  "countryCoverage": {
+    "AD": {
+      "inventory": 10,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 10,
+      "confirmedBelow50": 0
+    },
+    "AE": {
+      "inventory": 30,
+      "withBusinesses": 10,
+      "met50": 3,
+      "met100": 2,
+      "met200": 1,
+      "locationPending": 20,
+      "confirmedBelow50": 7
+    },
+    "AF": {
+      "inventory": 100,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 99,
+      "confirmedBelow50": 1
+    },
+    "AG": {
+      "inventory": 9,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 9,
+      "confirmedBelow50": 0
+    },
+    "AL": {
+      "inventory": 143,
+      "withBusinesses": 61,
+      "met50": 12,
+      "met100": 5,
+      "met200": 1,
+      "locationPending": 77,
+      "confirmedBelow50": 54
+    },
+    "AM": {
+      "inventory": 308,
+      "withBusinesses": 70,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 80,
+      "confirmedBelow50": 228
+    },
+    "AO": {
+      "inventory": 72,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 72,
+      "confirmedBelow50": 0
+    },
+    "AR": {
+      "inventory": 1136,
+      "withBusinesses": 457,
+      "met50": 63,
+      "met100": 37,
+      "met200": 15,
+      "locationPending": 582,
+      "confirmedBelow50": 491
+    },
+    "AS": {
+      "inventory": 14,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 14,
+      "confirmedBelow50": 0
+    },
+    "AT": {
+      "inventory": 2360,
+      "withBusinesses": 1484,
+      "met50": 94,
+      "met100": 25,
+      "met200": 2,
+      "locationPending": 821,
+      "confirmedBelow50": 1445
+    },
+    "AU": {
+      "inventory": 4147,
+      "withBusinesses": 2094,
+      "met50": 343,
+      "met100": 121,
+      "met200": 32,
+      "locationPending": 1904,
+      "confirmedBelow50": 1900
+    },
+    "AW": {
+      "inventory": 12,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 12,
+      "confirmedBelow50": 0
+    },
+    "AX": {
+      "inventory": 12,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 12,
+      "confirmedBelow50": 0
+    },
+    "AZ": {
+      "inventory": 180,
+      "withBusinesses": 33,
+      "met50": 1,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 102,
+      "confirmedBelow50": 77
+    },
+    "BA": {
+      "inventory": 232,
+      "withBusinesses": 30,
+      "met50": 19,
+      "met100": 10,
+      "met200": 5,
+      "locationPending": 202,
+      "confirmedBelow50": 11
+    },
+    "BB": {
+      "inventory": 7,
+      "withBusinesses": 2,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 5,
+      "confirmedBelow50": 2
+    },
+    "BD": {
+      "inventory": 64,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 64,
+      "confirmedBelow50": 0
+    },
+    "BE": {
+      "inventory": 549,
+      "withBusinesses": 483,
+      "met50": 302,
+      "met100": 158,
+      "met200": 60,
+      "locationPending": 31,
+      "confirmedBelow50": 216
+    },
+    "BF": {
+      "inventory": 92,
+      "withBusinesses": 11,
+      "met50": 1,
+      "met100": 1,
+      "met200": 1,
+      "locationPending": 59,
+      "confirmedBelow50": 32
+    },
+    "BG": {
+      "inventory": 504,
+      "withBusinesses": 335,
+      "met50": 74,
+      "met100": 50,
+      "met200": 20,
+      "locationPending": 153,
+      "confirmedBelow50": 277
+    },
+    "BH": {
+      "inventory": 9,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 9,
+      "confirmedBelow50": 0
+    },
+    "BI": {
+      "inventory": 17,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 14,
+      "confirmedBelow50": 3
+    },
+    "BJ": {
+      "inventory": 36,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 35,
+      "confirmedBelow50": 1
+    },
+    "BL": {
+      "inventory": 1,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 1,
+      "confirmedBelow50": 0
+    },
+    "BM": {
+      "inventory": 9,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 9,
+      "confirmedBelow50": 0
+    },
+    "BN": {
+      "inventory": 9,
+      "withBusinesses": 4,
+      "met50": 1,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 5,
+      "confirmedBelow50": 3
+    },
+    "BO": {
+      "inventory": 228,
+      "withBusinesses": 58,
+      "met50": 9,
+      "met100": 6,
+      "met200": 1,
+      "locationPending": 149,
+      "confirmedBelow50": 70
+    },
+    "BQ": {
+      "inventory": 8,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 8,
+      "confirmedBelow50": 0
+    },
+    "BR": {
+      "inventory": 5629,
+      "withBusinesses": 5162,
+      "met50": 1072,
+      "met100": 668,
+      "met200": 380,
+      "locationPending": 95,
+      "confirmedBelow50": 4462
+    },
+    "BS": {
+      "inventory": 21,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 20,
+      "confirmedBelow50": 1
+    },
+    "BT": {
+      "inventory": 57,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 57,
+      "confirmedBelow50": 0
+    },
+    "BW": {
+      "inventory": 75,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 74,
+      "confirmedBelow50": 1
+    },
+    "BY": {
+      "inventory": 329,
+      "withBusinesses": 56,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 196,
+      "confirmedBelow50": 133
+    },
+    "BZ": {
+      "inventory": 13,
+      "withBusinesses": 5,
+      "met50": 4,
+      "met100": 2,
+      "met200": 0,
+      "locationPending": 7,
+      "confirmedBelow50": 2
+    },
+    "CA": {
+      "inventory": 1080,
+      "withBusinesses": 755,
+      "met50": 274,
+      "met100": 167,
+      "met200": 99,
+      "locationPending": 308,
+      "confirmedBelow50": 498
+    },
+    "CD": {
+      "inventory": 67,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 64,
+      "confirmedBelow50": 3
+    },
+    "CF": {
+      "inventory": 42,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 41,
+      "confirmedBelow50": 1
+    },
+    "CG": {
+      "inventory": 17,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 17,
+      "confirmedBelow50": 0
+    },
+    "CH": {
+      "inventory": 1507,
+      "withBusinesses": 892,
+      "met50": 154,
+      "met100": 68,
+      "met200": 25,
+      "locationPending": 600,
+      "confirmedBelow50": 753
+    },
+    "CI": {
+      "inventory": 95,
+      "withBusinesses": 11,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 80,
+      "confirmedBelow50": 15
+    },
+    "CL": {
+      "inventory": 300,
+      "withBusinesses": 258,
+      "met50": 65,
+      "met100": 35,
+      "met200": 16,
+      "locationPending": 32,
+      "confirmedBelow50": 203
+    },
+    "CM": {
+      "inventory": 139,
+      "withBusinesses": 23,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 51,
+      "confirmedBelow50": 88
+    },
+    "CN": {
+      "inventory": 4133,
+      "withBusinesses": 697,
+      "met50": 67,
+      "met100": 39,
+      "met200": 17,
+      "locationPending": 2865,
+      "confirmedBelow50": 1201
+    },
+    "CO": {
+      "inventory": 1122,
+      "withBusinesses": 885,
+      "met50": 138,
+      "met100": 76,
+      "met200": 50,
+      "locationPending": 78,
+      "confirmedBelow50": 906
+    },
+    "CR": {
+      "inventory": 159,
+      "withBusinesses": 86,
+      "met50": 33,
+      "met100": 20,
+      "met200": 6,
+      "locationPending": 73,
+      "confirmedBelow50": 53
+    },
+    "CU": {
+      "inventory": 187,
+      "withBusinesses": 51,
+      "met50": 3,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 67,
+      "confirmedBelow50": 117
+    },
+    "CV": {
+      "inventory": 28,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 28,
+      "confirmedBelow50": 0
+    },
+    "CY": {
+      "inventory": 95,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 95,
+      "confirmedBelow50": 0
+    },
+    "CZ": {
+      "inventory": 1355,
+      "withBusinesses": 979,
+      "met50": 71,
+      "met100": 30,
+      "met200": 9,
+      "locationPending": 299,
+      "confirmedBelow50": 985
+    },
+    "DE": {
+      "inventory": 7104,
+      "withBusinesses": 5382,
+      "met50": 1278,
+      "met100": 562,
+      "met200": 185,
+      "locationPending": 1055,
+      "confirmedBelow50": 4771
+    },
+    "DJ": {
+      "inventory": 12,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 10,
+      "confirmedBelow50": 2
+    },
+    "DK": {
+      "inventory": 430,
+      "withBusinesses": 91,
+      "met50": 90,
+      "met100": 78,
+      "met200": 49,
+      "locationPending": 339,
+      "confirmedBelow50": 1
+    },
+    "DM": {
+      "inventory": 17,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 17,
+      "confirmedBelow50": 0
+    },
+    "DO": {
+      "inventory": 207,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 207,
+      "confirmedBelow50": 0
+    },
+    "DZ": {
+      "inventory": 293,
+      "withBusinesses": 137,
+      "met50": 7,
+      "met100": 2,
+      "met200": 0,
+      "locationPending": 95,
+      "confirmedBelow50": 191
+    },
+    "EC": {
+      "inventory": 114,
+      "withBusinesses": 75,
+      "met50": 28,
+      "met100": 16,
+      "met200": 6,
+      "locationPending": 37,
+      "confirmedBelow50": 49
+    },
+    "EE": {
+      "inventory": 162,
+      "withBusinesses": 53,
+      "met50": 6,
+      "met100": 4,
+      "met200": 2,
+      "locationPending": 106,
+      "confirmedBelow50": 50
+    },
+    "EG": {
+      "inventory": 163,
+      "withBusinesses": 8,
+      "met50": 3,
+      "met100": 1,
+      "met200": 1,
+      "locationPending": 155,
+      "confirmedBelow50": 5
+    },
+    "ER": {
+      "inventory": 11,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 10,
+      "confirmedBelow50": 1
+    },
+    "ES": {
+      "inventory": 8405,
+      "withBusinesses": 5459,
+      "met50": 752,
+      "met100": 443,
+      "met200": 230,
+      "locationPending": 596,
+      "confirmedBelow50": 7057
+    },
+    "ET": {
+      "inventory": 144,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 142,
+      "confirmedBelow50": 2
+    },
+    "FI": {
+      "inventory": 437,
+      "withBusinesses": 263,
+      "met50": 92,
+      "met100": 52,
+      "met200": 24,
+      "locationPending": 138,
+      "confirmedBelow50": 207
+    },
+    "FJ": {
+      "inventory": 20,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 20,
+      "confirmedBelow50": 0
+    },
+    "FM": {
+      "inventory": 80,
+      "withBusinesses": 4,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 49,
+      "confirmedBelow50": 31
+    },
+    "FO": {
+      "inventory": 27,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 27,
+      "confirmedBelow50": 0
+    },
+    "FR": {
+      "inventory": 10534,
+      "withBusinesses": 9178,
+      "met50": 1116,
+      "met100": 499,
+      "met200": 215,
+      "locationPending": 386,
+      "confirmedBelow50": 9032
+    },
+    "GA": {
+      "inventory": 28,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 28,
+      "confirmedBelow50": 0
+    },
+    "GB": {
+      "inventory": 3879,
+      "withBusinesses": 1085,
+      "met50": 259,
+      "met100": 127,
+      "met200": 53,
+      "locationPending": 2749,
+      "confirmedBelow50": 871
+    },
+    "GD": {
+      "inventory": 7,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 7,
+      "confirmedBelow50": 0
+    },
+    "GE": {
+      "inventory": 110,
+      "withBusinesses": 39,
+      "met50": 4,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 63,
+      "confirmedBelow50": 43
+    },
+    "GF": {
+      "inventory": 22,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 22,
+      "confirmedBelow50": 0
+    },
+    "GG": {
+      "inventory": 5,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 5,
+      "confirmedBelow50": 0
+    },
+    "GH": {
+      "inventory": 121,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 121,
+      "confirmedBelow50": 0
+    },
+    "GL": {
+      "inventory": 18,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 18,
+      "confirmedBelow50": 0
+    },
+    "GM": {
+      "inventory": 104,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 101,
+      "confirmedBelow50": 3
+    },
+    "GN": {
+      "inventory": 54,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 52,
+      "confirmedBelow50": 2
+    },
+    "GP": {
+      "inventory": 32,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 32,
+      "confirmedBelow50": 0
+    },
+    "GQ": {
+      "inventory": 26,
+      "withBusinesses": 2,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 12,
+      "confirmedBelow50": 14
+    },
+    "GR": {
+      "inventory": 1103,
+      "withBusinesses": 10,
+      "met50": 5,
+      "met100": 3,
+      "met200": 0,
+      "locationPending": 1093,
+      "confirmedBelow50": 5
+    },
+    "GT": {
+      "inventory": 382,
+      "withBusinesses": 273,
+      "met50": 36,
+      "met100": 17,
+      "met200": 4,
+      "locationPending": 79,
+      "confirmedBelow50": 267
+    },
+    "GU": {
+      "inventory": 25,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 25,
+      "confirmedBelow50": 0
+    },
+    "GW": {
+      "inventory": 15,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 15,
+      "confirmedBelow50": 0
+    },
+    "GY": {
+      "inventory": 14,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 14,
+      "confirmedBelow50": 0
+    },
+    "HK": {
+      "inventory": 27,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 27,
+      "confirmedBelow50": 0
+    },
+    "HN": {
+      "inventory": 545,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 544,
+      "confirmedBelow50": 1
+    },
+    "HR": {
+      "inventory": 663,
+      "withBusinesses": 425,
+      "met50": 40,
+      "met100": 17,
+      "met200": 7,
+      "locationPending": 173,
+      "confirmedBelow50": 450
+    },
+    "HT": {
+      "inventory": 124,
+      "withBusinesses": 3,
+      "met50": 2,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 120,
+      "confirmedBelow50": 2
+    },
+    "HU": {
+      "inventory": 1074,
+      "withBusinesses": 780,
+      "met50": 68,
+      "met100": 33,
+      "met200": 12,
+      "locationPending": 201,
+      "confirmedBelow50": 805
+    },
+    "ID": {
+      "inventory": 799,
+      "withBusinesses": 57,
+      "met50": 35,
+      "met100": 21,
+      "met200": 8,
+      "locationPending": 741,
+      "confirmedBelow50": 23
+    },
+    "IE": {
+      "inventory": 370,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 370,
+      "confirmedBelow50": 0
+    },
+    "IL": {
+      "inventory": 150,
+      "withBusinesses": 90,
+      "met50": 41,
+      "met100": 22,
+      "met200": 13,
+      "locationPending": 54,
+      "confirmedBelow50": 55
+    },
+    "IM": {
+      "inventory": 16,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 16,
+      "confirmedBelow50": 0
+    },
+    "IN": {
+      "inventory": 4198,
+      "withBusinesses": 98,
+      "met50": 13,
+      "met100": 8,
+      "met200": 4,
+      "locationPending": 4088,
+      "confirmedBelow50": 97
+    },
+    "IQ": {
+      "inventory": 135,
+      "withBusinesses": 4,
+      "met50": 1,
+      "met100": 1,
+      "met200": 1,
+      "locationPending": 131,
+      "confirmedBelow50": 3
+    },
+    "IR": {
+      "inventory": 1847,
+      "withBusinesses": 55,
+      "met50": 1,
+      "met100": 1,
+      "met200": 1,
+      "locationPending": 1637,
+      "confirmedBelow50": 209
+    },
+    "IS": {
+      "inventory": 73,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 73,
+      "confirmedBelow50": 0
+    },
+    "IT": {
+      "inventory": 9852,
+      "withBusinesses": 7187,
+      "met50": 1389,
+      "met100": 654,
+      "met200": 274,
+      "locationPending": 2474,
+      "confirmedBelow50": 5989
+    },
+    "JE": {
+      "inventory": 51,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 51,
+      "confirmedBelow50": 0
+    },
+    "JM": {
+      "inventory": 837,
+      "withBusinesses": 8,
+      "met50": 2,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 823,
+      "confirmedBelow50": 12
+    },
+    "JO": {
+      "inventory": 82,
+      "withBusinesses": 5,
+      "met50": 3,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 77,
+      "confirmedBelow50": 2
+    },
+    "JP": {
+      "inventory": 1655,
+      "withBusinesses": 1181,
+      "met50": 1114,
+      "met100": 959,
+      "met200": 629,
+      "locationPending": 467,
+      "confirmedBelow50": 74
+    },
+    "KE": {
+      "inventory": 145,
+      "withBusinesses": 32,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 108,
+      "confirmedBelow50": 37
+    },
+    "KG": {
+      "inventory": 53,
+      "withBusinesses": 8,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 31,
+      "confirmedBelow50": 22
+    },
+    "KH": {
+      "inventory": 107,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 107,
+      "confirmedBelow50": 0
+    },
+    "KI": {
+      "inventory": 37,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 18,
+      "confirmedBelow50": 19
+    },
+    "KM": {
+      "inventory": 88,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 81,
+      "confirmedBelow50": 7
+    },
+    "KN": {
+      "inventory": 13,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 13,
+      "confirmedBelow50": 0
+    },
+    "KP": {
+      "inventory": 80,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 79,
+      "confirmedBelow50": 1
+    },
+    "KR": {
+      "inventory": 308,
+      "withBusinesses": 3,
+      "met50": 2,
+      "met100": 2,
+      "met200": 1,
+      "locationPending": 305,
+      "confirmedBelow50": 1
+    },
+    "KW": {
+      "inventory": 25,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 25,
+      "confirmedBelow50": 0
+    },
+    "KY": {
+      "inventory": 7,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 7,
+      "confirmedBelow50": 0
+    },
+    "KZ": {
+      "inventory": 259,
+      "withBusinesses": 24,
+      "met50": 2,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 190,
+      "confirmedBelow50": 67
+    },
+    "LA": {
+      "inventory": 76,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 76,
+      "confirmedBelow50": 0
+    },
+    "LB": {
+      "inventory": 26,
+      "withBusinesses": 8,
+      "met50": 4,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 18,
+      "confirmedBelow50": 4
+    },
+    "LC": {
+      "inventory": 479,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 479,
+      "confirmedBelow50": 0
+    },
+    "LI": {
+      "inventory": 11,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 11,
+      "confirmedBelow50": 0
+    },
+    "LK": {
+      "inventory": 147,
+      "withBusinesses": 4,
+      "met50": 2,
+      "met100": 2,
+      "met200": 1,
+      "locationPending": 143,
+      "confirmedBelow50": 2
+    },
+    "LR": {
+      "inventory": 18,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 18,
+      "confirmedBelow50": 0
+    },
+    "LS": {
+      "inventory": 12,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 12,
+      "confirmedBelow50": 0
+    },
+    "LT": {
+      "inventory": 128,
+      "withBusinesses": 6,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 121,
+      "confirmedBelow50": 7
+    },
+    "LU": {
+      "inventory": 144,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 144,
+      "confirmedBelow50": 0
+    },
+    "LV": {
+      "inventory": 125,
+      "withBusinesses": 92,
+      "met50": 3,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 14,
+      "confirmedBelow50": 108
+    },
+    "LY": {
+      "inventory": 54,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 52,
+      "confirmedBelow50": 2
+    },
+    "MA": {
+      "inventory": 222,
+      "withBusinesses": 44,
+      "met50": 4,
+      "met100": 1,
+      "met200": 1,
+      "locationPending": 158,
+      "confirmedBelow50": 60
+    },
+    "MC": {
+      "inventory": 17,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 17,
+      "confirmedBelow50": 0
+    },
+    "MD": {
+      "inventory": 72,
+      "withBusinesses": 50,
+      "met50": 2,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 7,
+      "confirmedBelow50": 63
+    },
+    "ME": {
+      "inventory": 40,
+      "withBusinesses": 17,
+      "met50": 6,
+      "met100": 1,
+      "met200": 1,
+      "locationPending": 23,
+      "confirmedBelow50": 11
+    },
+    "MF": {
+      "inventory": 1,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 1,
+      "confirmedBelow50": 0
+    },
+    "MG": {
+      "inventory": 9,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 9,
+      "confirmedBelow50": 0
+    },
+    "MH": {
+      "inventory": 26,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 26,
+      "confirmedBelow50": 0
+    },
+    "MK": {
+      "inventory": 194,
+      "withBusinesses": 98,
+      "met50": 14,
+      "met100": 8,
+      "met200": 1,
+      "locationPending": 68,
+      "confirmedBelow50": 112
+    },
+    "ML": {
+      "inventory": 47,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 47,
+      "confirmedBelow50": 0
+    },
+    "MM": {
+      "inventory": 74,
+      "withBusinesses": 2,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 72,
+      "confirmedBelow50": 2
+    },
+    "MN": {
+      "inventory": 40,
+      "withBusinesses": 3,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 36,
+      "confirmedBelow50": 4
+    },
+    "MQ": {
+      "inventory": 34,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 34,
+      "confirmedBelow50": 0
+    },
+    "MR": {
+      "inventory": 42,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 41,
+      "confirmedBelow50": 1
+    },
+    "MT": {
+      "inventory": 87,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 87,
+      "confirmedBelow50": 0
+    },
+    "MU": {
+      "inventory": 168,
+      "withBusinesses": 5,
+      "met50": 3,
+      "met100": 3,
+      "met200": 0,
+      "locationPending": 163,
+      "confirmedBelow50": 2
+    },
+    "MV": {
+      "inventory": 21,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 21,
+      "confirmedBelow50": 0
+    },
+    "MW": {
+      "inventory": 61,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 61,
+      "confirmedBelow50": 0
+    },
+    "MX": {
+      "inventory": 9321,
+      "withBusinesses": 1751,
+      "met50": 570,
+      "met100": 370,
+      "met200": 237,
+      "locationPending": 7175,
+      "confirmedBelow50": 1576
+    },
+    "MY": {
+      "inventory": 223,
+      "withBusinesses": 2,
+      "met50": 2,
+      "met100": 2,
+      "met200": 2,
+      "locationPending": 221,
+      "confirmedBelow50": 0
+    },
+    "MZ": {
+      "inventory": 38,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 38,
+      "confirmedBelow50": 0
+    },
+    "NA": {
+      "inventory": 48,
+      "withBusinesses": 16,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 30,
+      "confirmedBelow50": 18
+    },
+    "NC": {
+      "inventory": 10,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 10,
+      "confirmedBelow50": 0
+    },
+    "NE": {
+      "inventory": 71,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 70,
+      "confirmedBelow50": 1
+    },
+    "NG": {
+      "inventory": 491,
+      "withBusinesses": 6,
+      "met50": 1,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 431,
+      "confirmedBelow50": 59
+    },
+    "NI": {
+      "inventory": 155,
+      "withBusinesses": 2,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 152,
+      "confirmedBelow50": 3
+    },
+    "NL": {
+      "inventory": 1644,
+      "withBusinesses": 1069,
+      "met50": 266,
+      "met100": 137,
+      "met200": 55,
+      "locationPending": 565,
+      "confirmedBelow50": 813
+    },
+    "NO": {
+      "inventory": 666,
+      "withBusinesses": 3,
+      "met50": 1,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 663,
+      "confirmedBelow50": 2
+    },
+    "NP": {
+      "inventory": 77,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 76,
+      "confirmedBelow50": 1
+    },
+    "NR": {
+      "inventory": 7,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 7,
+      "confirmedBelow50": 0
+    },
+    "NZ": {
+      "inventory": 160,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 160,
+      "confirmedBelow50": 0
+    },
+    "OM": {
+      "inventory": 28,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 26,
+      "confirmedBelow50": 2
+    },
+    "PA": {
+      "inventory": 551,
+      "withBusinesses": 58,
+      "met50": 10,
+      "met100": 5,
+      "met200": 1,
+      "locationPending": 373,
+      "confirmedBelow50": 168
+    },
+    "PE": {
+      "inventory": 485,
+      "withBusinesses": 204,
+      "met50": 61,
+      "met100": 33,
+      "met200": 13,
+      "locationPending": 258,
+      "confirmedBelow50": 166
+    },
+    "PF": {
+      "inventory": 48,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 48,
+      "confirmedBelow50": 0
+    },
+    "PG": {
+      "inventory": 100,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 100,
+      "confirmedBelow50": 0
+    },
+    "PH": {
+      "inventory": 5357,
+      "withBusinesses": 53,
+      "met50": 21,
+      "met100": 16,
+      "met200": 7,
+      "locationPending": 5302,
+      "confirmedBelow50": 34
+    },
+    "PK": {
+      "inventory": 456,
+      "withBusinesses": 20,
+      "met50": 1,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 432,
+      "confirmedBelow50": 23
+    },
+    "PL": {
+      "inventory": 2810,
+      "withBusinesses": 2018,
+      "met50": 269,
+      "met100": 118,
+      "met200": 46,
+      "locationPending": 186,
+      "confirmedBelow50": 2355
+    },
+    "PM": {
+      "inventory": 2,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 2,
+      "confirmedBelow50": 0
+    },
+    "PR": {
+      "inventory": 78,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 78,
+      "confirmedBelow50": 0
+    },
+    "PS": {
+      "inventory": 132,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 132,
+      "confirmedBelow50": 0
+    },
+    "PT": {
+      "inventory": 1296,
+      "withBusinesses": 485,
+      "met50": 111,
+      "met100": 55,
+      "met200": 21,
+      "locationPending": 715,
+      "confirmedBelow50": 470
+    },
+    "PW": {
+      "inventory": 15,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 15,
+      "confirmedBelow50": 0
+    },
+    "PY": {
+      "inventory": 152,
+      "withBusinesses": 68,
+      "met50": 11,
+      "met100": 6,
+      "met200": 2,
+      "locationPending": 73,
+      "confirmedBelow50": 68
+    },
+    "QA": {
+      "inventory": 15,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 15,
+      "confirmedBelow50": 0
+    },
+    "RE": {
+      "inventory": 24,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 24,
+      "confirmedBelow50": 0
+    },
+    "RO": {
+      "inventory": 7949,
+      "withBusinesses": 1708,
+      "met50": 85,
+      "met100": 44,
+      "met200": 29,
+      "locationPending": 4550,
+      "confirmedBelow50": 3314
+    },
+    "RS": {
+      "inventory": 379,
+      "withBusinesses": 151,
+      "met50": 42,
+      "met100": 22,
+      "met200": 6,
+      "locationPending": 42,
+      "confirmedBelow50": 295
+    },
+    "RU": {
+      "inventory": 5523,
+      "withBusinesses": 920,
+      "met50": 60,
+      "met100": 22,
+      "met200": 7,
+      "locationPending": 2740,
+      "confirmedBelow50": 2723
+    },
+    "RW": {
+      "inventory": 12,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 10,
+      "confirmedBelow50": 2
+    },
+    "SA": {
+      "inventory": 399,
+      "withBusinesses": 4,
+      "met50": 1,
+      "met100": 1,
+      "met200": 1,
+      "locationPending": 392,
+      "confirmedBelow50": 6
+    },
+    "SB": {
+      "inventory": 7,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 7,
+      "confirmedBelow50": 0
+    },
+    "SC": {
+      "inventory": 9,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 9,
+      "confirmedBelow50": 0
+    },
+    "SD": {
+      "inventory": 71,
+      "withBusinesses": 3,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 64,
+      "confirmedBelow50": 7
+    },
+    "SE": {
+      "inventory": 800,
+      "withBusinesses": 12,
+      "met50": 7,
+      "met100": 5,
+      "met200": 3,
+      "locationPending": 788,
+      "confirmedBelow50": 5
+    },
+    "SG": {
+      "inventory": 26,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 26,
+      "confirmedBelow50": 0
+    },
+    "SI": {
+      "inventory": 312,
+      "withBusinesses": 14,
+      "met50": 2,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 296,
+      "confirmedBelow50": 14
+    },
+    "SK": {
+      "inventory": 233,
+      "withBusinesses": 219,
+      "met50": 95,
+      "met100": 57,
+      "met200": 23,
+      "locationPending": 10,
+      "confirmedBelow50": 128
+    },
+    "SL": {
+      "inventory": 91,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 90,
+      "confirmedBelow50": 1
+    },
+    "SM": {
+      "inventory": 9,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 9,
+      "confirmedBelow50": 0
+    },
+    "SN": {
+      "inventory": 73,
+      "withBusinesses": 6,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 47,
+      "confirmedBelow50": 26
+    },
+    "SO": {
+      "inventory": 51,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 51,
+      "confirmedBelow50": 0
+    },
+    "SR": {
+      "inventory": 13,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 13,
+      "confirmedBelow50": 0
+    },
+    "SS": {
+      "inventory": 1,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 1,
+      "confirmedBelow50": 0
+    },
+    "ST": {
+      "inventory": 7,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 7,
+      "confirmedBelow50": 0
+    },
+    "SV": {
+      "inventory": 100,
+      "withBusinesses": 14,
+      "met50": 5,
+      "met100": 3,
+      "met200": 2,
+      "locationPending": 85,
+      "confirmedBelow50": 10
+    },
+    "SY": {
+      "inventory": 142,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 141,
+      "confirmedBelow50": 1
+    },
+    "SZ": {
+      "inventory": 34,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 34,
+      "confirmedBelow50": 0
+    },
+    "TD": {
+      "inventory": 49,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 48,
+      "confirmedBelow50": 1
+    },
+    "TF": {
+      "inventory": 5,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 5,
+      "confirmedBelow50": 0
+    },
+    "TG": {
+      "inventory": 22,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 21,
+      "confirmedBelow50": 1
+    },
+    "TH": {
+      "inventory": 1241,
+      "withBusinesses": 15,
+      "met50": 14,
+      "met100": 14,
+      "met200": 14,
+      "locationPending": 1226,
+      "confirmedBelow50": 1
+    },
+    "TJ": {
+      "inventory": 71,
+      "withBusinesses": 3,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 59,
+      "confirmedBelow50": 12
+    },
+    "TL": {
+      "inventory": 55,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 54,
+      "confirmedBelow50": 1
+    },
+    "TM": {
+      "inventory": 30,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 27,
+      "confirmedBelow50": 3
+    },
+    "TN": {
+      "inventory": 165,
+      "withBusinesses": 36,
+      "met50": 2,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 119,
+      "confirmedBelow50": 44
+    },
+    "TO": {
+      "inventory": 8,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 8,
+      "confirmedBelow50": 0
+    },
+    "TR": {
+      "inventory": 980,
+      "withBusinesses": 1,
+      "met50": 1,
+      "met100": 1,
+      "met200": 0,
+      "locationPending": 979,
+      "confirmedBelow50": 0
+    },
+    "TT": {
+      "inventory": 25,
+      "withBusinesses": 2,
+      "met50": 2,
+      "met100": 2,
+      "met200": 1,
+      "locationPending": 23,
+      "confirmedBelow50": 0
+    },
+    "TV": {
+      "inventory": 9,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 9,
+      "confirmedBelow50": 0
+    },
+    "TW": {
+      "inventory": 40,
+      "withBusinesses": 14,
+      "met50": 14,
+      "met100": 12,
+      "met200": 9,
+      "locationPending": 26,
+      "confirmedBelow50": 0
+    },
+    "TZ": {
+      "inventory": 303,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 303,
+      "confirmedBelow50": 0
+    },
+    "UA": {
+      "inventory": 1819,
+      "withBusinesses": 476,
+      "met50": 20,
+      "met100": 8,
+      "met200": 1,
+      "locationPending": 951,
+      "confirmedBelow50": 848
+    },
+    "UG": {
+      "inventory": 91,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 91,
+      "confirmedBelow50": 0
+    },
+    "US": {
+      "inventory": 16731,
+      "withBusinesses": 14833,
+      "met50": 4512,
+      "met100": 2566,
+      "met200": 1253,
+      "locationPending": 1256,
+      "confirmedBelow50": 10963
+    },
+    "UY": {
+      "inventory": 2010,
+      "withBusinesses": 162,
+      "met50": 11,
+      "met100": 6,
+      "met200": 1,
+      "locationPending": 1525,
+      "confirmedBelow50": 474
+    },
+    "UZ": {
+      "inventory": 135,
+      "withBusinesses": 25,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 67,
+      "confirmedBelow50": 68
+    },
+    "VC": {
+      "inventory": 9,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 9,
+      "confirmedBelow50": 0
+    },
+    "VE": {
+      "inventory": 136,
+      "withBusinesses": 74,
+      "met50": 8,
+      "met100": 1,
+      "met200": 1,
+      "locationPending": 54,
+      "confirmedBelow50": 74
+    },
+    "VI": {
+      "inventory": 20,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 20,
+      "confirmedBelow50": 0
+    },
+    "VN": {
+      "inventory": 488,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 488,
+      "confirmedBelow50": 0
+    },
+    "VU": {
+      "inventory": 7,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 6,
+      "confirmedBelow50": 1
+    },
+    "WF": {
+      "inventory": 3,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 3,
+      "confirmedBelow50": 0
+    },
+    "WS": {
+      "inventory": 20,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 12,
+      "confirmedBelow50": 8
+    },
+    "XK": {
+      "inventory": 59,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 59,
+      "confirmedBelow50": 0
+    },
+    "YE": {
+      "inventory": 339,
+      "withBusinesses": 2,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 312,
+      "confirmedBelow50": 27
+    },
+    "YT": {
+      "inventory": 57,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 57,
+      "confirmedBelow50": 0
+    },
+    "ZA": {
+      "inventory": 314,
+      "withBusinesses": 8,
+      "met50": 2,
+      "met100": 1,
+      "met200": 1,
+      "locationPending": 306,
+      "confirmedBelow50": 6
+    },
+    "ZM": {
+      "inventory": 71,
+      "withBusinesses": 0,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 71,
+      "confirmedBelow50": 0
+    },
+    "ZW": {
+      "inventory": 109,
+      "withBusinesses": 1,
+      "met50": 0,
+      "met100": 0,
+      "met200": 0,
+      "locationPending": 107,
+      "confirmedBelow50": 2
+    }
+  },
+  "limitationsByCityNonexclusive": {
+    "not_processed_country": 46446,
+    "world_full_record_import_partial": 12362,
+    "name_state_or_anchor_not_confirmed": 29808,
+    "regional_sources_partial": 43359,
+    "historical_cartographic_boundary": 43359,
+    "ambiguous_boundary": 149,
+    "Partial reviewed regional sources; unlisted companies and incomplete source coverage remain possible. Historical cartographic boundary vintage applies.": 4360,
+    "name_or_anchor_not_confirmed": 2057,
+    "Finite processed Overture regional partitions and existing OSM observations; not an exhaustive source/city census. Official boundary vintage/scale limitations apply.": 10962,
+    "Finite processed Overture regional partitions and existing OSM observations; not an exhaustive source/city census. Official boundary vintage/scale limitations apply. OSM complement failed temporarily; available records retained, absence not inferred.": 2,
+    "boundary_exceeds_runtime_budget": 4,
+    "name_department_or_anchor_not_confirmed": 386
+  },
+  "normalSearchBefore": [
+    {
+      "country": "DE",
+      "state": "done",
+      "cityId": 24053,
+      "city": "Berlin",
+      "supported": "",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "before",
+      "httpStatus": 202,
+      "totalDiscovered": 723,
+      "discoveryMetrics": {
+        "raw": 723,
+        "unique": 723,
+        "withPhone": 433,
+        "withWebsite": 438,
+        "withAddress": 596,
+        "validLocation": 723,
+        "elapsedMs": 11851,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "country-de-min50-20261026",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 26310,
+      "stateCode": "BE"
+    },
+    {
+      "country": "DE",
+      "state": "done",
+      "cityId": 27510,
+      "city": "Monschau",
+      "supported": "134",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "before",
+      "httpStatus": 202,
+      "totalDiscovered": 82,
+      "discoveryMetrics": {
+        "raw": 82,
+        "unique": 82,
+        "withPhone": 64,
+        "withWebsite": 55,
+        "withAddress": 68,
+        "validLocation": 82,
+        "elapsedMs": 5898,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "country-de-min50-20261026",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 15265,
+      "stateCode": "NW"
+    },
+    {
+      "country": "DE",
+      "state": "done",
+      "cityId": 24545,
+      "city": "Cochem",
+      "supported": "205",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "before",
+      "httpStatus": 202,
+      "totalDiscovered": 177,
+      "discoveryMetrics": {
+        "raw": 177,
+        "unique": 177,
+        "withPhone": 149,
+        "withWebsite": 114,
+        "withAddress": 162,
+        "validLocation": 177,
+        "elapsedMs": 7213,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "country-de-min50-20261026",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 21594,
+      "stateCode": "RP"
+    },
+    {
+      "country": "BR",
+      "state": "done",
+      "cityId": 15434,
+      "city": "Uberlândia",
+      "supported": "2487",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "before",
+      "httpStatus": 202,
+      "totalDiscovered": 1196,
+      "discoveryMetrics": {
+        "raw": 1196,
+        "unique": 1196,
+        "withPhone": 936,
+        "withWebsite": 497,
+        "withAddress": 1039,
+        "validLocation": 1196,
+        "elapsedMs": 7466,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-BR-0017-1e5454473176218d",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-BR-0021-117482ae0a7ff635",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-BR-0024-ec01a48269ef5d80",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 18828,
+      "stateCode": "MG"
+    },
+    {
+      "country": "BR",
+      "state": "done",
+      "cityId": 15321,
+      "city": "Tiradentes",
+      "supported": "116",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "before",
+      "httpStatus": 202,
+      "totalDiscovered": 127,
+      "discoveryMetrics": {
+        "raw": 127,
+        "unique": 127,
+        "withPhone": 97,
+        "withWebsite": 45,
+        "withAddress": 100,
+        "validLocation": 127,
+        "elapsedMs": 38121,
+        "sourceErrors": 0
+      },
+      "discoverySources": [
+        {
+          "source": "qlever",
+          "endpoint": "https://qlever.dev/api/osm-planet",
+          "purpose": "candidates",
+          "phase": "complete",
+          "outcome": "success",
+          "httpStatus": 200,
+          "bytes": 8293,
+          "elapsedMs": 1325
+        },
+        {
+          "source": "qlever",
+          "endpoint": "https://qlever.dev/api/osm-planet",
+          "purpose": "details",
+          "phase": "complete",
+          "outcome": "success",
+          "httpStatus": 200,
+          "bytes": 9665,
+          "elapsedMs": 369
+        },
+        {
+          "source": "qlever",
+          "outcome": "success",
+          "raw": 33,
+          "count": 28,
+          "elapsedMs": 2602,
+          "metrics": {
+            "raw": 33,
+            "valid": 28,
+            "missingCoordinates": 0
+          }
+        },
+        {
+          "source": "overture",
+          "outcome": "success",
+          "raw": 99,
+          "count": 99,
+          "elapsedMs": 30997,
+          "metrics": {
+            "bytes": 5616075,
+            "requests": 89,
+            "files": 1,
+            "budgetBytes": 33554432,
+            "raw": 99,
+            "elapsedMs": 28006,
+            "rejectedInsideArea": 0
+          }
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 47926,
+      "stateCode": "MG"
+    },
+    {
+      "country": "CA",
+      "state": "done",
+      "cityId": 17121,
+      "city": "Toronto",
+      "supported": "",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "before",
+      "httpStatus": 202,
+      "totalDiscovered": 1179,
+      "discoveryMetrics": {
+        "raw": 1179,
+        "unique": 1179,
+        "withPhone": 888,
+        "withWebsite": 855,
+        "withAddress": 1043,
+        "validLocation": 1179,
+        "elapsedMs": 8307,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0000-baa6a58ff58f180c",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0001-1f7646cc49f94995",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0002-244a86bcf7174db5",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0003-d3c7dd2b852d5ec6",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 16121,
+      "stateCode": "ON"
+    },
+    {
+      "country": "CA",
+      "state": "done",
+      "cityId": 16190,
+      "city": "Banff",
+      "supported": "243",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "before",
+      "httpStatus": 202,
+      "totalDiscovered": 90,
+      "discoveryMetrics": {
+        "raw": 90,
+        "unique": 90,
+        "withPhone": 87,
+        "withWebsite": 88,
+        "withAddress": 89,
+        "validLocation": 90,
+        "elapsedMs": 4930,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0003-d3c7dd2b852d5ec6",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0007-3f379cde4e3b61a9",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0009-c30065d34195bc8c",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0010-fed58053ac2c2514",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0012-f2c1ae6a437fcec4",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 13054,
+      "stateCode": "AB"
+    }
+  ],
+  "normalSearchAfter": [
+    {
+      "country": "DE",
+      "state": "done",
+      "cityId": 24053,
+      "city": "Berlin",
+      "supported": "",
+      "stateCode": "BE",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "after",
+      "httpStatus": 202,
+      "totalDiscovered": 723,
+      "discoveryMetrics": {
+        "raw": 723,
+        "unique": 723,
+        "withPhone": 433,
+        "withWebsite": 438,
+        "withAddress": 596,
+        "validLocation": 723,
+        "elapsedMs": 13107,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "country-de-min50-20261026",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "world-v1-de-f3acef0b546df28a60d75e11",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 58899
+    },
+    {
+      "country": "DE",
+      "state": "done",
+      "cityId": 27510,
+      "city": "Monschau",
+      "supported": "134",
+      "stateCode": "NW",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "after",
+      "httpStatus": 202,
+      "totalDiscovered": 82,
+      "discoveryMetrics": {
+        "raw": 82,
+        "unique": 82,
+        "withPhone": 64,
+        "withWebsite": 55,
+        "withAddress": 68,
+        "validLocation": 82,
+        "elapsedMs": 6901,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "country-de-min50-20261026",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "world-v1-de-f3acef0b546df28a60d75e11",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 17540
+    },
+    {
+      "country": "DE",
+      "state": "done",
+      "cityId": 24545,
+      "city": "Cochem",
+      "supported": "205",
+      "stateCode": "RP",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "after",
+      "httpStatus": 202,
+      "totalDiscovered": 177,
+      "discoveryMetrics": {
+        "raw": 177,
+        "unique": 177,
+        "withPhone": 149,
+        "withWebsite": 114,
+        "withAddress": 162,
+        "validLocation": 177,
+        "elapsedMs": 7701,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "country-de-min50-20261026",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "world-v1-de-f3acef0b546df28a60d75e11",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 24301
+    },
+    {
+      "country": "BR",
+      "state": "done",
+      "cityId": 15434,
+      "city": "Uberlândia",
+      "supported": "2487",
+      "stateCode": "MG",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "after",
+      "httpStatus": 202,
+      "totalDiscovered": 1196,
+      "discoveryMetrics": {
+        "raw": 1196,
+        "unique": 1196,
+        "withPhone": 936,
+        "withWebsite": 497,
+        "withAddress": 1039,
+        "validLocation": 1196,
+        "elapsedMs": 7779,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-BR-0017-1e5454473176218d",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-BR-0021-117482ae0a7ff635",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-BR-0024-ec01a48269ef5d80",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "world-v1-serving-br-803f5d28919a76734d5ac89c",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 19030
+    },
+    {
+      "country": "BR",
+      "state": "done",
+      "cityId": 15321,
+      "city": "Tiradentes",
+      "supported": "116",
+      "stateCode": "MG",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "after",
+      "httpStatus": 202,
+      "totalDiscovered": 127,
+      "discoveryMetrics": {
+        "raw": 127,
+        "unique": 127,
+        "withPhone": 97,
+        "withWebsite": 45,
+        "withAddress": 100,
+        "validLocation": 127,
+        "elapsedMs": 4318,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-BR-0017-1e5454473176218d",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-BR-0024-ec01a48269ef5d80",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-BR-0025-40fffcbc197b4240",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-BR-0026-ab71f5d239291bfa",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "world-v1-serving-br-803f5d28919a76734d5ac89c",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 15356
+    },
+    {
+      "country": "CA",
+      "state": "done",
+      "cityId": 17121,
+      "city": "Toronto",
+      "supported": "",
+      "stateCode": "ON",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "after",
+      "httpStatus": 202,
+      "totalDiscovered": 1179,
+      "discoveryMetrics": {
+        "raw": 1179,
+        "unique": 1179,
+        "withPhone": 888,
+        "withWebsite": 855,
+        "withAddress": 1043,
+        "validLocation": 1179,
+        "elapsedMs": 9368,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0000-baa6a58ff58f180c",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0001-1f7646cc49f94995",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0002-244a86bcf7174db5",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0003-d3c7dd2b852d5ec6",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "world-v1-ca-a814fe72bf6ef4b22050e7bd",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 16247
+    },
+    {
+      "country": "CA",
+      "state": "done",
+      "cityId": 16190,
+      "city": "Banff",
+      "supported": "243",
+      "stateCode": "AB",
+      "niche": "Restaurantes",
+      "limit": 10,
+      "phase": "after",
+      "httpStatus": 202,
+      "totalDiscovered": 90,
+      "discoveryMetrics": {
+        "raw": 90,
+        "unique": 90,
+        "withPhone": 87,
+        "withWebsite": 88,
+        "withAddress": 89,
+        "validLocation": 90,
+        "elapsedMs": 4797,
+        "cacheHit": true,
+        "archive": true
+      },
+      "discoverySources": [
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0003-d3c7dd2b852d5ec6",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0007-3f379cde4e3b61a9",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0009-c30065d34195bc8c",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0010-fed58053ac2c2514",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "serving-v2-CA-0012-f2c1ae6a437fcec4",
+          "verified": false
+        },
+        {
+          "source": "overture",
+          "release": "2026-10-21.0",
+          "asset": "world-v1-ca-a814fe72bf6ef4b22050e7bd",
+          "verified": false
+        }
+      ],
+      "partial": null,
+      "error": null,
+      "returnedCards": 10,
+      "elapsedMs": 13148
+    }
+  ],
+  "newCityCases": [
+    {
+      "city": "Armidale",
+      "country": "AU",
+      "stateCode": "NSW",
+      "cityId": 4005,
+      "operatorExitCode": 0,
+      "unique": 117,
+      "newAssetsUsed": true,
+      "normalSearch": {
+        "state": "done",
+        "totalDiscovered": 44,
+        "timings": {
+          "discoveryMs": 4861,
+          "verificationMs": 7925,
+          "totalMs": 12786
+        },
+        "discoveryMetrics": {
+          "raw": 44,
+          "unique": 44,
+          "withPhone": 42,
+          "withWebsite": 33,
+          "withAddress": 44,
+          "validLocation": 44,
+          "elapsedMs": 4046,
+          "cacheHit": true,
+          "archive": true
+        },
+        "discoverySources": [
+          {
+            "source": "overture",
+            "release": "2026-10-21.0",
+            "asset": "world-v1-au-8ac3a233e244911356bf9fae",
+            "verified": false
+          }
+        ],
+        "partial": null,
+        "rows": 10
+      },
+      "withPhone": 112,
+      "withWebsite": 86,
+      "withAddress": 117,
+      "elapsedMs": 93095
+    },
+    {
+      "city": "Aquiraz",
+      "country": "BR",
+      "stateCode": "CE",
+      "cityId": 10306,
+      "operatorExitCode": 0,
+      "unique": 176,
+      "newAssetsUsed": true,
+      "normalSearch": null,
+      "withPhone": 158,
+      "withWebsite": 63,
+      "withAddress": 171,
+      "elapsedMs": 75719
+    },
+    {
+      "city": "White Rock",
+      "country": "CA",
+      "stateCode": "BC",
+      "cityId": 17202,
+      "operatorExitCode": 0,
+      "unique": 129,
+      "newAssetsUsed": true,
+      "normalSearch": null,
+      "withPhone": 126,
+      "withWebsite": 109,
+      "withAddress": 127,
+      "elapsedMs": 73552
+    },
+    {
+      "city": "Avanos",
+      "country": "TR",
+      "stateCode": "50",
+      "cityId": 107211,
+      "operatorExitCode": 0,
+      "unique": 109,
+      "newAssetsUsed": true,
+      "normalSearch": {
+        "state": "done",
+        "totalDiscovered": 66,
+        "timings": {
+          "discoveryMs": 5158,
+          "verificationMs": 3849,
+          "totalMs": 9007
+        },
+        "discoveryMetrics": {
+          "raw": 66,
+          "unique": 66,
+          "withPhone": 53,
+          "withWebsite": 18,
+          "withAddress": 57,
+          "validLocation": 66,
+          "elapsedMs": 4284,
+          "cacheHit": true,
+          "archive": true
+        },
+        "discoverySources": [
+          {
+            "source": "overture",
+            "release": "2026-10-21.0",
+            "asset": "world-v1-tr-3daa09f92c3fa4930d68be23",
+            "verified": false
+          }
+        ],
+        "partial": null,
+        "rows": 10
+      },
+      "withPhone": 90,
+      "withWebsite": 30,
+      "withAddress": 97,
+      "elapsedMs": 100521
+    }
+  ],
+  "runtimeReconciliationNotes": [
+    {
+      "city": "Aquiraz",
+      "confirmedConservativeCoverage": 175,
+      "runtimeDistinctSourceIds": 176,
+      "runtimeBusinessesByAppDedupRules": 176,
+      "coverageNotInflated": true,
+      "status": "one-record reconciliation pending"
+    },
+    {
+      "city": "White Rock",
+      "confirmedConservativeCoverage": 128,
+      "runtimeDistinctSourceIds": 129,
+      "coverageNotInflated": true,
+      "status": "one-record reconciliation pending"
+    }
+  ],
+  "serialSearchErrorRate": {
+    "normalBeforeFailed": 0,
+    "normalBeforeTotal": 7,
+    "normalAfterFailed": 0,
+    "normalAfterTotal": 9,
+    "newCityArchiveCasesFailed": 0,
+    "newCityArchiveCasesTotal": 4
+  },
+  "concurrentDiagnostic503": {
+    "count": 1,
+    "reason": "single archive reader already busy during overlapping audit; subsequent serial validation succeeded",
+    "notAThroughputBenchmark": true
+  },
+  "storageBeforeEvidence": {
+    "objects": 3107,
+    "bytes": 3803470455,
+    "allOriginalReadyObjectsStillPresent": true,
+    "observedAt": "2026-11-03T17:13:15.120842+00:00"
+  },
+  "latestProviderUsage": {
+    "projectId": "polished-sky-36508370",
+    "providerReportedTransferBytes": 3937494358,
+    "providerReportedComputeSeconds": 3556,
+    "quota": {
+      "active_time_seconds": 144000,
+      "compute_time_seconds": 36000,
+      "written_data_bytes": 2147483648,
+      "data_transfer_bytes": 5000000000,
+      "logical_size_bytes": 268435456
+    },
+    "latestProviderReadAt": "2026-11-03T17:15:13.000Z",
+    "transferMeterMayLag": true
+  },
+  "transferCeilingReservedBeforeEvidenceBytes": 4557255871,
+  "applicationReserveBytes": 52428800,
+  "retryReservation": {
+    "reservedBytes": 200313502,
+    "maximumBytes": 268435456,
+    "lastFailureStage": "immutable_item_upload_http_502"
+  },
+  "queue": {
+    "queue": [
+      {
+        "kind": "city_complement",
+        "state": "done",
+        "round": 1,
+        "tasks": "748"
+      },
+      {
+        "kind": "city_complement",
+        "state": "done",
+        "round": 2,
+        "tasks": "16"
+      },
+      {
+        "kind": "city_complement",
+        "state": "done",
+        "round": 3,
+        "tasks": "21"
+      },
+      {
+        "kind": "city_complement",
+        "state": "queued",
+        "round": 1,
+        "tasks": "46743"
+      },
+      {
+        "kind": "city_complement",
+        "state": "queued",
+        "round": 2,
+        "tasks": "1949"
+      },
+      {
+        "kind": "city_complement",
+        "state": "queued",
+        "round": 3,
+        "tasks": "1308"
+      },
+      {
+        "kind": "country_boundary_review",
+        "state": "blocked",
+        "round": 1,
+        "tasks": "223"
+      },
+      {
+        "kind": "overture_partition",
+        "state": "done",
+        "round": 1,
+        "tasks": "7"
+      }
+    ],
+    "newCityTasks": 191,
+    "maximumActiveTasks": 50000,
+    "batchSlots": 191,
+    "unmaterializedCitiesRemainInInventory": true
+  },
+  "productionMainCommitUnchanged": "7cf5faea13d07b8ca94a39681e5df075721ecd43",
+  "branch": "codex/coverage-audit-policy-20261026",
+  "publicDataRelease": "https://github.com/eriksmoura14-ai/prospect-ai/releases/tag/catalog-geography-41661789699",
+  "allCitiesAt50": false,
+  "continuousWorldCollectorConfigured": false,
+  "paidServicesEnabled": false,
+  "quotasIncreased": false,
+  "tests": {
+    "pythonPassed": 161,
+    "archiveGeometryNodePassed": 16,
+    "branchGeospatialPostGISCI": "success",
+    "branchAuthenticationCI": "success"
+  },
+  "publicEvidence": {
+    "file": "world-publication-evidence.zip",
+    "bytes": 3702496,
+    "sha256": "7cc13ac8f4c23eead69d3663d63bf8e187a28d70cf9a98c1ca6a07b96e919a7d",
+    "key": "archives/20261103/world-discovery-7cc13ac8f4c23eea.zip",
+    "url": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/archives/20261103/world-discovery-7cc13ac8f4c23eea.zip",
+    "remoteFullSha256Verified": true,
+    "publishedAt": "2026-11-03T17:24:51.939911+00:00"
+  },
+  "storageAfterEvidence": {
+    "objects": 3108,
+    "bytes": 3807172951,
+    "evidenceObjectSizeMatches": true,
+    "observedAt": "2026-11-03T17:26:56.190Z"
+  },
+  "finalProviderUsage": {
+    "providerReportedTransferBytes": 3937494358,
+    "providerReportedComputeSeconds": 3556,
+    "transferQuotaBytes": 5000000000,
+    "logicalQuotaBytes": 268435456,
+    "providerCounterMayLag": true
+  },
+  "latestDatabaseAudit": {
+    "inventory": "152970",
+    "met50": "15437",
+    "met100": "8575",
+    "met200": "4199",
+    "location_pending": "67610",
+    "confirmed_below_50": "69923",
+    "database_bytes": "216596480",
+    "ready_archive_rows": "9110079",
+    "percentAt50": 10.091521,
+    "allCitiesAt50": false
+  },
+  "reservedTransferCeilingAfterEvidenceBytes": 4564660863
+}
