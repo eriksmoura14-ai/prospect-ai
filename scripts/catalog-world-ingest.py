@@ -32,6 +32,16 @@ INPUT_SHA = '95d4f50608f4ffd45be913e5935c76bf0a5b2171233a02b9bf15863404eba6ad'
 MAX_OUTPUT = 650 * 1024 * 1024
 MAX_FILE = 32 * 1024 * 1024
 RELEASE = '2026-10-21.0'
+NORMALIZED_COLUMNS = {
+    'source_id':'VARCHAR','name':'VARCHAR','normalized_name':'VARCHAR','category':'VARCHAR',
+    'primary_category':'VARCHAR','category_hierarchy':'VARCHAR[]','alternate_categories':'VARCHAR[]',
+    'basic_category':'VARCHAR','country_code':'VARCHAR','state':'VARCHAR','city':'VARCHAR','original_city':'VARCHAR',
+    'address':'VARCHAR','latitude':'DOUBLE','longitude':'DOUBLE','phone':'VARCHAR','phones':'VARCHAR[]',
+    'website':'VARCHAR','websites':'VARCHAR[]','confidence':'DOUBLE','operating_status':'VARCHAR','source':'VARCHAR',
+    'source_release':'VARCHAR','provenance':'VARCHAR','license_id':'VARCHAR','catalog_scope':'VARCHAR',
+    'discovered_at':'VARCHAR','last_seen_at':'VARCHAR','last_verified_at':'VARCHAR','location_verification':'VARCHAR',
+    'website_classification':'VARCHAR','phone_verification':'VARCHAR','verified_area_ids':'VARCHAR[]'
+}
 
 
 def module(name, file):
@@ -329,7 +339,11 @@ def export_assets(index, root, compact=False):
         with temporary.open('w') as out:
             for (payload,) in index.db.execute('SELECT payload FROM additions WHERE country=? ORDER BY root', (cc,)):
                 out.write(payload + '\n')
-        c.execute('CREATE OR REPLACE TEMP TABLE country_records AS SELECT *,floor(longitude/4)::INT AS tile_x,floor(latitude/4)::INT AS tile_y FROM read_json_auto(?,maximum_object_size=65536,sample_size=-1)', [str(temporary)])
+        # Inference turns GUID strings into UUID/INT128 and empty lists into
+        # JSON[]. The deployed keyset reader requires textual source IDs and
+        # typed taxonomy lists. Dates/phones must retain their original strings.
+        schema='{' + ','.join("'"+key+"':'"+value+"'" for key,value in NORMALIZED_COLUMNS.items()) + '}'
+        c.execute('CREATE OR REPLACE TEMP TABLE country_records AS SELECT *,floor(longitude/4)::INT AS tile_x,floor(latitude/4)::INT AS tile_y FROM read_json(?,columns='+schema+',maximum_object_size=65536)', [str(temporary)])
         if compact:
             # Most countries fit one small file. This avoids thousands of
             # mostly empty spatial shards and leaves the reader's eight-file

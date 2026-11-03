@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import shapely
 
 spec = importlib.util.spec_from_file_location('world_geo', Path(__file__).parents[1]/'scripts/catalog-world-geography.py')
@@ -57,6 +58,40 @@ class GeographicConfirmation(unittest.TestCase):
         with gzip.open(self.root/'all-city-coverage.csv.gz','rt') as inp:
             rows=list(csv.DictReader(inp))
         self.assertEqual(rows[1]['unique_supported'],'')
+
+    def test_other_sectors_are_retained_but_excluded_from_current_target(self):
+        def row(sid):
+            return dict(source='overture',source_id=sid,country_code='BR',name=sid,latitude=.5,longitude=.5,phone='',address='',provenance='[]')
+        self.index.seed(row('unsupported'))
+        self.index.seed(row('supported-alias'))
+        rid=self.index.db.execute("SELECT root FROM identities WHERE identity='BR|overture|supported-alias'").fetchone()[0]
+        self.index.db.execute("INSERT INTO identities VALUES('BR|osm|node:7',?)",(rid,))
+        self.index.db.commit()
+        with gzip.open(self.root/'unsupported-target-identities.ndjson.gz','wt') as out:
+            for sid in ['unsupported','supported-alias']:out.write(json.dumps({'country':'BR','source_id':sid})+'\n')
+        with gzip.open(self.root/'legacy-records.ndjson.gz','wt') as out:
+            out.write(json.dumps({'source':'qlever','source_id':'node/7','country_code':'BR','category':'Restaurantes'})+'\n')
+        with patch.object(m.w,'download'):
+            m.target_membership(self.index,self.root,self.root)
+        self.assertEqual(self.index.db.execute('SELECT count(*) FROM roots').fetchone()[0],2)
+        excluded=self.index.db.execute('SELECT identity FROM identities JOIN target_exclusions ON identities.root=target_exclusions.root').fetchall()
+        self.assertEqual(excluded,[('BR|overture|unsupported',)])
+
+    def test_oversize_metadata_keeps_that_city_pending_without_losing_other_cities(self):
+        self.index.db.execute('CREATE TABLE new_city_areas(city_key TEXT PRIMARY KEY,area_id TEXT)')
+        cities={}
+        for number,extra in [(1,'x'*(2*1024*1024)),(2,'')]:
+            key=f'BR:MG:{number}';aid=f'area{number}'
+            city={'countryCode':'BR','stateCode':'MG','stateName':'Minas Gerais','id':number,'name':f'Town {number}'};cities[key]=city
+            m.add_area(self.index,{'id':aid,'country_code':'BR','kind':'locality','source_metadata':{'pad':extra}},shapely.box(0,0,1,1))
+            self.index.db.execute('INSERT INTO new_city_areas VALUES(?,?)',(key,aid))
+        uploads=m.geometry_exports(self.index,self.root,cities,{'geometryManifests':[]})
+        self.assertEqual(len(uploads),1)
+        self.assertEqual(self.index.db.execute('SELECT city_key FROM new_city_areas').fetchall(),[('BR:MG:2',)])
+        self.assertEqual(uploads[0]['contentEncoding'],'gzip')
+        self.assertLess(uploads[0]['storedBytes'],uploads[0]['bytes'])
+        plan=json.loads((self.root/'geometry-publication.json').read_text())
+        self.assertEqual(plan['skippedCityScopes'][0]['reason'],'geometry_decoded_reader_budget')
 
     def test_divisions_gateway_is_explicitly_scoped(self):
         ranges=m.w.module('geo_ranges_test','catalog-place-ranges.py')

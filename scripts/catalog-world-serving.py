@@ -32,7 +32,7 @@ def occupancy(boxes,assets):
 
 def repair(index,root,snapshot,assets):
     old=snapshot['assets']
-    retire=[];proofs=[];downloaded=rewritten=0
+    retire=[];proofs=[];downloaded=rewritten=new_output_credit=0
     root=Path(root)
     by_country=collections.defaultdict(list)
     for asset in assets:
@@ -92,6 +92,10 @@ def repair(index,root,snapshot,assets):
                 break
             selected.update(added)
         chosen=[prior[j] for j in sorted(selected)]
+        # Repartitioning new-country files (e.g. Japan) is already funded by
+        # the business output budget. Reserve only the NET extra output of
+        # retained old rows, rather than counting new companies twice.
+        new_output_credit+=sum(asset['bytes'] for asset in new)
         needed=sum(asset['bytes'] for asset in chosen)
         if downloaded+needed>READ_BUDGET:
             raise RuntimeError('incremental_serving_extra_read_budget')
@@ -126,7 +130,7 @@ def repair(index,root,snapshot,assets):
             size,digest=path.stat().st_size,w.sha(path)
             if size>60*1024*1024:
                 raise RuntimeError('incremental_serving_single_shard_over_60mib')
-            if rewritten+size>REWRITE_BUDGET:
+            if max(0,rewritten+size-new_output_credit)>REWRITE_BUDGET:
                 raise RuntimeError('incremental_serving_rewrite_free_budget')
             key=f'snapshots/20261103/world-v1/{cc}-serving-{digest[:16]}.parquet'
             replacement.append({'id':'world-v1-serving-'+cc.lower()+'-'+digest[:24],'file':path.name,'key':key,
@@ -151,6 +155,9 @@ def repair(index,root,snapshot,assets):
     c.close()
     result={'version':1,'countries':report,'retireAssetIds':retire,'proofs':proofs,
         'oldObjectsDeleted':False,'extraOldAssetReadBytes':downloaded,'servingRewriteBytes':rewritten,
+        'newOutputAlreadyBudgetedBytes':new_output_credit,'netExtraStoredBytes':max(0,rewritten-new_output_credit),
         'allNewAssetsRequireAtomicActivation':True}
+    if sum(asset['bytes'] for asset in assets)>w.MAX_OUTPUT:
+        raise RuntimeError('combined_world_and_serving_free_storage_budget')
     w.save(root/'serving-safety.json',result)
     return assets,result

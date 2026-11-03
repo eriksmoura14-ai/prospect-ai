@@ -49,7 +49,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release download catalog-geography-41656319039 --pattern 'world-checkpoint.part*' --pattern checkpoint-parts.json --dir .artifacts/ci-world-ingest
+          gh release download catalog-geography-41658541127 --pattern 'world-checkpoint.part*' --pattern checkpoint-parts.json --dir .artifacts/ci-world-ingest
           python scripts/catalog-world-restore.py
           gh release download catalog-businesses-41637339762 --pattern report.json --dir .artifacts/ci-world-ingest
       - name: Verify geographic identity, overlap and existing serving budgets

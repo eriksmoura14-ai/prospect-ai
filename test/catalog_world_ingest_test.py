@@ -88,6 +88,24 @@ class FullBusinessImport(unittest.TestCase):
         self.assertEqual(assets[0]['records'],2)
         self.assertEqual(assets[0]['bounds'],[-48.,-18.9,-40.,-18.9])
 
+    def test_real_guid_empty_lists_and_phone_strings_survive_the_deployed_reader(self):
+        row=self.row('06598981-20f2-4327-b9d7-77a0b0b40aad')
+        row.update(primary_category='cafe',category_hierarchy=['cafe'],alternate_categories=[],basic_category=None,
+            phones=['0012345678'],phone='0012345678',websites=[],website='',confidence=None,
+            discovered_at='2026-11-03T12:16:24Z',last_verified_at=None)
+        self.index.accept(row);self.index.db.commit()
+        root=Path(self.temp.name);assets=m.export_assets(self.index,root,compact=True)
+        reader=m.module('real_catalog_reader','catalog-read.py')
+        result=reader.query({'countryCode':'BR','categories':['cafe'],'bounds':[-20,-18,-50,-47],
+            'geometry':{'type':'Polygon','coordinates':[[[-50,-20],[-47,-20],[-47,-18],[-50,-18],[-50,-20]]]},'limit':50},
+            [str(root/'businesses'/assets[0]['file'])])
+        self.assertEqual(len(result['rows']),1)
+        actual=result['rows'][0]
+        self.assertEqual(actual['source_id'],row['source_id'])
+        self.assertEqual(actual['phone'],'0012345678')
+        self.assertEqual(actual['discovered_at'],row['discovered_at'])
+        self.assertEqual(actual['alternate_categories'],[])
+
 
 if __name__ == '__main__':
     unittest.main()
