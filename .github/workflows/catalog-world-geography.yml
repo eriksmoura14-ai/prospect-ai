@@ -1,0 +1,107 @@
+name: Confirm world business city coverage
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/catalog-world-geography.yml'
+      - 'scripts/catalog-world-geography.py'
+      - 'scripts/catalog-place-ranges.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: finite-world-geographic-confirmation
+  cancel-in-progress: false
+jobs:
+  confirm-geography:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Require explicit geographic confirmation
+        id: requested
+        run: |
+          if git log -1 --format=%s | grep -Fq '[validate-world-ingest]'; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        if: steps.requested.outputs.run == 'true'
+        with:
+          python-version: '3.12'
+      - name: Install existing pinned readers
+        if: steps.requested.outputs.run == 'true'
+        run: |
+          pip install -r tools/discovery-requirements.txt
+          python scripts/setup-discovery.py
+      - name: Resume actual full-record import checkpoint
+        if: steps.requested.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh run watch 41637339762 --interval 30
+          gh run download 41637339762 --name full-business-import-41637339762 --dir .artifacts/ci-world-ingest
+      - name: Confirm businesses within licensed city polygons
+        if: steps.requested.outputs.run == 'true'
+        run: python scripts/catalog-world-geography.py
+      - name: Compress resumable checkpoint for durable release storage
+        if: always() && steps.requested.outputs.run == 'true' && hashFiles('.artifacts/ci-world-ingest/ingest.sqlite') != ''
+        run: |
+          python - <<'PY'
+          import gzip,shutil,pathlib,hashlib,json
+          root=pathlib.Path('.artifacts/ci-world-ingest')
+          with (root/'ingest.sqlite').open('rb') as inp,gzip.open(root/'world-checkpoint.sqlite.gz','wb',compresslevel=1) as out:
+            shutil.copyfileobj(inp,out,1024*1024)
+          source=root/'world-checkpoint.sqlite.gz'
+          parts=[]
+          with source.open('rb') as inp:
+            while block:=inp.read(512*1024*1024):
+              p=root/('world-checkpoint.part'+str(len(parts)).zfill(3));p.write_bytes(block)
+              parts.append({'file':p.name,'bytes':len(block),'sha256':hashlib.sha256(block).hexdigest()})
+          (root/'checkpoint-parts.json').write_text(json.dumps({'parts':parts,'gzipSha256':hashlib.file_digest(source.open('rb'),'sha256').hexdigest(),'containsCredentials':False},indent=2))
+          source.unlink()
+          PY
+      - name: Preserve small geographic report
+        if: always() && steps.requested.outputs.run == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: geographic-confirmation-${{ github.run_id }}
+          retention-days: 14
+          include-hidden-files: true
+          path: |
+            .artifacts/ci-world-ingest/geography-report.json
+            .artifacts/ci-world-ingest/geometry-publication.json
+            .artifacts/ci-world-ingest/geography-bundles.json
+            .artifacts/ci-world-ingest/coverage-updates.ndjson
+            .artifacts/ci-world-ingest/all-city-coverage.csv.gz
+      - name: Publish durable geographic and coverage evidence
+        if: always() && steps.requested.outputs.run == 'true' && hashFiles('.artifacts/ci-world-ingest/geography-bundles.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GEOGRAPHY_RUN_ID: ${{ github.run_id }}
+          GEOGRAPHY_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          shopt -s nullglob
+          gh release create "catalog-geography-$GEOGRAPHY_RUN_ID" \
+            .artifacts/ci-world-ingest/geometry-bundle-*.zip \
+            .artifacts/ci-world-ingest/geometry-publication.json \
+            .artifacts/ci-world-ingest/geography-bundles.json \
+            .artifacts/ci-world-ingest/geography-report.json \
+            .artifacts/ci-world-ingest/coverage-updates.ndjson \
+            .artifacts/ci-world-ingest/all-city-coverage.csv.gz \
+            .artifacts/ci-world-ingest/world-checkpoint.part* \
+            .artifacts/ci-world-ingest/checkpoint-parts.json \
+            --target "$GEOGRAPHY_HEAD_SHA" --prerelease \
+            --title 'Prospect AI — geographic confirmation of real business records' \
+            --notes 'Exact licensed polygons, full app inventory denominator, old data retained. No assertion of 50 businesses in every locality.'

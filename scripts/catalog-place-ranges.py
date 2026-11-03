@@ -26,11 +26,12 @@ def validate_range(start, end, size):
 
 
 class PlaceRanges:
-    def __init__(self, part, seconds=600, read_ahead_bytes=0, scratch_root=None):
+    def __init__(self, part, seconds=600, read_ahead_bytes=0, scratch_root=None, layer='place'):
         self.part = part
         parsed = urlsplit(part['url'])
-        if (parsed.scheme != 'https' or parsed.netloc != 'overturemaps-us-west-2.s3.us-west-2.amazonaws.com'
-                or not re.fullmatch(r'/release/2026-10-21\.0/theme=places/type=place/part-[0-9]{5}-[a-f0-9-]+-c000\.zstd\.parquet', parsed.path)
+        prefix = {'place': 'places/type=place', 'division_area': 'divisions/type=division_area'}.get(layer)
+        if (prefix is None or parsed.scheme != 'https' or parsed.netloc != 'overturemaps-us-west-2.s3.us-west-2.amazonaws.com'
+                or not re.fullmatch(r'/release/2026-10-21\.0/theme=' + re.escape(prefix or '') + r'/part-[0-9]{5}-[a-f0-9-]+-c000\.zstd\.parquet', parsed.path)
                 or parsed.query or parsed.fragment or type(part['bytes']) is not int or not 0 < part['bytes'] < 900 * 1024 * 1024):
             raise ValueError('unreviewed_places_partition')
         self.size = part['bytes']
