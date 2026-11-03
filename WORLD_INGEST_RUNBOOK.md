@@ -10,7 +10,10 @@ that the new import is complete.
 ## Actual execution
 
 - Full-record source job: https://github.com/eriksmoura14-ai/prospect-ai/actions/runs/41637339762
-- Geographic confirmation job: https://github.com/eriksmoura14-ai/prospect-ai/actions/runs/41641854337
+- Final geographic data and immutable publication manifest:
+  https://github.com/eriksmoura14-ai/prospect-ai/releases/tag/catalog-geography-41661789699
+  The data/export/release steps completed before the workflow was cancelled;
+  its overall cancelled conclusion is not a claim that every workflow step passed.
 - Branch: `codex/coverage-audit-policy-20261026`; production code and UI are unchanged.
 - The earlier November 2 sweep collected **locality/category observation counts**.
   Those counts never proved distinct businesses or geographic membership. The
@@ -42,19 +45,31 @@ active WhatsApp account or successful website verification.
 - Object storage quota: 5,000,000,000 bytes/project; observed baseline storage:
   2,991,502,823 bytes. Never delete the old archive to create room.
 - Period transfer quota: 5,000,000,000 bytes, with a 50 MiB app reserve.
-- New business output: at most 650 MiB; new geometry: at most 256 MiB.
+- New business output: at most 650 MiB; new stored gzip geometry: at most 256 MiB.
+  Stored bytes and decoded verification bytes are accounted for separately.
 - Incremental serving repair: at most 256 MiB extra old-object reads and
-  128 MiB rewritten serving output. Full verification reads are reserved too.
+  256 MiB net extra rewritten serving output, crediting already-budgeted new
+  country output once. Full verification reads are reserved too.
 - Public standard Ubuntu GitHub runners; no larger runner or paid API is enabled.
 - SQLite reconciliation on disk; DuckDB 256–384 MiB, one source partition at a
   time. Completed immutable objects are downloaded by size and SHA-256.
-- Publisher processes one at-most-64-MiB bundle at a time, four transfers at most.
+- Publisher processes one at-most-64-MiB bundle at a time, two transfers at most.
+  A process lock protects its shared checkpoints and local disk reserve.
+  Transient storage 502/503/504 and transport failures have at most three attempts;
+  server Retry-After above 60 seconds stops for a later resume. Integrity errors
+  and HTTP 429 do not trigger retries. The shared retry reservation starts at
+  128 MiB and has a hard maximum of 256 MiB. Raising that reservation requires a
+  fresh capacity reconciliation inside the unchanged free project quota.
 - No bulk use of public Nominatim and no per-city repetition of regional inputs.
 
 Operations manifests `capacity-ledger:20261103:world-full-records-v1` and
 `capacity-ledger:20261103:world-serving-repair-v1` reserve conservative ceilings;
 they are not measured invoices. Refresh actual usage before every publication
 and do not add a reservation to measured usage as if both were consumption.
+`capacity-ledger:20261103:storage-retries-v3` records the bounded retry review:
+4,557,255,871 bytes committed, plus per-bundle verification and the 50 MiB app
+reserve, inside the unchanged 5,000,000,000-byte free transfer quota. Provider
+usage may lag, so the conservative reservation remains authoritative.
 
 ## Publication
 

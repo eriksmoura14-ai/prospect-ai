@@ -5,6 +5,11 @@ código não substitui a licença dos dados. Telefones e URLs são publicados pe
 fontes; não constituem confirmação de WhatsApp, atividade atual ou ausência de
 website. Não há dados de contas ou sessões de clientes nos arquivos públicos.
 
+Os textos das licenças e as atribuições do lote mundial de 3 de novembro estão
+no [pacote público de licenças](https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261103/prospect-world-attribution-and-licenses-02d02335936d5a31.zip).
+SHA-256: `02d02335936d5a31a119c002ee88cedc86094467d287d2b2926e47071116dc37`.
+O pacote complementa a proveniência e os metadados de licença por registro.
+
 As regras de identidade administrativa consultaram o Statistical Office of the
 Republic of Serbia e o NSI da Bulgária, nos links do runbook. A transliteração
 búlgara segue a tabela e as regras de 2009 publicadas pelo MRDPW. Essas consultas

@@ -6,6 +6,8 @@ check precedes ready registration; interrupted bundles are safely resumable.
 """
 import argparse
 import concurrent.futures
+import email.utils
+import fcntl
 import hashlib
 import gzip
 import importlib.util
@@ -24,6 +26,16 @@ w=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(w)
 DB_GUARD=220*1024*1024
 DISK_RESERVE=32*1024*1024
+
+
+def operator_lock(root):
+    lock=(Path(root)/'.publication.lock').open('a+')
+    try:
+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    except BlockingIOError:
+        lock.close()
+        raise RuntimeError('publication_operator_already_running')
+    return lock
 
 
 def private(path):
@@ -101,7 +113,7 @@ def validate_item(item,kind):
         raise ValueError('world_business_identity')
 
 
-def upload_and_verify(root,item,selector):
+def upload_once(root,item,selector):
     file=root/item['file']
     if file.stat().st_size!=item['bytes'] or w.sha(file)!=item['sha256']:
         raise ValueError('extracted_item_integrity')
@@ -119,13 +131,13 @@ def upload_and_verify(root,item,selector):
             with file.open('rb') as body:
                 r=requests.request(selector.get('method','PUT'),selector['url'],headers=selector.get('headers',{}),data=body,timeout=(10,120),allow_redirects=False)
         if r.status_code not in (200,201,204):
-            raise RuntimeError('immutable_item_upload_http_'+str(r.status_code))
+            raise storage_http('immutable_item_upload',r)
     elif head.status_code!=200:
-        raise RuntimeError('immutable_item_head_http_'+str(head.status_code))
+        raise storage_http('immutable_item_head',head)
     digest,count=hashlib.sha256(),0
     with requests.get(item['url'],stream=True,timeout=(10,90),allow_redirects=False) as r:
         if r.status_code!=200:
-            raise RuntimeError('remote_item_verification_http_'+str(r.status_code))
+            raise storage_http('remote_item_verification',r)
         for block in r.iter_content(131072):
             count+=len(block)
             if count>item['bytes']:
@@ -134,6 +146,56 @@ def upload_and_verify(root,item,selector):
     if count!=item['bytes'] or digest.hexdigest()!=item['sha256']:
         raise ValueError('remote_item_sha256')
     return item['key']
+
+
+def upload_and_verify(root,item,selector):
+    for attempt in range(3):
+        delay=5*(attempt+1)
+        failure_stage='transport'
+        try:
+            return upload_once(root,item,selector)
+        except RuntimeError as error:
+            failure_stage=str(error)
+            if not p_transient(str(error)) or attempt==2:
+                raise
+            after=getattr(error,'retry_after',None)
+            if after:
+                try:seconds=float(after)
+                except ValueError:
+                    try:seconds=email.utils.parsedate_to_datetime(after).timestamp()-time.time()
+                    except (ValueError,TypeError):seconds=delay
+                if seconds>60:raise RuntimeError('storage_retry_after_requires_later_resume')
+                delay=max(delay,seconds)
+        except (requests.ConnectionError,requests.Timeout):
+            if attempt==2:
+                raise RuntimeError('immutable_storage_transport_failed_checkpoint_preserved')
+        # All invocations/threads share one bounded retry reservation. A PUT
+        # that actually succeeded is recognized by HEAD on the next attempt;
+        # no original object is overwritten and no source query is repeated.
+        path=Path(root)/'storage-retry-budget.json'
+        with path.open('a+') as file:
+            fcntl.flock(file,fcntl.LOCK_EX);file.seek(0);text=file.read()
+            state=json.loads(text) if text else {'reservedBytes':0,'maximumBytes':128*1024*1024}
+            if not 0<=state['reservedBytes']<=state['maximumBytes']<=256*1024*1024:
+                raise RuntimeError('storage_retry_reservation_invalid')
+            reservation=2*item.get('storedBytes',item['bytes'])
+            if state['reservedBytes']+reservation>state['maximumBytes']:
+                raise RuntimeError('storage_retry_transfer_budget_checkpoint_preserved')
+            state['reservedBytes']+=reservation
+            state['lastFailureStage']=failure_stage
+            file.seek(0);file.truncate();file.write(json.dumps(state));file.flush()
+        time.sleep(delay)
+    raise RuntimeError('immutable_storage_retry_limit')
+
+
+def p_transient(message):
+    return bool(w.h.re.fullmatch(r'(?:immutable_item_(?:upload|head)|remote_item_verification)_http_(?:502|503|504)',message))
+
+
+def storage_http(stage,response):
+    error=RuntimeError(stage+'_http_'+str(response.status_code))
+    error.retry_after=response.headers.get('Retry-After')
+    return error
 
 
 def register(db,items,state='ready'):
@@ -190,6 +252,9 @@ def main():
     p.add_argument('--capacity-config',required=True)
     a=p.parse_args()
     root=Path(a.root);root.mkdir(parents=True,exist_ok=True)
+    # Keep the handle alive for this invocation: a second operator must not
+    # race the shared checkpoints or consume another bundle's disk reserve.
+    publication_lock=operator_lock(root)
     manifest=json.loads(Path(a.manifest).read_text())
     bundle=manifest['bundles'][a.bundle_index]
     items=bundle['assets' if a.kind=='businesses' else 'uploads']
@@ -216,7 +281,7 @@ def main():
             with source.open(info) as inp,(root/item['file']).open('wb') as out:
                 shutil.copyfileobj(inp,out,131072)
     pending=[item for item in items if state.get(item['key'])!=item['sha256']]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
         futures={pool.submit(upload_and_verify,root,item,uploads[item['key']]):item for item in pending}
         for future in concurrent.futures.as_completed(futures):
             key=future.result();item=futures[future]
