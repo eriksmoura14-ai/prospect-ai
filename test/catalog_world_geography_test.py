@@ -28,6 +28,12 @@ class GeographicConfirmation(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'identity_changed'):
             m.add_area(self.index,area,shapely.box(0,0,2,2))
 
+    def test_oversize_polygon_stays_pending_instead_of_an_unqueryable_city(self):
+        self.assertTrue(m.runtime_scope(shapely.box(0,0,1,1)))
+        self.assertFalse(m.runtime_scope(shapely.box(0,0,16,1)))
+        self.assertFalse(m.runtime_scope(shapely.box(0,0,1,11)))
+        self.assertFalse(m.runtime_scope(shapely.box(-180,0,180,1)))
+
     def test_delta_counts_real_points_not_city_labels_and_preserves_denominator(self):
         area={'id':'BR:1','country_code':'BR','kind':'municipality','state_code':'MG','name':'Real City'}
         m.add_area(self.index,area,shapely.box(0,0,1,1))

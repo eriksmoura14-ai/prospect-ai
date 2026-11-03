@@ -28,6 +28,16 @@ MAP_URL = w.ORIGIN + 'operations/20261103/city-areas-7ef9fc190302e5f8.ndjson.gz'
 MAP_SHA = '7ef9fc190302e5f8eefc179d6db437d0f2499f3cdb8d9c689db4bccd30baaf39'
 
 
+def runtime_scope(geom):
+    """The published city must fit the current backend's reviewed safeguards.
+    Oversized/dateline-spanning scopes stay pending; never replace with a radius.
+    """
+    west,south,east,north=geom.bounds
+    return (west<east and south<north and north-south<=10 and east-west<=15
+        and shapely.get_num_coordinates(geom)<=50000
+        and len(json.dumps(mapping(geom),separators=(',',':')).encode())<=2*1024*1024)
+
+
 def add_area(index, area, geom):
     if geom.is_empty or geom.geom_type not in ('Polygon', 'MultiPolygon'):
         raise ValueError('non_polygon_city_scope')
@@ -140,7 +150,7 @@ def discover_scopes(index, root, folder, cities):
                                 geom = shapely.make_valid(geom)
                         except (ValueError, TypeError, shapely.errors.GEOSException):
                             continue
-                        if geom.geom_type not in ('Polygon', 'MultiPolygon') or geom.is_empty or shapely.get_num_coordinates(geom) > 50000:
+                        if geom.geom_type not in ('Polygon', 'MultiPolygon') or geom.is_empty or not runtime_scope(geom):
                             continue
                         geometry = mapping(geom)
                         if len(json.dumps(geometry).encode()) > 2*1024*1024:

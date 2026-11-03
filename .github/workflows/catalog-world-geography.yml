@@ -29,7 +29,7 @@ jobs:
       - name: Require explicit geographic confirmation
         id: requested
         run: |
-          if git log -1 --format=%s | grep -Fq '[validate-world-ingest]'; then
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || git log -1 --format=%s | grep -Fq '[validate-world-ingest]'; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
           else
             echo 'run=false' >> "$GITHUB_OUTPUT"
@@ -57,23 +57,6 @@ jobs:
       - name: Confirm businesses within licensed city polygons
         if: steps.requested.outputs.run == 'true'
         run: python scripts/catalog-world-geography.py
-      - name: Compress resumable checkpoint for durable release storage
-        if: always() && steps.requested.outputs.run == 'true' && hashFiles('.artifacts/ci-world-ingest/ingest.sqlite') != ''
-        run: |
-          python - <<'PY'
-          import gzip,shutil,pathlib,hashlib,json
-          root=pathlib.Path('.artifacts/ci-world-ingest')
-          with (root/'ingest.sqlite').open('rb') as inp,gzip.open(root/'world-checkpoint.sqlite.gz','wb',compresslevel=1) as out:
-            shutil.copyfileobj(inp,out,1024*1024)
-          source=root/'world-checkpoint.sqlite.gz'
-          parts=[]
-          with source.open('rb') as inp:
-            while block:=inp.read(512*1024*1024):
-              p=root/('world-checkpoint.part'+str(len(parts)).zfill(3));p.write_bytes(block)
-              parts.append({'file':p.name,'bytes':len(block),'sha256':hashlib.sha256(block).hexdigest()})
-          (root/'checkpoint-parts.json').write_text(json.dumps({'parts':parts,'gzipSha256':hashlib.file_digest(source.open('rb'),'sha256').hexdigest(),'containsCredentials':False},indent=2))
-          source.unlink()
-          PY
       - name: Preserve small geographic report
         if: always() && steps.requested.outputs.run == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -107,8 +90,25 @@ jobs:
             .artifacts/ci-world-ingest/geography-report.json \
             .artifacts/ci-world-ingest/coverage-updates.ndjson \
             .artifacts/ci-world-ingest/all-city-coverage.csv.gz \
-            .artifacts/ci-world-ingest/world-checkpoint.part* \
-            .artifacts/ci-world-ingest/checkpoint-parts.json \
             --target "$GEOGRAPHY_HEAD_SHA" --prerelease \
             --title 'Prospect AI — geographic confirmation of real business records' \
             --notes 'Exact licensed polygons, full app inventory denominator, old data retained. No assertion of 50 businesses in every locality.'
+      - name: Stream a resumable checkpoint within the existing disk budget
+        if: always() && steps.requested.outputs.run == 'true' && hashFiles('.artifacts/ci-world-ingest/ingest.sqlite') != ''
+        run: python scripts/catalog-world-checkpoint.py
+      - name: Preserve durable checkpoint independently of business publication
+        if: always() && steps.requested.outputs.run == 'true' && hashFiles('.artifacts/ci-world-ingest/checkpoint-parts.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GEOGRAPHY_RUN_ID: ${{ github.run_id }}
+          GEOGRAPHY_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if ! gh release view "catalog-geography-$GEOGRAPHY_RUN_ID" >/dev/null 2>&1; then
+            gh release create "catalog-geography-$GEOGRAPHY_RUN_ID" --target "$GEOGRAPHY_HEAD_SHA" --prerelease \
+              --title 'Prospect AI — resumable geographic checkpoint' \
+              --notes 'Checkpoint of a finite public-business import; consult reports for incomplete stages.'
+          fi
+          gh release upload "catalog-geography-$GEOGRAPHY_RUN_ID" \
+            .artifacts/ci-world-ingest/world-checkpoint.part* \
+            .artifacts/ci-world-ingest/checkpoint-parts.json

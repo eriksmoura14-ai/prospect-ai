@@ -15,6 +15,7 @@ class ServingRegression(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t:
             root=Path(t);(root/'businesses').mkdir();index=m.w.Index(root/'index.sqlite')
             index.db.execute('INSERT INTO areas VALUES(?,?,?,?)',('town','US','{}',shapely.to_wkb(shapely.box(0,0,10,10))))
+            index.db.execute('INSERT INTO city_areas VALUES(?,?)',('US:XX:1','town'))
             db=duckdb.connect();old=[]
             for i in range(8):
                 file=root/f'old-{i}.parquet'

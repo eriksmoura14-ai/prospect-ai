@@ -44,8 +44,12 @@ def repair(index,root,snapshot,assets):
     c.execute('CREATE OR REPLACE MACRO spread3(v) AS ((spread2(v) | (spread2(v) << 2)) & 858993459)')
     c.execute('CREATE OR REPLACE MACRO spread4(v) AS ((spread3(v) | (spread3(v) << 1)) & 1431655765)')
     report=[]
+    mapped={row[0] for row in index.db.execute('SELECT area_id FROM city_areas')}
+    if index.db.execute("SELECT 1 FROM sqlite_master WHERE name='new_city_areas'").fetchone():
+        mapped.update(row[0] for row in index.db.execute('SELECT area_id FROM new_city_areas'))
     for cc,new in sorted(by_country.items()):
         rows=index.db.execute('SELECT id,geometry FROM areas WHERE country=?',(cc,)).fetchall()
+        rows=[row for row in rows if row[0] in mapped]
         if not rows:
             continue
         boxes=np.asarray([shapely.from_wkb(binary).bounds for _,binary in rows],dtype=float).reshape((-1,4))
