@@ -79,6 +79,21 @@ def existing_geometry(index, folder, snapshot, root, cities):
                         key = area['city_key']
                         if key not in cities or area['country_code'] != cities[key]['countryCode'] or area['city_id'] != cities[key]['id']:
                             raise ValueError('published_city_geometry_identity')
+                        city=cities[key]
+                        area.setdefault('state_code',city['stateCode'])
+                        meta=area.setdefault('source_metadata',{})
+                        requested=crosswalk.requested_county_policy(city)
+                        if area['kind']=='county' and area['id'].startswith('OVT:division_area:') and requested:
+                            # These exact registry options already have reviewed,
+                            # published polygons. Rehydrate their documented
+                            # policy; the compact serving JSON omits this field.
+                            meta.setdefault('scope_policy',requested)
+                            label=w.policy.normalized(city['name'])
+                            if city['countryCode'] in ('SK','CZ'):
+                                meta.setdefault('verified_district_labels',[label])
+                            elif city['countryCode'] in ('DK','BG'):
+                                meta.setdefault('verified_municipality_labels',[label])
+                                meta.setdefault('admin_level',2)
                         add_area(index, area, shape(area['geometry']))
                         index.db.execute('INSERT OR IGNORE INTO city_areas VALUES(?,?)', (key, area['id']))
                 index.checkpoint('geometry:' + part['sha256'], {'bytes': part['bytes']})
@@ -327,12 +342,11 @@ def coverage(index, root, folder, cities):
                     metrics['confirmedBelow50'] += 1
             if count is not None and (old_n is None or count > old_n):
                 sources = json.loads(row['sources'])
-                sources.append({'source': 'overture', 'stage': 'world_full_record_reconciliation',
-                    'newUniqueRecords': count-(old_n or 0), 'release': w.RELEASE, 'verified': False})
+                sources.append({'source':'overture','stage':'world-20261103','rows':count-(old_n or 0)})
                 limits = json.loads(row['limitations'])
-                limits.append('Partial public sources; a missing website is not proof of no website. Original historical boundary provenance retained.')
+                limits.append('world_full_record_import_partial')
                 status = 'target_met' if count >= 50 else 'partial'
-                update = {'city_key': key, 'unique_supported': count, 'unique_all': count,
+                update = {'city_key': key, 'previous_supported':old_n,'unique_supported': count, 'unique_all': count,
                     'source_rows': max(count, int(row['source_rows'] or 0)+(count-(old_n or 0))),
                     'category_count': int(row['category_count']) if row['category_count'] else None,
                     'sources': sources, 'limitations': limits, 'coverage_status': status,
@@ -354,10 +368,12 @@ def main():
     p.add_argument('--skip-new-polygons', action='store_true')
     a = p.parse_args()
     root = Path(a.root)
+    started=time.monotonic()
     folder, _ = w.inputs(root)
     snapshot = json.loads((folder/'catalog-snapshot.json').read_text())
     cities = {row['key']:row for row in json.loads((folder/'inventory.json').read_text())['cities']}
     index = w.Index(root/'ingest.sqlite')
+    index.db.execute('CREATE TABLE IF NOT EXISTS new_city_areas(city_key TEXT PRIMARY KEY,area_id TEXT) WITHOUT ROWID')
     if not index.done('legacy'):
         raise ValueError('actual_business_import_checkpoint_required')
     existing_geometry(index, folder, snapshot, root, cities)
@@ -369,14 +385,25 @@ def main():
     report['geometryBytes'] = sum(v['bytes'] for v in uploads)
     w.save(root/'geography-report.json', report)
     assets = w.export_assets(index,root,compact=True)
+    serving=w.module('world_serving','catalog-world-serving.py')
+    assets,serving_report=serving.repair(index,root,snapshot,assets)
     business_report = json.loads((root/'report.json').read_text())
-    new_count = sum(asset['records'] for asset in assets)
+    new_count = index.db.execute('SELECT count(*) FROM additions').fetchone()[0]
     business_report.update(newUniqueBusinesses=new_count,totalUniqueBusinessesConservative=5693290+new_count,
         businessBytes=sum(asset['bytes'] for asset in assets),assets=len(assets),geographicReport='geography-report.json',
         cityGeographicValidationPending=False,coverageAfterMet50=report['met50'],
         newCountries=dict(index.db.execute('SELECT country,count(*) FROM additions GROUP BY country')))
+    business_report['newRecordQualityByCountry']=[dict(zip(['country','records','withPhone','withWebsite','withAddress','primaryCategories'],row))
+        for row in index.db.execute("SELECT country,count(*),sum(json_extract(payload,'$.phone')<>''),sum(json_extract(payload,'$.website')<>''),sum(json_extract(payload,'$.address')<>''),count(DISTINCT json_extract(payload,'$.primary_category')) FROM additions GROUP BY country")]
+    business_report.update(geographicAndServingElapsedMs=round((time.monotonic()-started)*1000),
+        legacyAndOriginalRecordsPreserved=True,servingMetadataToRetire=serving_report['retireAssetIds'])
     w.save(root/'final-business-report.json',business_report)
     w.package(root,assets,business_report)
+    publication=json.loads((root/'publication.json').read_text())
+    publication.update(retireAssetIds=serving_report['retireAssetIds'],allNewAssetsRequireAtomicActivation=True,
+        servingRepartitionProofs=serving_report['proofs'],oldAssetMutationCount=len(serving_report['retireAssetIds']),
+        oldSourceRecordsChanged=0,oldObjectsDeleted=0)
+    w.save(root/'publication.json',publication)
     # Small bundles can be validated and published on the 175MB interactive
     # workspace. Never require a world-sized download on the production host.
     bundles, batch, used = [], [], 0

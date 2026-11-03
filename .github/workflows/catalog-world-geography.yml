@@ -51,6 +51,9 @@ jobs:
         run: |
           gh run watch 41637339762 --interval 30
           gh run download 41637339762 --name full-business-import-41637339762 --dir .artifacts/ci-world-ingest
+      - name: Verify geographic identity, overlap and existing serving budgets
+        if: steps.requested.outputs.run == 'true'
+        run: python -m unittest discover -s test -p '*test.py'
       - name: Confirm businesses within licensed city polygons
         if: steps.requested.outputs.run == 'true'
         run: python scripts/catalog-world-geography.py
@@ -97,6 +100,7 @@ jobs:
             .artifacts/ci-world-ingest/business-bundle-*.zip \
             .artifacts/ci-world-ingest/publication.json \
             .artifacts/ci-world-ingest/final-business-report.json \
+            .artifacts/ci-world-ingest/serving-safety.json \
             .artifacts/ci-world-ingest/geometry-bundle-*.zip \
             .artifacts/ci-world-ingest/geometry-publication.json \
             .artifacts/ci-world-ingest/geography-bundles.json \
