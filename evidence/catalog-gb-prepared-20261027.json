@@ -1,0 +1,57 @@
+{
+  "id": "coverage-gb-prepared-20261027-v3",
+  "status": "awaiting_runtime_recovery",
+  "productionCodeChanged": false,
+  "inventoryDenominator": 152970,
+  "sourceRelease": "2026-10-21.0",
+  "sourcePartitions": [
+    "00006",
+    "00007"
+  ],
+  "country": "GB",
+  "newUniqueBusinessesPrepared": 354577,
+  "newSourceObservations": 355131,
+  "newOverlaps": 554,
+  "countryCombinedObservations": 355269,
+  "countryCombinedUnique": 354712,
+  "previousCountryObservations": 138,
+  "previousCountryUnique": 135,
+  "quality": {
+    "phone": 322772,
+    "website": 237043,
+    "address": 346659,
+    "validLocation": 354577,
+    "contactsVerified": false
+  },
+  "countryInventoryCities": 3879,
+  "mappedCityBoundaries": 1130,
+  "countryThresholdsPrepared": {
+    "atLeast50": 251,
+    "atLeast100": 124,
+    "atLeast200": 50,
+    "locationPending": 2749,
+    "partial": 879
+  },
+  "countryBoundariesSourceExhausted": false,
+  "asset": {
+    "id": "country-gb-min50-20261027",
+    "url": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/snapshots/20261027/gb-min50-8f72400bf2d95bc2.parquet",
+    "sha256": "8f72400bf2d95bc27eb9d34bbb5ca2f7f3012e742903dcd36f428bcd2b6c5849",
+    "bytes": 46973005,
+    "remoteSizeAndPublicRangeVerified": true,
+    "remoteFullSha256Verification": "pending",
+    "catalogReady": false
+  },
+  "preparedRoot": ".artifacts/city-coverage-britain-v3-20261027",
+  "geographyObjectsPrepared": 106,
+  "geographyDecodedBytes": 26136306,
+  "publishedGeometryManifests": 0,
+  "sourceBranchCommit": "b9e216cd9857d2bdd86aeb0eab05dccda58b03f9",
+  "localPythonTests": 77,
+  "ci": {
+    "authentication": 40483104581,
+    "geospatial": 40483104422,
+    "conclusion": "success"
+  },
+  "continuousWorkerConfigured": false
+}

@@ -1,0 +1,78 @@
+name: Finite full-record world business import
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/catalog-world-ingest.yml'
+      - 'scripts/catalog-world-ingest.py'
+      - 'scripts/catalog-normalize.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: finite-full-business-import
+  cancel-in-progress: false
+jobs:
+  full-record-import:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Require explicit finite import request
+        id: requested
+        run: |
+          if git log -1 --format=%s | grep -Fq '[run-world-ingest]'; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        if: steps.requested.outputs.run == 'true'
+        with:
+          python-version: '3.12'
+      - name: Install pinned existing data readers
+        if: steps.requested.outputs.run == 'true'
+        run: |
+          pip install -r tools/discovery-requirements.txt
+          python scripts/setup-discovery.py
+      - name: Test conservative identity and checkpoint policy
+        if: steps.requested.outputs.run == 'true'
+        run: python -m unittest discover -s test -p 'catalog_world_ingest_test.py'
+      - name: Import real records for all app countries and segments
+        if: steps.requested.outputs.run == 'true'
+        run: python scripts/catalog-world-ingest.py
+      - name: Preserve interrupted disk checkpoint
+        if: always() && steps.requested.outputs.run == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: full-business-import-${{ github.run_id }}
+          retention-days: 14
+          compression-level: 1
+          include-hidden-files: true
+          path: |
+            .artifacts/ci-world-ingest/ingest.sqlite*
+            .artifacts/ci-world-ingest/report.json
+            .artifacts/ci-world-ingest/errors.json
+            .artifacts/ci-world-ingest/publication.json
+            .artifacts/ci-world-ingest/source-ranges-*.json
+      - name: Save actual business files in a durable public prerelease
+        if: always() && steps.requested.outputs.run == 'true' && hashFiles('.artifacts/ci-world-ingest/publication.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          IMPORT_RUN_ID: ${{ github.run_id }}
+          IMPORT_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          gh release create "catalog-businesses-$IMPORT_RUN_ID" \
+            .artifacts/ci-world-ingest/business-bundle-*.zip \
+            .artifacts/ci-world-ingest/publication.json \
+            .artifacts/ci-world-ingest/report.json \
+            --target "$IMPORT_HEAD_SHA" --prerelease \
+            --title 'Prospect AI — full business records, world import' \
+            --notes-file .artifacts/ci-world-ingest/RELEASE_NOTES.md

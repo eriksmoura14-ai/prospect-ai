@@ -5,6 +5,18 @@ código não substitui a licença dos dados. Telefones e URLs são publicados pe
 fontes; não constituem confirmação de WhatsApp, atividade atual ou ausência de
 website. Não há dados de contas ou sessões de clientes nos arquivos públicos.
 
+Os textos das licenças e as atribuições do lote mundial de 3 de novembro estão
+no [pacote público de licenças](https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261103/prospect-world-attribution-and-licenses-02d02335936d5a31.zip).
+SHA-256: `02d02335936d5a31a119c002ee88cedc86094467d287d2b2926e47071116dc37`.
+O pacote complementa a proveniência e os metadados de licença por registro.
+
+As regras de identidade administrativa consultaram o Statistical Office of the
+Republic of Serbia e o NSI da Bulgária, nos links do runbook. A transliteração
+búlgara segue a tabela e as regras de 2009 publicadas pelo MRDPW. Essas consultas
+documentam nomes e tipos; os polígonos continuam atribuídos às fontes Overture,
+OpenStreetMap e demais produtores registrados por feição. Originais e provas
+de ancestralidade permanecem preservados, com as licenças de cada fonte.
+
 - **Inventário de localidades e derivados:** Countries States Cities Database,
   https://github.com/dr5hn/countries-states-cities-database, distribuída por
   `@countrystatecity/countries@1.0.9`,
@@ -22,6 +34,10 @@ website. Não há dados de contas ou sessões de clientes nos arquivos públicos
   e registro permanecem nos arquivos: CDLA Permissive 2.0, Apache 2.0 e CC0 1.0,
   conforme a fonte. Os Parquets comerciais independentes preservam conteúdo e
   licença original; rótulos de cidade não são substituídos pelo inventário ODbL.
+  Os deltas de recuperação costeira, selecionados por limites OSM revisados,
+  são disponibilizados também sob **ODbL 1.0**, acrescida das licenças originais
+  de cada registro. Suas provas e atribuições acompanham a publicação pública;
+  eles não substituem nem reclassificam a licença dos arquivos independentes.
 - **geoBoundaries gbOpen:** https://www.geoboundaries.org/, com produtores,
   licenças, versão, URLs e atribuições específicas nos metadados de cada arquivo.
   Brasil: IBGE/OCHA, municípios 2020 CC BY 3.0 IGO; estados 2006 CC BY 2.5.
@@ -50,3 +66,33 @@ Os limites são cartográficos históricos, podem ter simplificação publicada 
 fonte e não representam levantamento cadastral atual. Nomes, âncoras, limites e
 licenças não confirmados permanecem pendentes. Extratos não comprovam cobertura
 integral. O catálogo não afirma ter 50 empresas em toda localidade.
+
+Hierarquias administrativas Overture Divisions 2026-10-21.0: além das fontes
+OSM e geoBoundaries acima, os vínculos publicados podem conter **Esri Community
+Maps contributors**, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
+conforme a [atribuição oficial da Overture](https://docs.overturemaps.org/attribution/).
+Os identificadores e a proveniência de cada vínculo acompanham os cruzamentos.
+Foram adaptados nomes administrativos formais e vinculadas subdivisões ao
+inventário; os limites geométricos originais não são alterados. Isso não envolve
+acesso aos serviços comerciais da Esri nem confirmação de estabelecimentos.
+
+
+### Novos limites RO e IT, revisão de 26/10/2026
+
+Romênia: ANCPI, unidades municipais de 2016, e World Bank, condados de 2017,
+via geoBoundaries gbOpen, CC BY 4.0. Origem ANCPI sob OGL-ROU-1.0:
+https://data.gov.ro/dataset/unitati-administrative . Itália: ISTAT, províncias
+e comuni de 2023, via geoBoundaries gbOpen, CC BY 3.0
+(https://creativecommons.org/licenses/by/3.0/). A fonte oficial descreve a
+hierarquia e publica os conjuntos históricos em
+https://www.istat.it/it/archivio/222527 . São limites históricos simplificados
+pelo publicador, não um levantamento cadastral atual. Os metadados completos,
+URLs de origem, hashes e incertezas acompanham a publicação.
+
+Estabelecimentos: Overture Maps Foundation, release 2026-10-21.0. Continuam as
+licenças por registro e suas proveniências, incluindo CDLA-Permissive-2.0,
+Apache-2.0 e CC0-1.0 conforme a origem. A geometria administrativa não transforma
+a licença do registro comercial independente. Complementos OSM/QLever mantêm
+© OpenStreetMap contributors, ODbL 1.0, e seus IDs originais; nunca são
+redistribuídos como se fossem registros Overture. Coleta não verifica WhatsApp,
+atividade atual nem ausência de website.

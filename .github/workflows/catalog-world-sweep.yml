@@ -1,0 +1,85 @@
+name: Finite whole-app business source sweep
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.github/workflows/catalog-world-sweep.yml'
+      - 'scripts/catalog-world-sweep*.py'
+      - 'scripts/catalog-place-ranges.py'
+      - 'data/catalog-*.json'
+      - 'data/catalog-*.ndjson.gz'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: finite-catalog-world-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-sweep:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Require an explicit one-time source sweep request
+        id: requested
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = workflow_dispatch ] || git log -1 --format=%s | grep -Fq '[run-world-sweep]'; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        if: steps.requested.outputs.run == 'true'
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        if: steps.requested.outputs.run == 'true'
+        with:
+          python-version: '3.12'
+      - name: Install existing pinned public-source readers
+        if: steps.requested.outputs.run == 'true'
+        run: |
+          npm ci --ignore-scripts
+          pip install -r tools/discovery-requirements.txt
+          python scripts/setup-discovery.py
+      - name: Search sources for the entire current app inventory
+        if: steps.requested.outputs.run == 'true'
+        run: python scripts/catalog-world-sweep-ci.py
+      - name: Preserve successful and interrupted checkpoints
+        if: always() && steps.requested.outputs.run == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-app-city-source-sweep-${{ github.run_id }}
+          retention-days: 14
+          include-hidden-files: true
+          path: |
+            .artifacts/ci-world-sweep/report.json
+            .artifacts/ci-world-sweep/progress.json
+            .artifacts/ci-world-sweep/all-app-cities.ndjson.gz
+            .artifacts/ci-world-sweep/sweep.sqlite
+            .artifacts/ci-world-sweep/source-ranges-*.json
+            .artifacts/ci-world-sweep/prospect-all-app-cities-source-sweep.zip
+            .artifacts/ci-world-sweep/SHA256SUMS.txt
+      - name: Save the public evidence as a durable prerelease
+        if: always() && steps.requested.outputs.run == 'true' && hashFiles('.artifacts/ci-world-sweep/prospect-all-app-cities-source-sweep.zip') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SWEEP_RUN_ID: ${{ github.run_id }}
+          SWEEP_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          gh release create "catalog-sweep-$SWEEP_RUN_ID" \
+            .artifacts/ci-world-sweep/prospect-all-app-cities-source-sweep.zip \
+            .artifacts/ci-world-sweep/SHA256SUMS.txt \
+            --target "$SWEEP_HEAD_SHA" --prerelease \
+            --title 'Prospect AI — evidências da varredura de todas as localidades' \
+            --notes-file .artifacts/ci-world-sweep/RELEASE_NOTES.md

@@ -1,0 +1,26 @@
+{
+  "id": "catalog-capacity-block-20261028T010416Z",
+  "observedAt": "2026-10-28T01:04:16.731027+00:00",
+  "observedAtBrasilia": "2026-10-27T22:04:16.731027-03:00",
+  "projectId": "polished-sky-36508370",
+  "dataTransferBytes": 5123311271,
+  "dataTransferQuotaBytes": 5000000000,
+  "overQuotaBytes": 123311271,
+  "databaseRequestHttpStatus": 402,
+  "databaseRequestOutcome": "quota_exceeded",
+  "providerPeriodEnd": "2026-11-01T00:00:00Z",
+  "providerPeriodEndBrasilia": "2026-10-31T21:00:00-03:00",
+  "lastVerifiedUniqueBusinesses": 5573373,
+  "lastVerifiedCoverage": {
+    "asOf": "2026-10-27T22:09:09.049743+00:00",
+    "min50": 12750,
+    "inventoryCities": 152970,
+    "belowOrUnconfirmed50": 140220
+  },
+  "currentDatabaseCountsCouldNotBeReconfirmed": true,
+  "newCollectionStarted": false,
+  "quotaRaised": false,
+  "paidServicesEnabled": false,
+  "backgroundProcessConfigured": false,
+  "nextFreeAction": "Recheck quota after the provider consumption period renews, then resume immutable checkpoints after inspecting capacity; no automatic restart is configured."
+}

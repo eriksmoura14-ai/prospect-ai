@@ -1,0 +1,122 @@
+{
+  "periodStart": "2026-11-01T00:00:00Z",
+  "periodEnd": "2026-12-01T00:00:00Z",
+  "providerTransferBytesObserved": 92318104,
+  "providerCounterMayLag": true,
+  "dataTransferQuotaBytes": 5000000000,
+  "applicationReserveBytes": 52428800,
+  "databaseGuardBytes": 230686720,
+  "ledger": {
+    "id": "capacity-ledger:20261101:evidence-reserved-v1",
+    "version": 1,
+    "projectId": "polished-sky-36508370",
+    "consumptionPeriodStart": "2026-11-01T00:00:00Z",
+    "consumptionPeriodEnd": "2026-12-01T00:00:00Z",
+    "providerBaselineBytes": 0,
+    "cumulativeReservedBytes": 678360803,
+    "effectiveCommittedCeilingBytes": 678360803,
+    "transferQuotaBytes": 5000000000,
+    "applicationTransferReserveBytes": 52428800,
+    "maximumAttemptsPerCountry": 3,
+    "databaseAuditDecodedBytesReserved": 92265599,
+    "publicationPlansReservedBeforeTransfer": [
+      {
+        "country": "BG",
+        "planFingerprint": "cbd0902f3ec4f18ded24bf84aef16d6466558f1bf8664dc99e463bade2d10b3a",
+        "oneAttemptBudgetBytes": 51191650
+      },
+      {
+        "country": "GR",
+        "planFingerprint": "43bf679b650c96b40424300e6feb700109391fedc55132ce2592b88c80cc8163",
+        "oneAttemptBudgetBytes": 16705988
+      },
+      {
+        "country": "RS",
+        "planFingerprint": "aac6b310c19ba2441f4af82bed2cf07718ad6e7a2272ae45e20ec134db6d7a41",
+        "oneAttemptBudgetBytes": 46460344
+      },
+      {
+        "country": "AL",
+        "planFingerprint": "8fd8bf13b06eb52096b09452654fed5b5db97b35c18008c062161fc08b748bb1",
+        "oneAttemptBudgetBytes": 4180536
+      },
+      {
+        "country": "MK",
+        "planFingerprint": "61fffa1c047333e2624c1e0f599ab46967be3e39e116b446ef51cb285b4e7f4c",
+        "oneAttemptBudgetBytes": 5149420
+      },
+      {
+        "country": "BA",
+        "planFingerprint": "54c33727d1ddeb29b07215946d4d6cf60ac3e132264b2a4415d88c0458d44616",
+        "oneAttemptBudgetBytes": 7648126
+      },
+      {
+        "country": "ME",
+        "planFingerprint": "621e4ed0e82a6d0e2e13fce31424285043810c791d10f26b94fc9073be7e17be",
+        "oneAttemptBudgetBytes": 2734122
+      },
+      {
+        "country": "BG",
+        "kind": "coastal",
+        "planFingerprint": "8f65fbaeccea97ee597ff35a489c650def213138d730ae4d2c982db0f4190d9e",
+        "oneAttemptBudgetBytes": 2325092
+      },
+      {
+        "country": "GR",
+        "kind": "coastal",
+        "planFingerprint": "8e03df8367b8c6179495cbec1a860af085cc1d7a4b8bab11d93d56fac34bd9fb",
+        "oneAttemptBudgetBytes": 2132170
+      },
+      {
+        "country": "RS",
+        "kind": "coastal",
+        "planFingerprint": "f882dee6df56d1f7868c46c87862eff5c6f22ad5a9bed82ae379ffeb804314b2",
+        "oneAttemptBudgetBytes": 2119104
+      },
+      {
+        "country": "AL",
+        "kind": "coastal",
+        "planFingerprint": "ab98a5b82effdbedf67f4d73bd6c4786e8fc3d864ece75959d47ee12e392cc4e",
+        "oneAttemptBudgetBytes": 2137210
+      },
+      {
+        "country": "BA",
+        "kind": "coastal",
+        "planFingerprint": "07f1b2e85599901d85c456f0ef14c12d3ed84f0effaf87cf4fd3376c725922a5",
+        "oneAttemptBudgetBytes": 2114666
+      },
+      {
+        "country": "ME",
+        "kind": "coastal",
+        "planFingerprint": "ea5b47e1affbe17ea38d5b91f0a008a0d640938ff67a4298bb652d3433e94221",
+        "oneAttemptBudgetBytes": 2175636
+      },
+      {
+        "country": "GH",
+        "kind": "west-africa",
+        "planFingerprint": "2ff89577adf97546b47384343547cd7468829df4b17964527796b3c3c3937540",
+        "oneAttemptBudgetBytes": 2395124
+      },
+      {
+        "country": "NG",
+        "kind": "west-africa",
+        "planFingerprint": "4c91945877dc7f4943bc508b63f33b260333593dcb0914072b71b9097bb1854a",
+        "oneAttemptBudgetBytes": 3199140
+      }
+    ],
+    "expiredOctoberLedgerNotCarriedForward": true,
+    "reservationIsNotMeasuredHttpUsage": true,
+    "providerCounterMayLag": true,
+    "newBusinessRecordsPublishedAtReservation": 119917,
+    "backgroundProcessConfigured": false,
+    "quotasChanged": false,
+    "previousLedgerId": "capacity-ledger:20261101:west-africa-reserved-v1",
+    "observedProviderBytes": 92318104,
+    "packageSha256": "73f3cd7c71ae4353790cca9c375089c497504ecdd632732a347c8a313f13c032",
+    "packageBytes": 9814034,
+    "maximumPackageAttempts": 3
+  },
+  "packageVerifiedBytes": 9814034,
+  "quotasChanged": false,
+  "billingEnabled": false
+}

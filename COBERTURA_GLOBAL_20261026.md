@@ -1,5 +1,9 @@
 # Cobertura do Prospect AI — 26/10/2026
 
+> Atualização mais recente: mais 402.090 empresas em RO/IT; total 4.154.339.
+> 9.579 / 152.970 localidades têm cinquenta (6,262%). Auditorias abaixo de 50
+> permanecem separadas. Ver [COBERTURA_RO_IT_20261026.md](COBERTURA_RO_IT_20261026.md).
+
 > Atualização posterior: a continuação francesa acrescentou 344.426 empresas,
 > elevando o catálogo a 3.752.249 empresas após deduplicação. Agora 8.145 das
 > 152.970 localidades atingem cinquenta (5,3246%). Os números abaixo descrevem

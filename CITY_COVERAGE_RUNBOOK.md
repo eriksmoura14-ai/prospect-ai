@@ -1,9 +1,205 @@
 # Cobertura mínima por cidade
 
+## Uma execução para a lista inteira do aplicativo
+
+`catalog-world-sweep.py` percorre **todas as localidades enumeradas pelo mesmo
+módulo `locations.cjs`**, sem argumento para selecionar um subconjunto de países.
+Confere igualdade exata das chaves com o inventário de cobertura. Os 152.970
+locais pertencem a 223 países/territórios com cidades enumeradas e 4.279
+subdivisões com cidades. O seletor completo também oferece países/subdivisões
+sem cidades enumeradas; suas opções manuais não formam uma lista finita adicional.
+
+O comando lê cada partição de empresas uma vez para a lista inteira e os 24
+segmentos. Reutiliza os arquivos brutos com SHA-256 conferido; a opção explícita
+`--read-remote-missing` lê as partições faltantes via HTTPS/Range. Não usa Nominatim
+em massa. Não escreve no catálogo canônico, em contas de clientes ou em produção.
+
+```bash
+.artifacts/venv-catalog/bin/python scripts/catalog-world-sweep.py \
+  --inventory .artifacts/coverage-20261023/inventory.json \
+  --baseline .artifacts/coverage-resume-20261101/final/all-city-coverage.csv \
+  --source-plan .artifacts/world-boundaries-20261026/world-source-plan/country-source-plan.json \
+  --niches .artifacts/coverage-20261023/niches.json \
+  --root .artifacts/all-app-cities-sweep-20261102 \
+  --read-remote-missing
+```
+
+O mesmo comando retoma os checkpoints; não inicia uma coleta mundial contínua.
+É uma execução finita. A chave de cada partição e as observações agregadas são
+gravadas na mesma transação SQLite; interromper uma partição não duplica suas
+linhas na retomada. Inventário, baseline, taxonomia e plano diferentes exigem
+uma raiz diferente. Os resultados de cada local ficam em
+`all-app-cities.ndjson.gz`; `sweep.sqlite` conserva as contagens por partição,
+país, estado publicado, cidade publicada e segmento para investigação posterior.
+
+**Essa etapa descobre evidências; não transforma contagens de fonte em empresas
+únicas confirmadas.** Nomes publicados só geram candidatos quando país, estado
+e nome concordam exatamente e de forma unívoca. Homônimos, estados ausentes,
+territórios sem polígono e ausência de correspondência ficam explícitos. As
+contagens confirmadas anteriores permanecem intactas. A confirmação da meta
+continua exigindo polígono revisado e reconciliação conservadora das empresas.
+Nenhuma correspondência ou fonte completa comprova ausência de empresas.
+
+Cada leitura remota tem prazo de 600 s, orçamento de bytes equivalente ao tamanho
+da partição mais 32 MiB, sem repetição HTTP oculta e com ETag estável. O cache
+em memória tem 16 MiB; a leitura antecipada de até 4 MiB pode conter colunas
+adjacentes e esses bytes entram no recibo. Os SHA-256 são de intervalos, e não
+do arquivo remoto inteiro. Não se acrescenta um arquivo bruto permanente ao acervo.
+Blocos fixos não sobrepostos são mantidos também em scratch temporário de uma
+única partição, com SHA-256 conferido nas releituras. Isso impede que a expulsão
+do cache de memória repita transferências. O scratch preserva 32 MiB livres,
+nunca cresce além dos blocos dessa partição e é removido ao fechar o leitor;
+ele não inclui nem apaga os arquivos do acervo existente.
+429/503 conservam a espera indicada pela fonte e bloqueiam novas tentativas
+durante esse prazo; há no máximo três tentativas remotas incompletas por partição.
+
+O SQLite derivado tem orçamento de 160 MiB, DuckDB usa 192 MiB e uma thread,
+e o processo preserva pelo menos 32 MiB de disco livre. A memória total inclui
+o inventário Python, o cache e outros objetos; 192 MiB não é um limite de RSS.
+Esses controles não elevam quotas do Neon nem habilitam cobranças.
+
+### Runner independente gratuito
+
+`.github/workflows/catalog-world-sweep.yml` executa a mesma varredura em um
+runner público `ubuntu-latest`, sem credencial de banco. Somente um commit
+explicitamente marcado `[run-world-sweep]` na branch do próprio repositório
+inicia a coleta pelo PR; outros commits não repetem a varredura. Há também
+`workflow_dispatch` para quando o arquivo estiver disponível na branch padrão.
+O prazo máximo do job é 90 minutos; não há cron nem coletor mundial contínuo.
+
+`catalog-world-sweep-ci.py` verifica o SHA-256 completo do pacote público de
+cobertura de novembro, extrai somente o CSV autorizado e gera novamente o
+inventário com `locations.cjs`. O plano compacto versionado em `data/` preserva
+as mesmas 223 associações de país e 16 partições; não remove os territórios
+que aguardam revisão de limites. Nenhum catálogo canônico é apagado ou refeito.
+O seed público comprimido versionado em `data/` reutiliza as 780.591 agregações
+das 12 partições já examinadas localmente, com SHA-256, país, categoria, identidade
+de fonte e totais verificados. Ele não contém novas empresas confirmadas nem
+credenciais. A importação é transacional e idempotente: uma partição com o mesmo
+hash não é inserida novamente; um conflito interrompe o importador. Só as quatro
+partições restantes precisam ser consultadas pela rede. O relatório separa
+observações reutilizadas, leituras novas e empresas efetivamente publicadas.
+
+O pacote de resultados é publicado como prerelease `catalog-sweep-RUN_ID`, com
+SHA-256, SQLite retomável, inventário e uma linha de evidência para cada local.
+O artefato do workflow também conserva checkpoints interrompidos por 14 dias.
+O prerelease é a cópia durável; uma coleta com falhas continua identificada
+como parcial no relatório e não comprova a meta de 50. O job não concede
+escrita no banco, não usa contas de clientes e não faz deploy em produção.
+
+Para retomar um pacote já publicado no mesmo código e Node 22, extraí-lo em
+`.artifacts/ci-world-sweep` e executar:
+
+```bash
+.artifacts/venv-catalog/bin/python scripts/catalog-world-sweep-ci.py --root .artifacts/ci-world-sweep
+```
+
+O bootstrap recupera apenas o baseline público conhecido e reproduz o inventário;
+as partições presentes no SQLite são retomadas. Se os inputs não reproduzirem
+os hashes do checkpoint, a execução para e exige outra raiz; não sobrescreve
+a evidência anterior.
+
+O [snapshot de 01/11/2026](COBERTURA_MUNDIAL_20261101.md) registra a retomada
+após conferir a renovação do período gratuito. Avisos de quota de outubro são
+históricos; nunca presumir renovação ou usar o último contador sem reconferir.
+
+## Recuperar espaço sem perder o acervo
+
+`REINDEX INDEX CONCURRENTLY` pode recuperar espaço de índices com crescimento
+por atualizações. Executar um índice por vez, somente após medir os índices e
+conferir espaço para a cópia transitória. Comparar fingerprints de todos os
+países e ativos, contagens de inventário/áreas/tarefas e validade/prontidão dos
+índices antes e depois. Essa manutenção não autoriza excluir registros, trocar
+identidades ou elevar o guard do banco. O recibo de novembro acompanha o pacote.
+
+Um cache DuckDB derivado só pode ser removido quando todos os Parquets originais
+e de distribuição continuarem disponíveis, seus SHA-256 tiverem sido conferidos
+e a igualdade de todas as colunas tiver sido demonstrada por contagem e hashes.
+Preservar os candidatos ainda não publicados. Não apagar fontes ou catálogos
+para abrir espaço. Arquivos canônicos e partições brutas não são caches livres
+para descarte. A remoção verificada de novembro não altera o leitor do backend.
+
+## Sérvia: distritos e nomes publicados
+
+Na release fixada, os polígonos sérvios publicam `RS-VO` ou região vazia,
+enquanto o seletor usa os distritos `RS-01` a `RS-24` e Belgrado `RS-00`.
+Usar a extração completa de hierarquia de `catalog-hierarchy-read.py`, junto
+ao registro estadual fixado, em `catalog-world-boundaries.py --hierarchy ...
+--state-registry ...`. O vínculo exige o nome publicado completo do distrito,
+classe `county`, `admin_level=2`, origem licenciada e todas as cadeias de
+ancestralidade consistentes. O `local_type=municipality` incorreto da fonte
+permanece registrado; a regra revisada usa o nível e o descritor administrativo.
+A província da Voivodina não substitui o distrito selecionado. Belgrado tem
+regra própria de nome/tipo. Conferência administrativa:
+https://stat.gov.rs/en-us/oblasti/registar-prostornih-jedinica-i-gis/administrativno-teritorijalna-podela-i-nstj-nivoi-1-2-3/.
+
+## Bulgária: nomes em cirílico e opções Obshtina
+
+O cruzamento aceita a transliteração oficial de 2009 para o nome primário
+búlgaro e a variante `bg` publicada. Mantém o original e as outras variantes;
+não translitera alfabetos de outros países nem aplica aproximação textual.
+País, estado e âncora dentro do polígono continuam obrigatórios. Autoridade:
+https://www.mrrb.bg/static/media/ups/articles/attachments/TRANSLITERATION%20ACT48938c89238d30492f9d6456d4b8ee7e.pdf.
+
+As opções explicitamente prefixadas `Obshtina` representam municípios.
+Extrair com `catalog-division-read.py --include-counties`; somente essas opções
+podem usar a classe revisada `county/admin_level=2`. O próprio nome sem o
+descritor deve concordar, de forma única, com a fonte no mesmo estado e país,
+e a âncora deve estar dentro do município. Uma cidade comum não usa esse
+limite como alternativa. Quando a cidade estiver inteiramente contida no
+município explicitamente solicitado, ambas as opções podem contar a mesma
+empresa; sua identidade global continua única. A divisão em 28 distritos e
+265 municípios foi conferida no NSI:
+https://www.nsi.bg/en/press-release/administrative-territorial-and-territorial-division-of-the-republic-of-bulgaria-9010.
+
 A meta é 50 empresas únicas por localidade enumerável da aplicação, somando os
 segmentos atuais. O denominador continua sendo 152.970; volume mundial e
 localidades processadas não substituem essa medida. Empresas acima da meta são
 preservadas. A coleta não comprova atividade atual, WhatsApp ou ausência de site.
+
+## Recuperação costeira sem ampliar a área de busca
+
+O mapa de países Natural Earth 1:10m é simplificado e pode excluir pontos
+costeiros válidos. `catalog-coastal-recovery.py` revisita somente os candidatos
+já coletados que ficaram fora desse mapa. Exige país publicado concordante e
+contenção exata em um polígono local previamente revisado. Não aplica buffer,
+raio, cidade vizinha ou geocodificação em massa. Buracos e limites são respeitados.
+
+Fornecer o banco de candidatos, o Parquet normalizado e seu recibo, a raiz
+geográfica publicada e uma raiz nova. O resultado ainda precisa passar por
+`catalog-country.py reconcile`, com **todos os ativos canônicos anteriores do
+país** em `--existing-asset` e a cobertura anterior em `--previous-coverage`.
+Incluir também o snapshot legado. Não somar o ativo original aposentado e seus
+fragmentos de distribuição como se fossem empresas diferentes.
+
+Essa conciliação grava apenas o delta novo, preserva as observações anteriores
+das fontes e aborta se a cobertura canônica anterior não puder ser reproduzida.
+Usar ID/chave novos ao publicar o delta; conservar os arquivos e IDs anteriores.
+O delta derivado e sua prova geográfica são públicos sob ODbL 1.0, preservando
+também as licenças originais por registro. Recuperação geográfica não verifica
+contatos nem atividade atual.
+
+`catalog-local-witness.py` usa o leitor real do aplicativo sobre cópias locais
+com SHA-256 verificado. Seu hash do conjunto de IDs pode ser comparado com
+`catalog-smoke.py --expected-source-sha256` na instância de teste existente.
+
+## Publicação por lotes pequenos
+
+Os manifestos de geometria são validados integralmente antes da escrita e
+gravados em lotes de até 50, limitados a 3 MiB. Cada lote mantém a checagem de
+espaço do banco. Upserts idempotentes e checkpoints permitem retomar uma falha
+sem registrar o mesmo estabelecimento novamente. Em um mesmo arquivo regional,
+agrupar `--country-code` reduz leituras repetidas por país.
+
+Na taxonomia publicada pela Overture, `locality` é um lugar povoado e
+`localadmin` é uma administração que pode conter localidades. Se ambos tiverem
+o nome solicitado, país/subdivisão e âncora já confirmados, uma única locality
+inteiramente contida em todos os localadmins homônimos pode resolver a escolha
+de escopo. Os IDs administrativos alternativos ficam registrados. Localidades
+concorrentes ou limites que se cruzam continuam pendentes. Um vínculo publicado
+anteriormente permanece prioritário enquanto sua identidade e geometria forem
+reproduzidas. Definição da fonte:
+https://docs.overturemaps.org/schema/reference/divisions/types/division_subtype/.
 
 ## Rodadas e retomada
 
@@ -94,6 +290,45 @@ simultâneos. Falha preserva os mecanismos interativos existentes e não signifi
 ausência de empresas. Contatos e dados privados nunca são enviados a esse leitor.
 
 ## Recursos e critérios de encerramento
+
+`catalog-publish-country.py` exige agora `--capacity-config CONFIRMACAO.json`
+antes de qualquer publicação incompleta. A conferência é local e antecede a
+primeira requisição de rede; `--check-only` continua verificando arquivos sem
+rede. Uma retomada já concluída mantém seus checkpoints e ativos.
+
+O JSON de capacidade é público, sem senha. Deve conter `projectId`,
+`planFingerprint`, `observedAtUnix`, `databaseBytes`, `dataTransferBytes`,
+`dataTransferQuotaBytes` e `unreportedTransferBytes`. Use o estado efetivamente
+consultado do projeto `polished-sky-36508370`, não valores inventados. O
+fingerprint é o SHA-256 do plano de publicação e impede reutilizar a mesma
+conferência para outro país/ativo. A conferência expira em uma hora; renovar
+exige consultar cotas novamente. Contadores do provedor podem atrasar: incluir
+em `unreportedTransferBytes` as transferências conhecidas ainda não refletidas,
+inclusive downloads de teste, repetições e outras publicações desde o snapshot.
+
+Reservas acumuladas também ficam em manifestos públicos `capacity-ledger:%`
+no banco de operações. Consultar o manifesto mais recente do mesmo projeto e
+período de consumo antes de preparar outro lote. Seu
+`providerBaselineBytes + cumulativeReservedBytes` é um teto conservador do uso
+já comprometido. Para o novo JSON, usar
+`unreportedTransferBytes = max(0, teto - dataTransferBytes_atual)`.
+Isso preserva a reserva quando o contador continua igual e evita somá-la duas
+vezes quando o provedor já contabilizou o tráfego. Reservas não são medições
+faturáveis; pertencem ao período indicado, sem transportar saldo negativo
+artificialmente para um novo período de consumo.
+
+`catalog-capacity.py --root SAIDA --usage CONFIRMACAO.json --output RELATORIO.json`
+calcula conservadoramente upload e leitura integral de verificação dos arquivos
+ainda pendentes, mais 2 MiB para controle/teste curto. Mantém 50 MiB reservados
+às consultas do aplicativo e 32 MiB no disco local. Respeita o guard de banco
+de 220 MiB e rejeita uma quota declarada acima dos 5 GB gratuitos existentes.
+O publicador continua conferindo o tamanho real do banco antes de cada etapa.
+O relatório não promete que um contador com atraso já inclua todo o tráfego.
+
+`VACUUM (ANALYZE)` comum permite reutilizar páginas de versões mortas após
+atualizações de cobertura. Ele preserva linhas vivas, IDs, índices e geometrias;
+não equivale a apagar o catálogo nem garante reduzir o tamanho físico do banco.
+Não usar `VACUUM FULL`, reconstrução de catálogo ou aumento de quota como atalho.
 
 O limite operacional do banco permanece 220 MiB, abaixo da quota gratuita.
 Não o aumentar para contornar falta de espaço. Conferir disco, quotas atuais,
@@ -199,3 +434,180 @@ O inventário do aplicativo inclui departamentos, localidades antigas e comunas
 sem habitantes. Isso exige revisão explícita: não assumir que toda opção tem
 cinquenta comércios. Registrar fontes, evidência e resultado insuficiente em vez
 de completar a cota com organizações públicas, pontos turísticos ou vizinhos.
+
+
+## Romênia e Itália: hierarquia revisada
+
+Na Romênia, usar os 42 condados ADM1 World Bank (2017) e os municípios ADM2
+ANCPI (2016), ambos publicados por gbOpen sob CC BY 4.0. O conjunto original
+ANCPI em https://data.gov.ro/dataset/unitati-administrative registra
+OGL-ROU-1.0; sua proveniência permanece na atribuição. Vilas de uma comuna não
+herdam automaticamente todas as empresas dessa comuna. Nome, estado e âncora
+precisam concordar com o polígono municipal.
+
+Na Itália, a equivalência revisada é ADM3 = 107 províncias e ADM4 = 7.901
+comuni ISTAT (2023), CC BY 3.0 via gbOpen. ADM1 são macrorregiões e não servem
+como as províncias oferecidas pelo aplicativo. A hierarquia oficial está em
+https://www.istat.it/it/archivio/222527 . O campo canônico `Unknown` desses
+metadados só é aceito no perfil italiano explicitamente revisado. Os aliases
+provinciais publicados em `catalog-country.py` ligam nomes italianos aos nomes
+da lista, sem aproximação por distância. Frações não confirmadas continuam
+pendentes. Reutilizar as regiões Overture 00008/00009 para IT e 00009/00010 para
+RO; não repetir downloads por cidade.
+
+## Auditorias documentadas abaixo de 50
+
+Uma localidade com menos de 50 empresas nunca entra em `min50`, nem sai do
+denominador completo. A decisão autorizada é registrar casos excepcionais como
+`audited_below_target`, separadamente de `target_met`. O operador
+`scripts/catalog-review.py --root DIRETORIO` recebe pela entrada padrão
+`{url,reviews}`; a credencial é exclusivamente do catálogo público isolado.
+
+Exigir limite confirmado, contagem atual e duas fontes independentes bem
+sucedidas: catálogo comercial e cadastro oficial empresarial. Para localidade
+sem habitantes, também exigir cadastro oficial de população zero. Unidades
+legais não equivalem a estabelecimentos: esse limite permanece explícito e o
+perfil sem habitantes não vale para qualquer município pequeno. Uma falha,
+HTTP 429 ou catálogo vazio isolado não autoriza uma exceção. As fontes não são
+declaradas esgotadas. Revisões anteriores ficam preservadas por hash.
+
+A revisão vence em 30 dias, ou sete se alguma fonte complementar falhou. Novos
+dados, mudança da contagem ou da versão geográfica a invalidam. `queue` reabre
+essas condições as tarefas encerradas por revisão e `claim` não seleciona uma
+exceção ainda válida. Execute `queue` antes de retomar a fila. A auditoria
+completa informa `audited_below_target`, `remaining_unaudited` e as datas no CSV;
+`percent_min50` continua usando todas as 152.970 localidades. Não há worker
+mundial automático configurado.
+
+## Complementação QLever com limite oficial
+
+A busca interativa agora pode consultar OSM/QLever a partir de um polígono
+licenciado sem inventar um ID de relação OSM. O identificador `urn:prospect:area`
+é apenas um marcador de correlação da consulta. A seleção inicial usa o
+retângulo do polígono e o adaptador filtra o resultado pelo polígono inteiro,
+incluindo buracos. Os IDs dos estabelecimentos permanecem os originais OSM.
+QLever, Overpass e Geofabrik do mesmo objeto não são empresas diferentes.
+
+Permanecem os limites existentes: 45 segundos, seis MiB de resposta, 500
+candidatos e retângulo máximo de dois graus de latitude por três de longitude.
+Áreas maiores exigem recorte regional revisado; não são trocadas por raio ou
+cidade vizinha. Truncamento e indisponibilidade são explícitos. O catálogo
+existente é consultado primeiro. Essa correção do código não significa que as
+152.970 cidades já foram consultadas ou que todos os resultados OSM sejam novos.
+
+## Limites Overture globais, consulta regional e retomada
+
+O adaptador `catalog-world-boundaries.py` usa a release 2026-10-21.0 do tema
+Overture divisions, publicada sob ODbL 1.0, derivada de OpenStreetMap e
+geoBoundaries. Conservar a atribuição e as licenças por feição; os contornos e
+contagens derivados são ODbL. Os registros comerciais Overture independentes
+continuam com suas proveniências e licenças originais.
+
+`catalog-division-read.py` consulta **uma** partição e um país por execução,
+filtrando `locality`/`localadmin`, país e `is_territorial=true`. A consulta usa
+um gateway local de intervalos; as requisições públicas mantêm proxy e TLS.
+Limites: 128 MiB novos por execução, 180 segundos, 512 MiB de DuckDB e no máximo
+32 MiB por intervalo. Não baixa todas as partições mundiais. Fragmentos ficam
+com URL e SHA-256 para retomada; `--offline` só usa intervalos já verificados.
+`--metadata` expõe os grupos físicos, e `--first-row`/`--last-row` permitem
+recuperar grupos completos já armazenados sem chamadas externas. A segmentação
+física não altera limites geográficos nem autoriza empresas vizinhas.
+
+O cruzamento exige país, ISO 3166-2 correspondente à subdivisão do seletor,
+nome primário/comum normalizado exato e âncora dentro do polígono. Ambiguidades,
+polígonos fora do orçamento e fontes não revisadas permanecem pendentes.
+Não usa condados como se fossem cidades. A auditoria completa anterior é
+obrigatória: um país com cruzamento já confirmado exige mesclagem explícita;
+o adaptador não pode sobrescrevê-lo com a nova fonte.
+
+```sh
+python scripts/catalog-division-read.py --root SAIDA_DIV --assets SAIDA_DIV/assets.json --asset 00003 --country DE
+python scripts/catalog-world-boundaries.py --root SAIDA_DE --inventory INVENTARIO/inventory.json --coverage-audit AUDITORIA/all-city-coverage.csv --country DE --region SAIDA_DIV/DE-00002.parquet --region SAIDA_DIV/DE-00003.parquet
+```
+
+Os extratos novos usam grupos Parquet de 2.048 registros para limitar a memória
+na leitura de polígonos grandes. Se um extrato antigo tiver grupo excessivo,
+reparticioná-lo em outro arquivo, verificar todos os campos por agregados de
+hashes e conservar o original e seu recibo. Não elevar o limite de memória para
+ignorar a falha. Falhas do túnel do ambiente são separadas de erros das fontes;
+nenhuma delas equivale a uma cidade vazia.
+
+A fila materializa até 250 novas tarefas por chamada, com até 50.000 ativas e
+margem conservadora de 4 KiB por nova tarefa dentro dos 220 MiB operacionais.
+As demais cidades continuam no inventário persistente; tarefas existentes não
+são apagadas. Repetir `queue` ao consumir a fila, não criar outra cópia de todo o
+inventário. Uma recontagem geográfica preserva o Parquet imutável descrito em
+`published-asset.json`: mudança em qualquer campo exige publicação separada.
+
+Antes de selecionar extratos de empresas, executar `catalog-source-plan.py
+--countries .artifacts/catalog-million-20261023/countries-natural-earth.geojson
+--stac .cache/overture/2026-10-21.0-places-stac.json --country NL --country BE
+--root SAIDA`. O plano cruza todos os polígonos do país com todas as partições,
+incluindo fragmentos separados. Não selecionar apenas o extrato da capital ou
+uma faixa de latitude: isso omitia a parte oeste dos Países Baixos e da Bélgica.
+O comando não baixa empresas; lista arquivos já disponíveis para reutilização.
+Conferir os hashes dos arquivos em cache antes de normalizá-los. Os territórios
+continuam sujeitos ao código de país publicado e à revisão de limites; a
+interseção do plano não autoriza reclassificá-los. Partições consultadas não
+comprovam cobertura completa de empresas.
+
+Durante indisponibilidade da rede do executor, `catalog-division-read.py
+--root RAIZ --assets assets.json --asset 00003 --country PL --cached-plan`
+inspeciona exclusivamente os intervalos já salvos e verificados. Ele lista
+janelas cujas colunas estão em cache. A leitura real com `--offline
+--first-row INICIO --last-row FIM` ainda é obrigatória: buffers do leitor
+podem precisar de intervalos adicionais. Uma falha informa os bytes ausentes,
+não baixa automaticamente e não significa que a região não tenha empresas.
+Os arquivos concluídos usam nomes separados por janela e preservam a origem.
+
+Para ampliar um país já publicado, conservar o diretório anterior e fornecer
+`--merge-existing DIRETORIO_ANTERIOR` ao `catalog-world-boundaries.py`.
+Todos os vínculos anteriores devem reaparecer com a mesma identidade e o mesmo
+polígono, ainda atendendo país, estado, nome e coordenadas. Uma fonte nova que
+produza outra candidatura não substitui automaticamente esse vínculo. Fonte ou
+geometria conflitante interrompe a preparação. Guardar os relatórios anteriores
+em histórico e executar novamente a conciliação: o Parquet publicado fica
+byte a byte igual quando os registros não mudam.
+
+### Publicação retomável de um país preparado
+
+`catalog-publish-country.py` aceita seletores de arquivos privados, não valores
+de credenciais na linha de comando. Executa um único país, com trava local,
+limite de 220 MiB no banco e verificação do conteúdo antes da ativação. Exemplo
+exato desta rodada, idempotente quando concluído:
+
+```bash
+.artifacts/venv-catalog/bin/python scripts/catalog-publish-country.py \
+  --root .artifacts/city-coverage-austria-v4-20261026 \
+  --database-config .env.coverage-operations \
+  --asset-config .env.austria-v4-asset-upload \
+  --geometry-config .env.austria-v4-geometry-upload
+```
+
+Acrescentar `--check-only` verifica arquivos, país, hashes e os destinos
+assinados sem acesso à rede. As URLs de upload, obtidas pelo conector Neon,
+expiram: renovar pelo mesmo projeto/bucket/chaves quando houver etapas de
+upload pendentes; não publicar esses arquivos privados no Git ou nos pacotes.
+O comando reconhece um objeto que já foi enviado e verifica seu SHA-256,
+sem sobrescrevê-lo. `publication-checkpoint.json` guarda as etapas terminadas;
+falhas de rede deixam o país retomável. Não há repetição automática ilimitada.
+
+Quando só a cobertura geográfica mudou, conservar o ativo comercial e usar
+`--geography-only`. O comando exige o ativo congelado e registrado, verifica
+seu hash, publica novas geometrias e contagens, e cria um checkpoint separado
+por hash. Não reenviar nem registrar novamente as mesmas empresas.
+
+Nos testes reais, executar `catalog-smoke.py` em série: o serviço gratuito
+limita o leitor de arquivos a uma consulta simultânea. Contagens certificadas
+podem ser menores que os registros dentro de um polígono quando há sobreposição
+entre áreas administrativas. Não aumentar a certificação automaticamente:
+registrar o motivo e comparar a lista exata de IDs da aplicação com a extração
+local usando `--expected-source-sha256`. O teste grava a evidência também
+quando uma comparação falha.
+
+Para geometrias novas, `catalog-geometry-upload.py` aceita `gzip:true` no JSON
+privado de entrada. Preserva os bytes e SHA-256 do JSON descomprimido no manifesto
+e grava o objeto com `Content-Encoding:gzip`. Requests e o fetch Node decodificam
+o transporte; a validação continua usando tamanho e hash descomprimidos. Um
+objeto real foi verificado pelos dois clientes antes de habilitar essa opção.
+Os hashes/geometrias antigos e os limites do leitor permanecem válidos.

@@ -11,13 +11,19 @@ def hits(cities,bounds):
  w,s,e,n=bounds
  return ((cities[:,0]<=e)&(cities[:,2]>=w)&(cities[:,1]<=n)&(cities[:,3]>=s)).astype(np.int16)
 
-def plan(points,codes,cities,target=25000,maximum=8):
+def plan(points,codes,cities,target=25000,maximum=8,occupied=None):
  """Morton intervals are disjoint. Stop subdividing before a known app city's
  bbox would require more files than the existing eight-file reader budget."""
  cities=np.asarray(cities,dtype=float).reshape((-1,4))
  def bounds(a,b):
   p=points[a:b];return [float(p[:,0].min()),float(p[:,1].min()),float(p[:,0].max()),float(p[:,1].max())]
- root={'start':0,'end':len(points),'bounds':bounds(0,len(points))};counts=hits(cities,root['bounds']);queue=[(-len(points),0,root)];leaves=[];sequence=0
+ root={'start':0,'end':len(points),'bounds':bounds(0,len(points))};counts=hits(cities,root['bounds'])
+ if occupied is not None:
+  occupied=np.asarray(occupied,dtype=np.int16)
+  if occupied.shape!=counts.shape or np.any(occupied<0):raise ValueError('invalid_existing_serving_occupancy')
+  counts=counts+occupied
+ if len(counts) and counts.max()>maximum:raise RuntimeError('initial_serving_partition_exceeds_budget')
+ queue=[(-len(points),0,root)];leaves=[];sequence=0
  while queue:
   _,_,node=heapq.heappop(queue);a,b=node['start'],node['end']
   if b-a<=target:leaves.append(node);continue
