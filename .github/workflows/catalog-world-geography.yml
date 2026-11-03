@@ -94,6 +94,9 @@ jobs:
         run: |
           shopt -s nullglob
           gh release create "catalog-geography-$GEOGRAPHY_RUN_ID" \
+            .artifacts/ci-world-ingest/business-bundle-*.zip \
+            .artifacts/ci-world-ingest/publication.json \
+            .artifacts/ci-world-ingest/final-business-report.json \
             .artifacts/ci-world-ingest/geometry-bundle-*.zip \
             .artifacts/ci-world-ingest/geometry-publication.json \
             .artifacts/ci-world-ingest/geography-bundles.json \

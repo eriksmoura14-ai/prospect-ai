@@ -77,6 +77,17 @@ class FullBusinessImport(unittest.TestCase):
         self.assertEqual(publication['bundles'][0]['sha256'], m.sha(Path(self.temp.name) / publication['bundles'][0]['file']))
         self.assertFalse(publication['credentialsIncluded'])
 
+    def test_small_country_export_uses_one_file_without_losing_faraway_branches(self):
+        for sid,lon in [('west',-48.),('east',-40.)]:
+            row=self.row(sid)
+            row.update(longitude=lon,category_hierarchy=['cafe'],phones=[],websites=[],website='')
+            self.index.accept(row)
+        self.index.db.commit()
+        assets=m.export_assets(self.index,Path(self.temp.name),compact=True)
+        self.assertEqual(len(assets),1)
+        self.assertEqual(assets[0]['records'],2)
+        self.assertEqual(assets[0]['bounds'],[-48.,-18.9,-40.,-18.9])
+
 
 if __name__ == '__main__':
     unittest.main()

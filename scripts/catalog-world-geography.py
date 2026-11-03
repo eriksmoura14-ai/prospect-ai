@@ -280,6 +280,21 @@ def coverage(index, root, folder, cities):
                 for aid in w.policy.confirmed_admin_ids(matches, by_id):
                     if aid in only:
                         counter[aid] += 1
+        promoted = 0
+        with index.db:
+            pending = index.db.execute('SELECT identity,payload FROM pending WHERE country=?', (cc,)).fetchall()
+            for ident,payload in pending:
+                row = json.loads(payload)
+                point = shapely.Point(row['longitude'],row['latitude'])
+                matches = [areas[int(j)] for j in tree.query(point,predicate='intersects')]
+                accepted = w.policy.confirmed_admin_ids(matches,by_id)
+                if not accepted:
+                    continue
+                row['location_verification'] = 'source_country_and_reviewed_territorial_city_polygon'
+                row['verified_area_ids'] = accepted
+                _,outcome = index.accept(row)
+                promoted += outcome=='new_unique'
+                index.db.execute('DELETE FROM pending WHERE identity=?',(ident,))
         if new_ids.intersection(by_id):
             cursor = index.db.execute('SELECT latitude,longitude FROM roots WHERE country=?', (cc,))
             while batch := cursor.fetchmany(2000):
@@ -288,6 +303,7 @@ def coverage(index, root, folder, cities):
         while batch := cursor.fetchmany(2000):
             assign(batch, deltas, set(by_id)-new_ids)
         country_stats[cc] = {'newConfirmedCityScopes': sum(cities[k]['countryCode']==cc for k in new_keys),
+            'newCoastalRecordsConfirmedByCityPolygons': promoted,
             'newUniqueBusinessesAssignedToExistingScopes': sum(deltas[a] for a in by_id),
             'businessesInNewScopes': sum(totals[a] for a in by_id)}
         print(json.dumps({'stage': 'polygon_membership', 'country': cc, **country_stats[cc]}), flush=True)
@@ -352,6 +368,15 @@ def main():
     report['sourceErrors'] = errors
     report['geometryBytes'] = sum(v['bytes'] for v in uploads)
     w.save(root/'geography-report.json', report)
+    assets = w.export_assets(index,root,compact=True)
+    business_report = json.loads((root/'report.json').read_text())
+    new_count = sum(asset['records'] for asset in assets)
+    business_report.update(newUniqueBusinesses=new_count,totalUniqueBusinessesConservative=5693290+new_count,
+        businessBytes=sum(asset['bytes'] for asset in assets),assets=len(assets),geographicReport='geography-report.json',
+        cityGeographicValidationPending=False,coverageAfterMet50=report['met50'],
+        newCountries=dict(index.db.execute('SELECT country,count(*) FROM additions GROUP BY country')))
+    w.save(root/'final-business-report.json',business_report)
+    w.package(root,assets,business_report)
     # Small bundles can be validated and published on the 175MB interactive
     # workspace. Never require a world-sized download on the production host.
     bundles, batch, used = [], [], 0

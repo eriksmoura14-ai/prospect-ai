@@ -316,7 +316,7 @@ def scan_part(index, part, groups, countries, allowed, root):
         transport.close()
 
 
-def export_assets(index, root):
+def export_assets(index, root, compact=False):
     output = root / 'businesses'
     output.mkdir(exist_ok=True)
     c = duckdb.connect(config={'memory_limit': '256MB', 'threads': '1'})
@@ -329,6 +329,30 @@ def export_assets(index, root):
             for (payload,) in index.db.execute('SELECT payload FROM additions WHERE country=? ORDER BY root', (cc,)):
                 out.write(payload + '\n')
         c.execute('CREATE OR REPLACE TEMP TABLE country_records AS SELECT *,floor(longitude/4)::INT AS tile_x,floor(latitude/4)::INT AS tile_y FROM read_json_auto(?,maximum_object_size=65536,sample_size=-1)', [str(temporary)])
+        if compact:
+            # Most countries fit one small file. This avoids thousands of
+            # mostly empty spatial shards and leaves the reader's eight-file
+            # guard intact. Large countries retain bounded spatial shards.
+            candidate = output / (cc + '-country.parquet')
+            if candidate.exists():
+                candidate.unlink()
+            target = "'" + str(candidate).replace("'", "''") + "'"
+            c.execute('COPY (SELECT * EXCLUDE(tile_x,tile_y) FROM country_records ORDER BY source_id) TO ' + target + ' (FORMAT PARQUET,COMPRESSION ZSTD,ROW_GROUP_SIZE 10000)')
+            if candidate.stat().st_size <= MAX_FILE:
+                count, west, south, east, north = c.execute('SELECT count(*),min(longitude),min(latitude),max(longitude),max(latitude) FROM read_parquet(?)', [str(candidate)]).fetchone()
+                size, digest = candidate.stat().st_size, sha(candidate)
+                if used + size > MAX_OUTPUT:
+                    raise RuntimeError('world_output_free_storage_budget_checkpoint_preserved')
+                key = f'snapshots/20261103/world-v1/{cc}-country-{digest[:16]}.parquet'
+                manifests.append({'id': 'world-v1-' + cc.lower() + '-' + digest[:24], 'file': candidate.name, 'key': key,
+                    'url': ORIGIN + key, 'sha256': digest, 'bytes': size, 'records': count, 'countries': [cc],
+                    'bounds': [west,south,east,north], 'source': 'overture', 'release': RELEASE,
+                    'license': {'id':'ODbL-1.0 AND CDLA-Permissive-2.0 AND Apache-2.0 AND CC0-1.0',
+                        'attribution':'© OpenStreetMap contributors; Overture Maps Foundation; per-record original provenance retained'}})
+                used += size
+                temporary.unlink()
+                continue
+            candidate.unlink()
         for x, y, n in c.execute('SELECT tile_x,tile_y,count(*) FROM country_records GROUP BY 1,2 ORDER BY 1,2').fetchall():
             for offset in range(0, n, 50000):
                 file = output / f'{cc}-{x}-{y}-{offset//50000}.parquet'
