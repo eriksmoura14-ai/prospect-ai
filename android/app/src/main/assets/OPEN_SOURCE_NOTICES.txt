@@ -1,0 +1,12 @@
+Prospect AI for Android uses AndroidX Activity, WebKit and their AndroidX
+dependencies, copyright The Android Open Source Project, and Kotlin standard
+library dependencies, copyright JetBrains s.r.o. and Kotlin Programming Language
+contributors. These libraries are distributed under the Apache License 2.0,
+provided alongside this notice in APACHE-2.0.txt.
+
+AndroidX source: https://cs.android.com/androidx/platform/frameworks/support
+Kotlin source: https://github.com/JetBrains/kotlin
+
+The application's online business records and maps keep the source-specific
+attributions displayed by the Prospect AI SaaS. These records are not embedded
+in this Android package. The SaaS privacy notice remains accessible in the app.
