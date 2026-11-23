@@ -64,7 +64,11 @@ test('OSM archive keeps provenance, contacts and unverified status without an Ov
 test('OSM archive accepts the existing 400-character display limit while retaining the published name',()=>{
  const {archiveRecord}=require('../discovery/catalog-archive.cjs');const name='Bäckerei '+ 'a'.repeat(450);const raw={source:'qlever',source_id:'way/124',country_code:'US',name:name.slice(0,400),latitude:1,longitude:1,license_id:'ODbL-1.0',osm_tags:JSON.stringify({name,shop:'bakery'}),provenance:[{source:'qlever',sourceId:'way/124',license:{id:'ODbL-1.0'}}]};assert.equal(archiveRecord(raw,area,'Padarias').name,name.slice(0,400));
 });
-test('German area resolution applies the municipal archive policy before native region aliases',async()=>{
- const ids=[];const archive=createArchive({databaseUrl:'postgresql://reader:fixture@fixture.neon.tech/catalog',python:'python',fetchImpl:async(url,options)=>{const input=JSON.parse(options.body);assert.doesNotMatch(input.query,/JOIN catalog_admin_areas/);ids.push(input.params[0]);return {ok:true,json:async()=>({rows:[]})};}});
- assert.equal(await archive.resolveArea({countryCode:'DE',stateCode:'RP',cityId:24545,cityName:'Cochem'}),null);assert.deepEqual(ids,['geometry-municipal-v2:DE:RP','geometry-v1:DE:RP']);
+test('German resolution retains the native fallback when no municipal audit exists',async()=>{
+ const ids=[];let native=0;const archive=createArchive({databaseUrl:'postgresql://reader:fixture@fixture.neon.tech/catalog',python:'python',fetchImpl:async(url,options)=>{const input=JSON.parse(options.body);if(input.query.includes('JOIN catalog_admin_areas'))native++;else ids.push(input.params[0]);return {ok:true,json:async()=>({rows:[]})};}});
+ assert.equal(await archive.resolveArea({countryCode:'DE',stateCode:'RP',cityId:24545,cityName:'Cochem'}),null);assert.deepEqual(ids,['geometry-municipal-v2:DE:RP','geometry-v1:DE:RP']);assert.equal(native,1);
+});
+test('an audited German state cannot fall back to a larger native region for a pending identity',async()=>{
+ const archive=createArchive({databaseUrl:'postgresql://reader:fixture@fixture.neon.tech/catalog',python:'python',fetchImpl:async(url,options)=>{const input=JSON.parse(options.body);assert.doesNotMatch(input.query,/JOIN catalog_admin_areas/);assert.deepEqual(input.params,['geometry-municipal-v2:DE:RP']);return {ok:true,json:async()=>({rows:[{payload:{version:1,countryCode:'DE',stateCode:'RP',municipalIdentityVerified:true,municipalIdentities:{},parts:[]}}]})};}});
+ assert.equal(await archive.resolveArea({countryCode:'DE',stateCode:'RP',cityId:24545,cityName:'Cochem'}),null);
 });

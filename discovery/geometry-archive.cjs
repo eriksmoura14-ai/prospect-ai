@@ -33,15 +33,22 @@ function createGeometryArchive({sql,fetchImpl=fetch,origin}) {
   })();pending.set(cacheKey,promise);
   try{return await promise;}finally{pending.delete(cacheKey);}
  }
- async function resolve(selection) {
+ async function municipalManifest(selection) {
+  if(selection.countryCode!=="DE"||!Number.isSafeInteger(selection.cityId))return null;
+  const rows=await sql("SELECT payload FROM catalog_manifests WHERE id=$1",["geometry-municipal-v2:DE:"+selection.stateCode]);
+  if(rows.length===0)return null;
+  if(rows.length!==1||!rows[0].payload||typeof rows[0].payload!=="object")throw fail();
+  return rows[0].payload;
+ }
+ async function resolve(selection,options={}) {
   if(!Number.isSafeInteger(selection.cityId))return null;
   // A reviewed German municipality takes precedence over a cartographic
   // locality with the same name. Missing identities in an audited state must
   // stay unresolved instead of falling back to a larger neighbouring region.
   let rows=[],strict=false;
   if(selection.countryCode==="DE"){
-   rows=await sql("SELECT payload FROM catalog_manifests WHERE id=$1",["geometry-municipal-v2:DE:"+selection.stateCode]);
-   strict=rows.length>0;
+   const manifest=Object.hasOwn(options,"municipalManifest")?options.municipalManifest:await municipalManifest(selection);
+   if(manifest){rows=[{payload:manifest}];strict=true;}
   }
   if(!strict)rows=await sql("SELECT payload FROM catalog_manifests WHERE id=$1",["geometry-v1:"+selection.countryCode+":"+selection.stateCode]);
   if(rows.length!==1)return null;const m=rows[0].payload;
@@ -63,6 +70,6 @@ function createGeometryArchive({sql,fetchImpl=fetch,origin}) {
   if(row.country_code!==selection.countryCode||row.city_key!==[selection.countryCode,selection.stateCode,selection.cityId].join(":")||geo.normalize(row.name)!==geo.normalize(selection.cityName)||!/^[a-f0-9]{64}$/.test(row.area_key)||!row.geometry||!row.license?.id)throw fail();
   return strict?{...row,kind:"municipality",municipalAGS:approval.AGS,municipalBoundarySource:approval.source}:row;
  }
- return {resolve};
+ return {resolve,municipalManifest};
 }
 module.exports={createGeometryArchive};

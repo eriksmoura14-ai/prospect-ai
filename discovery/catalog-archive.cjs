@@ -29,12 +29,13 @@ function createArchive({databaseUrl,python,fetchImpl=fetch,reader=read}={}) {
  const geometryArchive=require("./geometry-archive.cjs").createGeometryArchive({sql,fetchImpl,origin:ORIGIN});
  async function resolveArea(selection) {
   if(!selection?.countryCode||!selection.stateCode)return null;
-  // Germany has no native area rows in the preserved baseline. Its reviewed
-  // municipal archive must stay authoritative over a future same-name region.
-  const rows=selection.countryCode==="DE"?[]:await sql(`SELECT c.name,c.country_code,c.state_name,c.city_key,c.association_status,c.unique_supported,a.id,a.kind,a.source,a.vintage,a.license,a.bounds,a.area_key,ST_AsGeoJSON(a.geom,15,0)::jsonb AS geometry
+  // A published municipal audit outranks a same-name native region. Until an
+  // audit exists, preserve the existing native-area and interactive flow.
+  const municipal=selection.countryCode==="DE"?await geometryArchive.municipalManifest(selection):null;
+  const rows=municipal?[]:await sql(`SELECT c.name,c.country_code,c.state_name,c.city_key,c.association_status,c.unique_supported,a.id,a.kind,a.source,a.vintage,a.license,a.bounds,a.area_key,ST_AsGeoJSON(a.geom,15,0)::jsonb AS geometry
    FROM catalog_city_inventory c JOIN catalog_admin_areas a ON a.id=c.admin_id WHERE c.country_code=$1 AND c.state_code=$2 AND ($3::bigint IS NOT NULL AND c.city_id=$3 OR $3::bigint IS NULL AND c.normalized_name=$4) LIMIT 2`,[selection.countryCode,selection.stateCode,Number.isSafeInteger(selection.cityId)?selection.cityId:null,geo.normalize(selection.cityName)]);
   if(rows.length>1)return null;
-  const row=rows.length===1?rows[0]:await geometryArchive.resolve(selection);
+  const row=rows.length===1?rows[0]:await geometryArchive.resolve(selection,{municipalManifest:municipal});
   if(!row)return null;
   const place={name:row.name,display_name:[row.name,row.state_name,row.country_code].join(", "),osm_type:"external",osm_id:row.id,boundingbox:row.bounds,geojson:row.geometry,address:{country_code:row.country_code.toLowerCase(),state:row.state_name}};
   const area=geo.area(place,{countryCode:row.country_code,cityName:row.name,stateName:row.state_name});

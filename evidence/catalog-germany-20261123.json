@@ -269,8 +269,8 @@
     "plannedObjectPutAndVerificationBytes": 143978726
   },
   "automatedTests": {
-    "nodeTotal": 329,
-    "nodePassed": 326,
+    "nodeTotal": 330,
+    "nodePassed": 327,
     "nodeSkipped": 3,
     "nodeFailed": 0,
     "pythonPassed": 158,
@@ -666,7 +666,9 @@
     "uncompressedSourceBytes": 3018052431,
     "credentialsIncluded": false,
     "customerDataIncluded": false,
-    "publicationState": "prepared_locally_optional_full_sqlite_backup"
+    "publicationState": "local_full_sqlite_backup; compact_resume_package_and_all_catalog_assets_durable_in_Neon",
+    "githubBinaryUploadHTTP": 401,
+    "githubDraftReleaseId": 455832451
   },
   "backgroundProcessConfigured": false,
   "paidServicesEnabled": false,
@@ -761,6 +763,31 @@
         "overture"
       ],
       "elapsedMs": 6449,
+      "productionDataActivated": false
+    }
+  ],
+  "remoteCatalogPolicyRetest": [
+    {
+      "city": "Cochem",
+      "niche": "Padarias",
+      "environment": "local reviewed backend; real remote SQL metadata and hash-verified remote municipal geometry; real Parquet cache matching durable assets; staging selected only in read-only test transport",
+      "rows": 11,
+      "metrics": {
+        "raw": 11,
+        "unique": 11,
+        "withPhone": 7,
+        "withWebsite": 7,
+        "withAddress": 10,
+        "validLocation": 11,
+        "elapsedMs": 1928,
+        "cacheHit": true,
+        "archive": true
+      },
+      "sources": [
+        "qlever",
+        "overture"
+      ],
+      "elapsedMs": 2552,
       "productionDataActivated": false
     }
   ]
