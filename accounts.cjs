@@ -66,10 +66,11 @@ function createStore({ databaseUrl, encryptionKey, local = false }) {
   const cleanup = async client => {
     await client.query("DELETE FROM prospect_sessions WHERE expires_at <= now()");
     await client.query("DELETE FROM prospect_email_tokens WHERE expires_at <= now()");
+    await client.query("DELETE FROM prospect_google_flows WHERE expires_at <= now()");
     await client.query("DELETE FROM prospect_rate_limits WHERE window_end <= now()");
     await client.query("DELETE FROM prospect_searches WHERE expires_at <= now()");
   };
-  const profile = row => ({ id: row.id,
+  const profile = row => ({ id: row.id, hasPassword: row.password_hash.startsWith("scrypt$"),
     ...cipher.decrypt(row.profile_encrypted, `profile:${row.id}`),
     preferences: cipher.decrypt(row.preferences_encrypted, `preferences:${row.id}`) });
   const emailHash = email => cipher.mac("gmail", email);
@@ -84,9 +85,9 @@ function createStore({ databaseUrl, encryptionKey, local = false }) {
     } catch (error) { await client.query("ROLLBACK"); throw error; }
     finally { client.release(); }
   };
-  const insertSession = async (client, id, token, previousToken) => {
+  const insertSession = async (client, id, token, previousToken, method = "password") => {
     if (previousToken) await client.query("DELETE FROM prospect_sessions WHERE token_hash=$1", [hash(previousToken)]);
-    await client.query("INSERT INTO prospect_sessions(token_hash,account_id,expires_at) VALUES($1,$2,now()+interval '7 days')", [hash(token), id]);
+    await client.query("INSERT INTO prospect_sessions(token_hash,account_id,expires_at,auth_method) VALUES($1,$2,now()+interval '7 days',$3)", [hash(token), id, method]);
     await client.query("DELETE FROM prospect_sessions WHERE account_id=$1 AND token_hash IN (SELECT token_hash FROM prospect_sessions WHERE account_id=$1 ORDER BY created_at DESC OFFSET 5)", [id]);
   };
   let cleanedAt = 0;
@@ -173,10 +174,42 @@ function createStore({ databaseUrl, encryptionKey, local = false }) {
         return profile(account);
       });
     },
+    async issueGoogleFlow(state, browser, payload) {
+      await maintain();
+      await pool.query("INSERT INTO prospect_google_flows(state_hash,browser_hash,payload_encrypted,expires_at) VALUES($1,$2,$3,now()+interval '10 minutes')", [hash(state), hash(browser), cipher.encrypt(payload, `google-flow:${hash(state)}`)]);
+    },
+    async consumeGoogleFlow(state, browser) {
+      await ready();
+      const {rows} = await pool.query("DELETE FROM prospect_google_flows WHERE state_hash=$1 AND browser_hash=$2 AND expires_at>now() RETURNING payload_encrypted", [hash(state), hash(browser)]);
+      return rows[0] ? cipher.decrypt(rows[0].payload_encrypted, `google-flow:${hash(state)}`) : null;
+    },
+    async signInGoogle(email, subject, token, previousToken, expectedAccountId) {
+      return transaction(async client => {
+        const subjectHash = cipher.mac("google-subject", subject), owner = emailHash(email);
+        await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", ["google:"+subjectHash]);
+        await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [owner]);
+        const linked = (await client.query("SELECT account_id FROM prospect_google_identities WHERE subject_hash=$1", [subjectHash])).rows[0];
+        let account = (await client.query("SELECT * FROM prospect_accounts WHERE email_hash=$1 FOR UPDATE", [owner])).rows[0];
+        if (linked && (!account || linked.account_id !== account.id) || expectedAccountId && account?.id !== expectedAccountId) return null;
+        if (account) {
+          if (!account.email_verified_at) return null;
+          const other = (await client.query("SELECT subject_hash FROM prospect_google_identities WHERE account_id=$1", [account.id])).rows[0];
+          if (other && other.subject_hash !== subjectHash) return null;
+        } else {
+          const id = crypto.randomUUID();
+          account = (await client.query("INSERT INTO prospect_accounts(id,email_hash,password_hash,profile_encrypted,preferences_encrypted) VALUES($1,$2,$3,$4,$5) RETURNING *", [id, owner, "google-only$"+crypto.randomBytes(32).toString("hex"), cipher.encrypt({email}, `profile:${id}`), cipher.encrypt({}, `preferences:${id}`)])).rows[0];
+          await client.query("DELETE FROM prospect_email_tokens WHERE email_hash=$1", [owner]);
+        }
+        await client.query("INSERT INTO prospect_google_identities(subject_hash,account_id) VALUES($1,$2) ON CONFLICT(subject_hash) DO NOTHING", [subjectHash, account.id]);
+        await insertSession(client, account.id, token, previousToken, "google");
+        await client.query("UPDATE prospect_accounts SET last_login_at=now() WHERE id=$1", [account.id]);
+        return profile(account);
+      });
+    },
     async session(token) {
       await ready();
-      const { rows } = await pool.query("SELECT a.* FROM prospect_sessions s JOIN prospect_accounts a ON a.id=s.account_id WHERE s.token_hash=$1 AND s.expires_at>now()", [hash(token)]);
-      return rows[0] ? profile(rows[0]) : null;
+      const { rows } = await pool.query("SELECT a.*,s.auth_method,s.created_at AS authenticated_at FROM prospect_sessions s JOIN prospect_accounts a ON a.id=s.account_id WHERE s.token_hash=$1 AND s.expires_at>now()", [hash(token)]);
+      return rows[0] ? {...profile(rows[0]), authenticationMethod: rows[0].auth_method, authenticatedAt: rows[0].authenticated_at} : null;
     },
     async logout(token) { await ready(); await pool.query("DELETE FROM prospect_sessions WHERE token_hash=$1", [hash(token)]); },
     async preferences(id, value) {

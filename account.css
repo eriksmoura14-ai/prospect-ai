@@ -26,3 +26,11 @@
   #login-panel { margin: 38px 0; padding: 24px; }
   #account-controls summary { max-width: 175px; font-size: 11px; }
 }
+
+.google-access { display:grid; gap:.75rem; margin:1.2rem 0; max-width:38rem; }
+.google-access[hidden],.google-login[hidden] { display:none; }
+.google-login { display:flex; align-items:center; justify-content:center; gap:.7rem; min-height:46px; width:100%; border:1px solid #d8dce4; border-radius:10px; background:#fff; color:#1f2430; font:inherit; font-weight:600; font-size:.95rem; cursor:pointer; padding:.75rem 1rem; transition:box-shadow .18s,background .18s; }
+.google-login:hover { background:#f3f6ff; box-shadow:0 0 0 3px rgba(66,133,244,.18); }
+.google-login:focus-visible { outline:3px solid #4285f4; outline-offset:3px; }
+.google-login:disabled { opacity:.6; cursor:wait; }
+.google-divider { margin:0; text-align:center; font-size:.82rem; color:var(--muted,#9ba7bb); }

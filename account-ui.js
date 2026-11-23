@@ -5,6 +5,7 @@ const accountUI = (() => {
   let saveTimer = null;
   let view = "login";
   let linkToken = null;
+  let googleMessage = null;
   let epoch = 0;
   const element = (tag, text) => { const item = document.createElement(tag); if (text != null) item.textContent = text; return item; };
   const jobKey = () => state.mode === "password" ? `prospect-ai-active-job:${state.user?.id || "anonymous"}` : "prospect-ai-active-job";
@@ -43,6 +44,8 @@ const accountUI = (() => {
     document.getElementById("login-title").textContent = ({ login: "Entre no Prospect AI", register: "Crie sua conta", forgot: "Recupere sua senha", activate: "Crie sua senha", reset: "Defina uma nova senha" })[next];
     document.getElementById("account-email-help").textContent = next === "register" ? "Enviaremos um link para confirmar seu Gmail. Você criará sua senha ao abrir o link." : "Enviaremos um link para definir uma nova senha. Ao trocar a senha, as sessões anteriores serão encerradas.";
     document.getElementById("account-email-submit").textContent = next === "register" ? "Enviar confirmação" : "Enviar recuperação";
+    const google = document.getElementById("account-google");
+    if (google) google.hidden = !state.googleAvailable || !["login", "register"].includes(next);
     loginMessage("");
   }
   async function initialize({ onProgress = () => {} } = {}) {
@@ -73,6 +76,11 @@ const accountUI = (() => {
       showView(linkToken ? view : "login");
     }
     if (linkToken) showView(view);
+    if (googleMessage) {
+      if (state.authenticated) document.getElementById("account-actions-status").textContent = googleMessage;
+      else loginMessage(googleMessage);
+      googleMessage = null;
+    }
     return Boolean(state.authenticated && !linkToken);
   }
   async function refreshHistory() {
@@ -102,6 +110,11 @@ const accountUI = (() => {
     }
     window.history.replaceState(null, "", location.pathname + location.search);
     return Boolean(linkToken);
+  }
+  const googleFragment = new URLSearchParams(location.hash.slice(1));
+  if (googleFragment.has("google")) {
+    googleMessage = googleFragment.get("google") === "cancelled" ? "Acesso com Google cancelado. Você pode tentar novamente." : "Não foi possível concluir o acesso com Google. Tente novamente.";
+    window.history.replaceState(null, "", location.pathname + location.search);
   }
   readLink();
   window.addEventListener("hashchange", () => {
@@ -141,6 +154,20 @@ const accountUI = (() => {
       finally { button.disabled = false; }
     });
   }
+  for (const googleButton of document.querySelectorAll("[data-google-login]")) googleButton.addEventListener("click", async () => {
+    googleButton.disabled = true;
+    try {
+      state = await request("/api/account");
+      const result = await request("/api/auth/google/start", {method:"POST",body:"{}"});
+      const target = new URL(result.url);
+      if (target.origin !== "https://accounts.google.com" || target.pathname !== "/o/oauth2/v2/auth" || target.username || target.password) throw new Error("Não foi possível iniciar o acesso com Google.");
+      location.assign(target.href);
+    } catch (error) {
+      loginMessage(error.message);
+      const status = document.getElementById("account-delete-status"); if (status && deletion.open) status.textContent = error.message;
+      googleButton.disabled = false;
+    }
+  });
   document.getElementById("account-logout").addEventListener("click", async event => {
     const button = event.currentTarget; button.disabled = true;
     try {
@@ -155,6 +182,12 @@ const accountUI = (() => {
     document.getElementById("account-delete-confirmation").value = "";
     document.getElementById("account-delete-password").value = "";
     document.getElementById("account-delete-status").textContent = "";
+    const passwordGroup = document.getElementById("account-delete-password-group");
+    const needsPassword = state.user?.hasPassword !== false;
+    if (passwordGroup) passwordGroup.hidden = !needsPassword;
+    document.getElementById("account-delete-password").required = needsPassword;
+    const googleReauth = document.getElementById("account-google-reauth");
+    if (googleReauth) googleReauth.hidden = needsPassword || !state.googleAvailable;
     deletion.showModal();
   });
   document.getElementById("account-delete-cancel").addEventListener("click", () => deletion.close());

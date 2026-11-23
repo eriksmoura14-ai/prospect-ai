@@ -1353,6 +1353,24 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
       if (url.pathname.startsWith("/api/") || url.pathname === "/auth/logout") {
         try { identity = await accountService.identity(request); }
         catch { return json(response, 503, { error: "Não foi possível verificar a sessão. Tente novamente." }); }
+        if (request.method === "GET" && url.pathname === "/api/auth/google/callback") {
+          if (!accountService.google) return json(response, 503, {error:"O acesso com Google ainda não está disponível."});
+          let result;
+          try { result = await accountService.google.complete(request, url); }
+          catch { result = accountService.google.failure(); }
+          response.setHeader("Set-Cookie", result.cookies);
+          response.writeHead(303, {Location:result.location,"Cache-Control":"private, no-store"});
+          response.end();return;
+        }
+        if (request.method === "POST" && url.pathname === "/api/auth/google/start") {
+          if (!accountService.checkMutation(request, identity)) return json(response,403,{error:"Solicitação inválida. Recarregue a página e tente novamente."});
+          if (!accountService.google) return json(response,503,{error:"O acesso com Google ainda não está disponível."});
+          try {
+            await readBody(request, 1024);
+            const result = await accountService.google.start(request, identity);
+            response.setHeader("Set-Cookie", result.cookies);return json(response,200,{url:result.url});
+          } catch (error) { return json(response,error.status||503,{error:error.status?error.message:"Não foi possível iniciar o acesso com Google."}); }
+        }
         if (request.method === "GET" && url.pathname === "/api/account") {
           const result = accountService.account(request, identity);
           if (result.cookies.length) response.setHeader("Set-Cookie", result.cookies);
