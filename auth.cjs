@@ -4,6 +4,7 @@ const crypto = require("node:crypto");
 const { createStore, vault, databaseOptions } = require("./accounts.cjs");
 const passwords = require("./passwords.cjs");
 const emailService = require("./email.cjs");
+const googleAuth = require("./google-auth.cjs");
 const token = () => crypto.randomBytes(32).toString("base64url");
 const validToken = value => typeof value === "string" && /^[A-Za-z0-9_-]{43}$/.test(value);
 const equal = (a, b) => {
@@ -32,6 +33,7 @@ function configuration(env, hosting) {
     allowedOrigins: [...new Set([origin.origin, hosting.frontendOrigin].filter(Boolean))],
     hosted: hosting.hosted, secure: origin.protocol === "https:",
     databaseUrl: env.DATABASE_URL, encryptionKey: env.DATA_ENCRYPTION_KEY, email: emailService.configuration(env),
+    google: googleAuth.configuration(env),
     administrators: (env.ADMIN_EMAILS || "").split(",").filter(x => x.trim()).map(gmail) };
 }
 function cookieValue(request, name) {
@@ -42,14 +44,14 @@ function cookieValue(request, name) {
   const value = matches[0].slice(name.length + 1);
   return validToken(value) ? value : null;
 }
-function createService(config, { store, mailer } = {}) {
+function createService(config, { store, mailer, googleProvider } = {}) {
   if (config.mode !== "password") return null;
   store ||= createStore({ databaseUrl: config.databaseUrl, encryptionKey: config.encryptionKey, local: !config.hosted });
   mailer ||= emailService.createMailer(config.email);
   const sessionName = config.secure ? "__Host-prospect_session" : "prospect_session";
   const challengeName = config.secure ? "__Host-prospect_challenge" : "prospect_challenge";
   const cookie = (name, value, seconds) => `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${seconds}${config.secure ? "; Secure" : ""}`;
-  const clearCookies = () => [cookie(sessionName, "", 0), cookie(challengeName, "", 0)];
+  const clearCookies = () => [cookie(sessionName, "", 0), cookie(challengeName, "", 0), cookie(config.secure ? "__Host-prospect_google" : "prospect_google", "", 0)];
   const attempts = new Map();
   const rate = async (request, action, email) => {
     const ip = request.socket?.remoteAddress || "unknown";
@@ -66,19 +68,22 @@ function createService(config, { store, mailer } = {}) {
     else rules.unshift({ key: "password-work-total", limit: 120, seconds: 60 });
     if (!await store.allow(rules)) throw Object.assign(new Error("Muitas tentativas. Aguarde antes de tentar novamente."), { status: 429 });
   };
+  const google = googleAuth.createService(config, {store, normalizeEmail: gmail, cookieValue, sessionName, cookie, rate, providerImpl: googleProvider});
   return {
-    config, store, sessionName,
+    config, store, sessionName, google,
     ready: () => store.maintain(),
     isAdmin(user) { return Boolean(user && config.administrators.includes(user.email)); },
     async identity(request) {
       const value = cookieValue(request, sessionName);
       if (!value) return null;
       const user = await store.session(value);
-      return user ? { user, csrf: store.csrf(value), token: value } : null;
+      if (!user) return null;
+      const {authenticationMethod, authenticatedAt, ...publicUser} = user;
+      return {user: publicUser, authentication: {method: authenticationMethod, at: authenticatedAt}, csrf: store.csrf(value), token: value};
     },
     account(request, identity) {
       const challenge = cookieValue(request, challengeName) || token();
-      return { data: { mode: "password", authenticated: Boolean(identity), user: identity?.user || null,
+      return { data: { mode: "password", googleAvailable: Boolean(google), authenticated: Boolean(identity), user: identity?.user || null,
         csrfToken: identity?.csrf || store.csrf(`anonymous:${challenge}`) },
         cookies: identity ? [] : [cookie(challengeName, challenge, 600)] };
     },
@@ -120,6 +125,11 @@ function createService(config, { store, mailer } = {}) {
     async confirmPassword(request, identity, password) {
       await rate(request, "confirm", identity.user.email);
       const credentials = await store.credentials(identity.user.email);
+      if (identity.user.hasPassword === false && /^google-only\$[a-f0-9]{64}$/.test(credentials?.password_hash || "")) {
+        const age = Date.now() - new Date(identity.authentication?.at).getTime();
+        if (identity.authentication?.method !== "google" || !Number.isFinite(age) || age < 0 || age > 5 * 60000) throw Object.assign(new Error("Confirme novamente seu acesso com Google para excluir a conta."), {status:403});
+        return credentials.password_hash;
+      }
       if (!credentials || !await passwords.verifyPassword(password, credentials.password_hash)) throw Object.assign(new Error("Confirme sua senha do Prospect AI."), { status: 400 });
       return credentials.password_hash;
     },

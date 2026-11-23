@@ -730,6 +730,13 @@
     <section id="login-panel" class="panel" hidden aria-labelledby="login-title">
       <h2 id="login-title">Entre no Prospect AI</h2>
       <p>Acesse suas pesquisas e continue de onde parou com sua conta Gmail.</p>
+      <div id="account-google" class="google-access" hidden>
+        <button type="button" class="google-login" data-google-login>
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 48 48"><path fill="#4285f4" d="M43.6 24.5c0-1.4-.1-2.7-.4-4.1H24v7.8h11c-.5 2.5-1.9 4.6-4 6v5h6.5c3.8-3.5 6.1-8.6 6.1-14.7z"/><path fill="#34a853" d="M24 44c5.4 0 10-1.8 13.5-4.9L31 34c-1.8 1.2-4.2 1.9-7 1.9-5.2 0-9.6-3.5-11.2-8.1H6.1v5.2C9.6 39.5 16.3 44 24 44z"/><path fill="#fbbc05" d="M12.8 27.8c-.8-2.5-.8-5.1 0-7.6V15H6.1c-2.8 5.6-2.8 12.3 0 17.9l6.7-5.1z"/><path fill="#ea4335" d="M24 12.1c2.9 0 5.5 1 7.5 2.9l5.6-5.6C33.7 6.2 29.4 4 24 4 16.3 4 9.6 8.5 6.1 15l6.7 5.2c1.6-4.6 6-8.1 11.2-8.1z"/></svg>
+          Continuar com Google
+        </button>
+        <p class="google-divider">ou entre com sua senha do Prospect AI</p>
+      </div>
       <form id="account-login-form" class="account-form">
         <label for="login-email">Seu Gmail
           <input id="login-email" type="email" name="email" autocomplete="username" inputmode="email" maxlength="254" placeholder="voce@gmail.com" required>
@@ -993,8 +1000,11 @@
       <p>Seu perfil, suas pesquisas, preferências e sessões serão excluídos. Esta ação não pode ser desfeita.</p>
       <label for="account-delete-confirmation">Digite EXCLUIR para confirmar</label>
       <input id="account-delete-confirmation" autocomplete="off" required pattern="EXCLUIR">
-      <label for="account-delete-password">Senha do Prospect AI</label>
-      <input id="account-delete-password" type="password" autocomplete="current-password" maxlength="128" required>
+      <div id="account-delete-password-group">
+        <label for="account-delete-password">Senha do Prospect AI</label>
+        <input id="account-delete-password" type="password" autocomplete="current-password" maxlength="128" required>
+      </div>
+      <button id="account-google-reauth" class="google-login" type="button" data-google-login hidden>Confirmar acesso com Google</button>
       <p id="account-delete-status" role="status"></p>
       <div><button id="account-delete-cancel" type="button">Cancelar</button> <button id="account-delete-submit" class="account-danger" type="submit">Excluir minha conta</button></div>
     </form>

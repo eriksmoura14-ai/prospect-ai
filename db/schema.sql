@@ -16,6 +16,19 @@ CREATE TABLE IF NOT EXISTS prospect_sessions (
   expires_at timestamptz NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE prospect_sessions ADD COLUMN IF NOT EXISTS auth_method text NOT NULL DEFAULT 'password';
+CREATE TABLE IF NOT EXISTS prospect_google_identities (
+  subject_hash char(64) PRIMARY KEY,
+  account_id uuid NOT NULL UNIQUE REFERENCES prospect_accounts(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS prospect_google_flows (
+  state_hash char(64) PRIMARY KEY,
+  browser_hash char(64) NOT NULL,
+  payload_encrypted text NOT NULL,
+  expires_at timestamptz NOT NULL
+);
+CREATE INDEX IF NOT EXISTS prospect_google_flows_expiry ON prospect_google_flows(expires_at);
 CREATE INDEX IF NOT EXISTS prospect_sessions_account ON prospect_sessions(account_id);
 CREATE INDEX IF NOT EXISTS prospect_sessions_expiry ON prospect_sessions(expires_at);
 CREATE TABLE IF NOT EXISTS prospect_email_tokens (
