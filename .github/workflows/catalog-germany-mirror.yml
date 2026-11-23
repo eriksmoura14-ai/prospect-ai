@@ -37,6 +37,7 @@ jobs:
           assert len(manifest['assets'])==3 and {a['sha256'] for a in manifest['assets']}==expected
           out=Path('verified-catalog');out.mkdir();total=0
           for asset in manifest['assets']:
+            asset['bytes']=int(asset['bytes'])
             assert 0<asset['bytes']<=64*1024*1024 and len(asset['parts'])<=3
             target=out/(asset['sha256']+'.parquet');digest=hashlib.sha256();n=0
             with target.open('wb') as dest:
@@ -60,5 +61,16 @@ jobs:
           SHA-256 is the filename of each Parquet. All source bytes and part hashes are verified before upload. See ALEMANHA_20261123.md and PR #40 for collection evidence and municipal coverage.
           MD
           gh release view catalog-germany-20261123 >/dev/null 2>&1 || gh release create catalog-germany-20261123 --draft --title 'Germany business catalog 2026-11-23' --notes-file /tmp/germany-release.md
-          for file in verified-catalog/*.parquet; do gh release upload catalog-germany-20261123 "$file"; done
+          python - <<'PYRUN'
+          import hashlib,json,subprocess
+          from pathlib import Path
+          release=json.loads(subprocess.check_output(['gh','api','repos/'+__import__('os').environ['GITHUB_REPOSITORY']+'/releases/tags/catalog-germany-20261123']))
+          existing={a['name']:a for a in release['assets']}
+          for file in Path('verified-catalog').glob('*.parquet'):
+            previous=existing.get(file.name)
+            if previous:
+              assert previous['size']==file.stat().st_size and previous.get('digest')=='sha256:'+file.stem, 'existing_mirror_conflict'
+              continue
+            subprocess.run(['gh','release','upload','catalog-germany-20261123',str(file)],check=True)
+          PYRUN
           gh release edit catalog-germany-20261123 --title 'Germany business catalog 2026-11-23' --notes-file /tmp/germany-release.md --draft=false
