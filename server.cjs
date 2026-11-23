@@ -1329,6 +1329,7 @@ const server = http.createServer({ maxHeaderSize: 16384, connectionsCheckingInte
 
     // Endpoint sem dados de usuário, para o health check.
     if (request.method === "GET" && url.pathname === "/health") {
+      response.setHeader("X-Prospect-Discovery", DISCOVERY_ENGINE + (catalogArchive ? ";archive" : ""));
       if (accountService) {
         for (const [id, job] of jobs) if (job.createdAt < Date.now() - 30 * 24 * HOUR) jobs.delete(id);
         try { await accountService.ready(); }
