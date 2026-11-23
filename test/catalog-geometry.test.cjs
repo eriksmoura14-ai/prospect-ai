@@ -41,3 +41,29 @@ test("manual places still use the existing interactive resolution flow",async()=
  const archive=createGeometryArchive({origin,sql:()=>assert.fail("Unexpected bulk geocoding")});
  assert.equal(await archive.resolve({...selection,cityId:null}),null);
 });
+test('verified German municipality takes precedence over a same-name legacy region',async()=>{
+ const de={countryCode:'DE',stateCode:'RP',cityId:24545,cityName:'Cochem'};
+ const record={...row,city_id:24545,city_key:'DE:RP:24545',country_code:'DE',name:'Cochem'};
+ const body=JSON.stringify({version:1,countryCode:'DE',stateCode:'RP',areas:[record]});const asset={url:origin+'cochem.json',bytes:Buffer.byteLength(body),sha256:crypto.createHash('sha256').update(body).digest('hex'),cityIds:[24545]};let calls=0;
+ const manifest={version:1,countryCode:'DE',stateCode:'RP',municipalIdentityVerified:true,municipalIdentities:{24545:{AGS:'07135020',source:'https://www.openstreetmap.org/relation/1259317'}},parts:[asset]};
+ const archive=createGeometryArchive({origin,sql:async(q,params)=>{calls++;assert.equal(params[0],'geometry-municipal-v2:DE:RP');return [{payload:manifest}];},fetchImpl:async()=>new Response(body)});
+ const result=await archive.resolve(de);assert.equal(result.municipalAGS,'07135020');assert.equal(result.kind,'municipality');assert.equal(calls,1);
+ assert.equal(await archive.resolve({...de,cityId:123456}),null);assert.equal(calls,2);
+});
+test('German AGS from another state cannot authorize a municipal polygon',async()=>{
+ const archive=createGeometryArchive({origin,sql:async()=>[{payload:{version:1,countryCode:'DE',stateCode:'RP',parts:[],municipalIdentityVerified:true,municipalIdentities:{24545:{AGS:'11000000',source:'https://www.openstreetmap.org/relation/1259317'}}}}],fetchImpl:()=>assert.fail()});
+ await assert.rejects(archive.resolve({countryCode:'DE',stateCode:'RP',cityId:24545,cityName:'Cochem'}),e=>e.code==='catalog_geometry_unavailable');
+});
+test('compressed geography verifies both hashes and uses the original decoded-size budget',async()=>{
+ const zlib=require('node:zlib'),f=fixture(),compressed=zlib.gzipSync(f.body),asset={...f.payload.parts[0],encoding:'gzip-json',bytes:compressed.length,sha256:crypto.createHash('sha256').update(compressed).digest('hex'),decodedBytes:Buffer.byteLength(f.body),decodedSha256:crypto.createHash('sha256').update(f.body).digest('hex')};f.payload.parts=[asset];let calls=0;
+ const archive=createGeometryArchive({origin,sql:async()=>[{payload:f.payload}],fetchImpl:async()=>{calls++;return new Response(compressed);}});
+ assert.deepEqual(await archive.resolve(selection),row);assert.deepEqual(await archive.resolve(selection),row);assert.equal(calls,1);
+ asset.decodedSha256='0'.repeat(64);await assert.rejects(archive.resolve(selection),e=>e.code==='catalog_geometry_unavailable');
+});
+test('compressed geography cannot bypass decoding limits or adopt an unknown encoding',async()=>{
+ const zlib=require('node:zlib'),f=fixture(),compressed=zlib.gzipSync(f.body),base={...f.payload.parts[0],encoding:'gzip-json',bytes:compressed.length,sha256:crypto.createHash('sha256').update(compressed).digest('hex'),decodedBytes:Buffer.byteLength(f.body),decodedSha256:crypto.createHash('sha256').update(f.body).digest('hex')};
+ for(const override of [{encoding:'zip'},{decodedBytes:2*1024*1024+1},{decodedBytes:1}]){
+  f.payload.parts=[{...base,...override}];const archive=createGeometryArchive({origin,sql:async()=>[{payload:f.payload}],fetchImpl:async()=>new Response(compressed)});
+  await assert.rejects(archive.resolve(selection),e=>e.code==='catalog_geometry_unavailable');
+ }
+});

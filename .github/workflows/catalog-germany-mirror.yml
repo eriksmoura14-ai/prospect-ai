@@ -1,0 +1,64 @@
+name: Publish verified German catalog mirror
+on:
+  workflow_dispatch:
+    inputs:
+      data_commit:
+        description: Immutable SHA of the public-data-only snapshot commit
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Validate immutable source reference
+        env:
+          DATA_COMMIT: ${{ inputs.data_commit }}
+        run: python -c 'import os,re;assert re.fullmatch("[a-f0-9]{40}",os.environ["DATA_COMMIT"])'
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.data_commit }}
+          path: incoming
+          persist-credentials: false
+      - name: Reassemble exactly the three reviewed Parquets
+        run: |
+          python - <<'PY'
+          import hashlib,json,re
+          from pathlib import Path
+          root=Path('incoming').resolve();manifest=json.loads((root/'manifest.json').read_text())
+          expected={'41f38d76d61a0d247ed43199f7305907e4ef68c86a00f28c0fd763cc9776666e','f3acef0b546df28a60d75e115bb77bcf4ad82109eaf1569c4b774f5a1905fc3a','9af2bcf9201f659aade1e1ff01ba054ef60440b3bd7017a1be2f93b78f4dc553'}
+          assert len(manifest['assets'])==3 and {a['sha256'] for a in manifest['assets']}==expected
+          out=Path('verified-catalog');out.mkdir();total=0
+          for asset in manifest['assets']:
+            assert 0<asset['bytes']<=64*1024*1024 and len(asset['parts'])<=3
+            target=out/(asset['sha256']+'.parquet');digest=hashlib.sha256();n=0
+            with target.open('wb') as dest:
+              for part in asset['parts']:
+                assert re.fullmatch(r'parts/[a-f0-9]{64}\.[0-9]{3}\.part',part['file'])
+                source=root/part['file'];assert source.resolve().is_relative_to(root) and not source.is_symlink() and source.stat().st_size<=32*1024*1024
+                data=source.read_bytes();assert len(data)==part['bytes'] and hashlib.sha256(data).hexdigest()==part['sha256']
+                digest.update(data);dest.write(data);n+=len(data)
+            assert n==asset['bytes'] and digest.hexdigest()==asset['sha256'];total+=n
+          assert total<=100*1024*1024
+          PY
+      - name: Publish licensed dataset assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > /tmp/germany-release.md <<'MD'
+          Immutable German catalog datasets for Prospect AI: existing 412,340 Overture records and 244,495 additional OSM records after conservative reconciliation. Original business IDs, fields and source attribution are preserved. The SQLite replay backup is not attached to this release.
+
+          OSM data: ODbL-1.0, © OpenStreetMap contributors. Overture records retain their original per-record providers and licenses. This catalog is not a business census or individual verification of contacts or WhatsApp accounts.
+
+          SHA-256 is the filename of each Parquet. All source bytes and part hashes are verified before upload. See ALEMANHA_20261123.md and PR #40 for collection evidence and municipal coverage.
+          MD
+          gh release view catalog-germany-20261123 >/dev/null 2>&1 || gh release create catalog-germany-20261123 --draft --title 'Germany business catalog 2026-11-23' --notes-file /tmp/germany-release.md
+          for file in verified-catalog/*.parquet; do gh release upload catalog-germany-20261123 "$file"; done
+          gh release edit catalog-germany-20261123 --title 'Germany business catalog 2026-11-23' --notes-file /tmp/germany-release.md --draft=false
