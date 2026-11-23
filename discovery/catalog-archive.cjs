@@ -3,6 +3,22 @@ const {spawn}=require("node:child_process"),path=require("node:path"),crypto=req
 const records=require("./records.cjs"),geo=require("./geometry.cjs");
 const failure=()=>Object.assign(new Error("Catálogo regional temporariamente indisponível; resultados existentes preservados."),{code:"catalog_archive_unavailable"});
 const ORIGIN="https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/";
+function archiveRecord(raw,area,niche) {
+ if(raw.country_code!==area.countryCode)return null;
+ const provenance=typeof raw.provenance==="string"?JSON.parse(raw.provenance):raw.provenance;
+ let result;
+ if(["qlever","overpass","geofabrik"].includes(raw.source)) {
+  const match=/^(node|way|relation)\/([1-9]\d*)$/.exec(raw.source_id||"");
+  const tags=typeof raw.osm_tags==="string"?JSON.parse(raw.osm_tags):raw.osm_tags;
+  if(!match||raw.license_id!=="ODbL-1.0"||!tags||Array.isArray(tags)||typeof tags!=="object"||typeof tags.name!=="string"||tags.name.trim().slice(0,400)!==raw.name||!records.osmMatches(tags,niche))return null;
+  if(!Array.isArray(provenance)||!provenance.some(p=>p.source===raw.source&&p.sourceId===raw.source_id&&p.license?.id==="ODbL-1.0"))return null;
+  result=records.osm({type:match[1],id:match[2],tags,lat:raw.latitude,lon:raw.longitude,locationMethod:raw.location_verification},area,niche,raw.source);
+  if(result){result.provenance=provenance;result.sourceRelease=raw.source_release;}
+ }else if(!raw.source||raw.source==="overture") {
+  result=records.overture({id:raw.source_id,geometry:{type:"Point",coordinates:[raw.longitude,raw.latitude]},properties:{names:{primary:raw.name},taxonomy:{primary:raw.primary_category,hierarchy:raw.category_hierarchy,alternates:raw.alternate_categories},basic_category:raw.basic_category,confidence:raw.confidence,operating_status:raw.operating_status,addresses:[{country:raw.country_code,region:raw.state,locality:raw.city,freeform:raw.address}],phones:raw.phones||[raw.phone],websites:raw.websites||[raw.website],sources:provenance}},area,raw.source_release);
+ }else return null;
+ return result?{...result,category:niche,discoveredAt:raw.discovered_at,lastSeenAt:raw.last_seen_at,lastVerifiedAt:raw.last_verified_at||null,catalogArchive:true}:null;
+}
 function createArchive({databaseUrl,python,fetchImpl=fetch,reader=read}={}) {
  const url=new URL(databaseUrl);if(!url.hostname.endsWith(".neon.tech")||url.protocol!=="postgresql:"||!python)throw new Error("Configure a base isolada e o leitor do catálogo.");
  let busy=false;
@@ -13,7 +29,9 @@ function createArchive({databaseUrl,python,fetchImpl=fetch,reader=read}={}) {
  const geometryArchive=require("./geometry-archive.cjs").createGeometryArchive({sql,fetchImpl,origin:ORIGIN});
  async function resolveArea(selection) {
   if(!selection?.countryCode||!selection.stateCode)return null;
-  const rows=await sql(`SELECT c.name,c.country_code,c.state_name,c.city_key,c.association_status,c.unique_supported,a.id,a.kind,a.source,a.vintage,a.license,a.bounds,a.area_key,ST_AsGeoJSON(a.geom,15,0)::jsonb AS geometry
+  // Germany has no native area rows in the preserved baseline. Its reviewed
+  // municipal archive must stay authoritative over a future same-name region.
+  const rows=selection.countryCode==="DE"?[]:await sql(`SELECT c.name,c.country_code,c.state_name,c.city_key,c.association_status,c.unique_supported,a.id,a.kind,a.source,a.vintage,a.license,a.bounds,a.area_key,ST_AsGeoJSON(a.geom,15,0)::jsonb AS geometry
    FROM catalog_city_inventory c JOIN catalog_admin_areas a ON a.id=c.admin_id WHERE c.country_code=$1 AND c.state_code=$2 AND ($3::bigint IS NOT NULL AND c.city_id=$3 OR $3::bigint IS NULL AND c.normalized_name=$4) LIMIT 2`,[selection.countryCode,selection.stateCode,Number.isSafeInteger(selection.cityId)?selection.cityId:null,geo.normalize(selection.cityName)]);
   if(rows.length>1)return null;
   const row=rows.length===1?rows[0]:await geometryArchive.resolve(selection);
@@ -31,11 +49,7 @@ function createArchive({databaseUrl,python,fetchImpl=fetch,reader=read}={}) {
    const snapshot=crypto.createHash("sha256").update(JSON.stringify(assets.map(a=>[a.id,a.sha256]))).digest("hex");
    if(expectedSnapshot&&expectedSnapshot!==snapshot)throw Object.assign(new Error("O catálogo foi ampliado. Reinicie a paginação para usar a nova versão."),{status:409});
    const data=await reader(python,{assets,countryCode:area.countryCode,bounds:area.bounds,geometry:area.geometry,categories:records.groups[niche],limit,after});
-   const rows=data.rows.map(raw=>{
-    const provenance=typeof raw.provenance==="string"?JSON.parse(raw.provenance):raw.provenance;
-    const result=records.overture({id:raw.source_id,geometry:{type:"Point",coordinates:[raw.longitude,raw.latitude]},properties:{names:{primary:raw.name},taxonomy:{primary:raw.primary_category,hierarchy:raw.category_hierarchy,alternates:raw.alternate_categories},basic_category:raw.basic_category,confidence:raw.confidence,operating_status:raw.operating_status,addresses:[{country:raw.country_code,region:raw.state,locality:raw.city,freeform:raw.address}],phones:raw.phones||[raw.phone],websites:raw.websites||[raw.website],sources:provenance}},area,raw.source_release);
-    return result?{...result,category:niche,discoveredAt:raw.discovered_at,lastSeenAt:raw.last_seen_at,lastVerifiedAt:raw.last_verified_at||null,catalogArchive:true}:null;
-   }).filter(Boolean);
+   const rows=data.rows.map(raw=>archiveRecord(raw,area,niche)).filter(Boolean);
    return {...data,rows,snapshot,archive:true,partial:true,sources:assets.map(a=>({source:a.source,release:a.release,asset:a.id,verified:false})),rejected:data.rows.length-rows.length};
   }catch(error){if(error.status===409)throw error;throw failure();}finally{busy=false;}
  }
@@ -58,4 +72,4 @@ function decodeCursor(value,area,niche) {
  if(!value)return {after:"",snapshot:null};
  try{if(value.length>700)throw Error();const [scope,last,snapshot]=JSON.parse(Buffer.from(value,"base64url"));if(cursor(area,niche,last,snapshot)!==value||typeof last!=="string"||last.length>180||typeof snapshot!=="string"||snapshot&&!/^[a-f0-9]{64}$/.test(snapshot))throw Error();return {after:last,snapshot};}catch{throw Object.assign(new Error("Página inválida para esta busca."),{status:400});}
 }
-module.exports={createArchive,read,cursor,decodeCursor};
+module.exports={createArchive,read,cursor,decodeCursor,archiveRecord};

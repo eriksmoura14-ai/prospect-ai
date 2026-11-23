@@ -39,21 +39,71 @@ def query(spec,files):
  limit=spec['limit'];assert isinstance(limit,int) and 1<=limit<=3000
  geometry=shape(spec['geometry']);assert geometry.is_valid and not geometry.is_empty
  shapely.prepare(geometry);s,n,w,e=spec['bounds'];assert list(geometry.bounds)==[w,s,e,n] or all(abs(a-b)<1e-5 for a,b in zip(geometry.bounds,[w,s,e,n]))
- c=duckdb.connect(config={'memory_limit':'128MB','threads':'1','autoinstall_known_extensions':'false','autoload_known_extensions':'false','enable_object_cache':'false'})
+ config={'memory_limit':'128MB','threads':'1','autoinstall_known_extensions':'false','autoload_known_extensions':'false','enable_object_cache':'false','preserve_insertion_order':'false'}
+ c=duckdb.connect(config=config)
+ # Project only runtime fields. Raw source audit bags remain in immutable
+ # storage; decoding them on every city page can exhaust the unchanged 128MB
+ # reader budget even when only a handful of businesses match the polygon.
+ allowed={'source','source_id','country_code','name','primary_category','category_hierarchy','alternate_categories','basic_category','confidence','operating_status','longitude','latitude','state','city','address','phone','phones','website','websites','provenance','source_release','discovered_at','last_seen_at','last_verified_at','osm_tags','license_id','location_verification'}
+ columns=[row[0] for row in c.execute('DESCRIBE SELECT * FROM read_parquet(?,union_by_name=true)',[files]).fetchall()]
+ c.execute('SET disable_parquet_prefetching=true')
  params=[files,spec['countryCode'],w,e,s,n,spec['categories'],spec['categories'],spec['categories'],spec['categories'],spec.get('after','')]
- sql="""SELECT * FROM read_parquet(?,union_by_name=true) WHERE country_code=? AND longitude BETWEEN ? AND ? AND latitude BETWEEN ? AND ?
+ # Sort/deduplicate only lightweight identities. Loading large audit strings
+ # into a window/sort before pagination makes the whole row group resident.
+ sql="""SELECT source_id,latitude,longitude,filename,file_row_number FROM read_parquet(?,union_by_name=true,filename=true,file_row_number=true) WHERE country_code=? AND longitude BETWEEN ? AND ? AND latitude BETWEEN ? AND ?
  AND (list_has_any(category_hierarchy,?) OR list_contains(?,primary_category) OR list_has_any(alternate_categories,?) OR list_contains(?,basic_category)) AND source_id>?
  QUALIFY row_number() OVER(PARTITION BY source_id ORDER BY discovered_at)=1 ORDER BY source_id"""
- cursor=c.execute(sql,params);columns=[d[0] for d in c.description];result=[];seen=0
- while len(result)<=limit:
+ cursor=c.execute(sql,params);columns=[d[0] for d in c.description];selected=[];seen=0
+ while len(selected)<=limit:
   batch=cursor.fetchmany(256)
   if not batch:break
   for values in batch:
    row=dict(zip(columns,values));seen+=1
-   if shapely.intersects_xy(geometry,row['longitude'],row['latitude']):result.append(row)
-   if len(result)>limit:break
- more=len(result)>limit;result=result[:limit]
- c.close();return {'rows':result,'truncated':more,'next':result[-1]['source_id'] if more else None,'metrics':{'polygonCandidates':seen,'files':len(files)}}
+   if shapely.intersects_xy(geometry,row['longitude'],row['latitude']):selected.append(row)
+   if len(selected)>limit:break
+ more=len(selected)>limit;selected=selected[:limit];by_file={};result_by_key={}
+ for row in selected:
+  by_file.setdefault(row['filename'],[]).append(row['file_row_number'])
+  result_by_key[(row['filename'],row['file_row_number'])]={}
+ c.close()
+ # Fetch bounded physical rows, and decode heavy fields separately. This
+ # preserves the same 128MB ceiling for mixed OSM/Overture row groups.
+ decoder_queries=0
+ def decode(file,numbers,group):
+  nonlocal decoder_queries
+  c=duckdb.connect(config=config);values=None;split=False
+  try:
+   c.execute('DESCRIBE SELECT * FROM read_parquet(?)',[file]);c.execute('SET disable_parquet_prefetching=true');decoder_queries+=1
+   projection=','.join('"'+field+'"' for field in group)
+   values=c.execute('SELECT file_row_number,'+projection+' FROM read_parquet(?,file_row_number=true) WHERE file_row_number BETWEEN ? AND ? AND file_row_number=ANY(?)',[file,min(numbers),max(numbers),numbers]).fetchall()
+  except duckdb.OutOfMemoryException:
+   if len(group)==1:raise
+   split=True
+  finally:c.close()
+  if split:
+   for field in group:decode(file,numbers,[field])
+  else:
+   for row in values:result_by_key[(file,row[0])].update(zip(group,row[1:]))
+ for file,row_numbers in by_file.items():
+  c=duckdb.connect(config=config)
+  fields=[r[0] for r in c.execute('DESCRIBE SELECT * FROM read_parquet(?)',[file]).fetchall() if r[0] in allowed]
+  row_groups=c.execute('SELECT DISTINCT row_group_id,row_group_num_rows FROM parquet_metadata(?) ORDER BY row_group_id',[file]).fetchall()
+  c.close()
+  start=0;segments=[]
+  for _,size in row_groups:
+   numbers=[n for n in row_numbers if start<=n<start+size]
+   if numbers:segments.append(numbers)
+   start+=size
+  light=[f for f in fields if f not in ('provenance','osm_tags')]
+  groups=[light[i:i+6] for i in range(0,len(light),6)]+[[f] for f in ('provenance','osm_tags') if f in fields]
+  for numbers in segments:
+   for group in groups:
+   # Releasing each decoder prevents two large string dictionaries from
+   # occupying the reader budget together. Only selected physical rows leave
+   # the query, and unused source audit bags are never decoded.
+    decode(file,numbers,group)
+ result=[result_by_key[(r['filename'],r['file_row_number'])] for r in selected]
+ return {'rows':result,'truncated':more,'next':result[-1]['source_id'] if more else None,'metrics':{'polygonCandidates':seen,'files':len(files),'payloadRows':len(selected),'decoderQueries':decoder_queries}}
 
 def main():
  spec=json.loads(sys.stdin.read(3*1024*1024));root=Path(os.environ.get('CATALOG_CACHE_DIR','/tmp/prospect-catalog-cache'));root.mkdir(parents=True,exist_ok=True)

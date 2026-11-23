@@ -1,0 +1,767 @@
+{
+  "asOf": "2026-11-23",
+  "country": "DE",
+  "appInventoryCountryCities": 7104,
+  "appInventoryWorldCities": 152970,
+  "sourceScan": {
+    "country": "DE",
+    "countryRelation": 51477,
+    "scope": "whole published Germany relation, all supported segments",
+    "groupsCompleted": 6,
+    "candidateIdentities": 279803,
+    "fullSourceIdentities": 279803,
+    "detailsBatches": 560,
+    "networkBytes": 165674286,
+    "complete": true,
+    "error": null,
+    "sourceSnapshotsMayChange": true,
+    "isBusinessCensus": false,
+    "contactsVerified": false,
+    "paidServicesEnabled": false
+  },
+  "baseline": {
+    "GermanyReadyRecords": 412340,
+    "GermanyLegacySourceRows": 774,
+    "GermanyConservativeUnique": 413107,
+    "worldReadyRows": 9110079
+  },
+  "new": {
+    "conservativeUniqueRecords": 244495,
+    "countryConservativeTotalIncludingLegacy": 657602,
+    "publicPhone": 98860,
+    "publishedURL": 91530,
+    "websiteEvidenceClasses": {
+      "insufficient_information": 152965,
+      "website_identified": 90903,
+      "needs_verification": 627
+    },
+    "address": 143986,
+    "withValidCoordinates": 244495,
+    "crossSourceOverlapWithExisting": 33742,
+    "overlapsWithinNewOSMRecords": 475,
+    "sameOSMIdentityAlreadyInLegacy": 681,
+    "rejectedUnsupportedOrInactive": 410
+  },
+  "strictCoverage": {
+    "inventoryDenominator": 7104,
+    "states": 16,
+    "municipalScopesConfirmed": 5650,
+    "localitiesRequiringSpecificScopeReview": 1454,
+    "thresholdsBaselineSameVerifiedMunicipalScope": {
+      "50": 1332,
+      "100": 632,
+      "200": 260
+    },
+    "thresholdsWithNewStagedData": {
+      "50": 1987,
+      "100": 1065,
+      "200": 474
+    },
+    "percentageOfFullInventory": {
+      "50": 27.970158,
+      "100": 14.991554,
+      "200": 6.672297
+    },
+    "statusCounts": {
+      "sources_consulted_below_target": 3663,
+      "target_met_staged": 1987,
+      "location_pending": 1454
+    },
+    "legacyScopesDifferingOverFivePercent": 239,
+    "newBusinessMunicipalMembership": {
+      "new_assigned_to_verified_municipal_scope": 212366,
+      "new_municipal_membership_pending": 32129
+    },
+    "cityCountsAreNonAdditive": true,
+    "businessesVerifiedIndividually": false,
+    "stagedOnly": true,
+    "productionChanged": false,
+    "elapsedSeconds": 66.983,
+    "examples": [
+      {
+        "city_key": "DE:BB:24061",
+        "name": "Bernau bei Berlin",
+        "state_code": "BB",
+        "legacy_reported_count": null,
+        "baseline_same_verified_municipality": 153,
+        "new_unique_in_municipality": 72,
+        "total_with_staged_data": 225,
+        "phone": 163,
+        "website": 125,
+        "address": 196,
+        "primary_segment_count": 15,
+        "municipal_AGS": "12060020",
+        "boundary_id": "OSM:relation/1318337",
+        "legacy_to_municipal_area_ratio": null,
+        "sources": {
+          "overture": 153,
+          "qlever": 72
+        },
+        "status": "target_met_staged",
+        "next_action": "review_and_activate_staged_source_and_verified_boundaries",
+        "source_scope": "countrywide OSM/QLever 2026-11-23; existing Overture 2026-10-21.0 and legacy catalog",
+        "contacts_verified": false
+      },
+      {
+        "city_key": "DE:BE:24053",
+        "name": "Berlin",
+        "state_code": "BE",
+        "legacy_reported_count": null,
+        "baseline_same_verified_municipality": 21301,
+        "new_unique_in_municipality": 11482,
+        "total_with_staged_data": 32783,
+        "phone": 22128,
+        "website": 18736,
+        "address": 28313,
+        "primary_segment_count": 21,
+        "municipal_AGS": "11000000",
+        "boundary_id": "OSM:relation/62422",
+        "legacy_to_municipal_area_ratio": null,
+        "sources": {
+          "overture": 20828,
+          "qlever": 11955
+        },
+        "status": "target_met_staged",
+        "next_action": "review_and_activate_staged_source_and_verified_boundaries",
+        "source_scope": "countrywide OSM/QLever 2026-11-23; existing Overture 2026-10-21.0 and legacy catalog",
+        "contacts_verified": false
+      },
+      {
+        "city_key": "DE:HH:25866",
+        "name": "Hamburg",
+        "state_code": "HH",
+        "legacy_reported_count": null,
+        "baseline_same_verified_municipality": 10463,
+        "new_unique_in_municipality": 5464,
+        "total_with_staged_data": 15927,
+        "phone": 11675,
+        "website": 10301,
+        "address": 13274,
+        "primary_segment_count": 20,
+        "municipal_AGS": "02000000",
+        "boundary_id": "OSM:relation/62782",
+        "legacy_to_municipal_area_ratio": null,
+        "sources": {
+          "overture": 10463,
+          "qlever": 5464
+        },
+        "status": "target_met_staged",
+        "next_action": "review_and_activate_staged_source_and_verified_boundaries",
+        "source_scope": "countrywide OSM/QLever 2026-11-23; existing Overture 2026-10-21.0 and legacy catalog",
+        "contacts_verified": false
+      },
+      {
+        "city_key": "DE:NW:27510",
+        "name": "Monschau",
+        "state_code": "NW",
+        "legacy_reported_count": 134,
+        "baseline_same_verified_municipality": 134,
+        "new_unique_in_municipality": 33,
+        "total_with_staged_data": 167,
+        "phone": 127,
+        "website": 103,
+        "address": 139,
+        "primary_segment_count": 15,
+        "municipal_AGS": "05334020",
+        "boundary_id": "OSM:relation/158020",
+        "legacy_to_municipal_area_ratio": 1.0,
+        "sources": {
+          "overture": 100,
+          "qlever": 67
+        },
+        "status": "target_met_staged",
+        "next_action": "review_and_activate_staged_source_and_verified_boundaries",
+        "source_scope": "countrywide OSM/QLever 2026-11-23; existing Overture 2026-10-21.0 and legacy catalog",
+        "contacts_verified": false
+      },
+      {
+        "city_key": "DE:RP:24545",
+        "name": "Cochem",
+        "state_code": "RP",
+        "legacy_reported_count": 205,
+        "baseline_same_verified_municipality": 139,
+        "new_unique_in_municipality": 39,
+        "total_with_staged_data": 178,
+        "phone": 136,
+        "website": 104,
+        "address": 149,
+        "primary_segment_count": 14,
+        "municipal_AGS": "07135020",
+        "boundary_id": "OSM:relation/1259317",
+        "legacy_to_municipal_area_ratio": 10.087672,
+        "sources": {
+          "overture": 89,
+          "qlever": 89
+        },
+        "status": "target_met_staged",
+        "next_action": "review_and_activate_staged_source_and_verified_boundaries",
+        "source_scope": "countrywide OSM/QLever 2026-11-23; existing Overture 2026-10-21.0 and legacy catalog",
+        "contacts_verified": false
+      }
+    ]
+  },
+  "legacyGeographyWarning": "Legacy locality polygons are retained for audit. They are not proof of municipal membership; use strict municipal CSV and AGS scopes. verified_city_keys in the staging source snapshot denotes legacy catalog polygon intersection only, not verified municipality. Runtime must recheck the selected verified polygon.",
+  "production": {
+    "codeChanged": false,
+    "newAssetsReady": false,
+    "oldReadyRowsUnchanged": 9110079,
+    "oldAssetsUnchanged": 606,
+    "mainCommitBefore": "7cf5faea13d07b8ca94a39681e5df075721ecd43",
+    "layoutChanged": false,
+    "mainCommitAfter": "7cf5faea13d07b8ca94a39681e5df075721ecd43"
+  },
+  "publication": {
+    "state": "staging",
+    "publicObjects": 40,
+    "bytes": 71989363,
+    "links": {
+      "businesses": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261123/germany-v1/de-osm-new-9af2bcf9201f659a.parquet",
+      "observations": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261123/germany-v1/source-observations.ndjson-41c03444e99829f9.ndjson.gz",
+      "coverage": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261123/germany-v1/coverage-c9189cc95fbd8ef8.csv",
+      "geometry-plan": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261123/germany-v1/geometry-plan-37f8ded0e4221d82.json",
+      "report": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261123/germany-v1/reconciliation-report-bb40f57efa2f41b4.json",
+      "strict-coverage": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261123/germany-v1/strict-municipal-coverage-9ecde39d9dcc2563.csv",
+      "strict-summary": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261123/germany-v1/strict-scope-summary-1e71d672380d62a7.json",
+      "strict-search-tests": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261123/germany-v1/real-data-smoke-strict-0229bb3389cda964.json"
+    },
+    "objectPreservation": {
+      "beforeObjects": 3106,
+      "afterObjects": 3146,
+      "oldObjectsMissingOrChanged": 0,
+      "storageBytesBefore": 3807053707,
+      "storageBytesAfter": 3879043070
+    },
+    "municipalGeometry": {
+      "country": "DE",
+      "states": 16,
+      "municipalScopes": 5650,
+      "exactOldPolygonsReused": 5053,
+      "newGeometryRows": 597,
+      "productionCodeRequired": true,
+      "sourceAssetsActivated": false,
+      "newObjects": 15,
+      "storedBytes": 3805272,
+      "durableReceipt": {
+        "verifiedNewObjects": 15,
+        "strictStateManifests": 16,
+        "scopes": 5650,
+        "legacyManifestsChanged": false,
+        "businessSourcesActivated": false,
+        "databaseBytes": 216752128
+      }
+    },
+    "resumePackage": {
+      "url": "https://br-frosty-voice-b55arvzl.storage.c-7.us-east-2.aws.neon.tech/prospect-public-catalog/operations/20261123/germany-v1/resume-863b869c9eb007b0.zip",
+      "sha256": "863b869c9eb007b069d3fc918146dccc1c7897c468274e1baabb17579be29abc",
+      "bytes": 2240378,
+      "remoteHashVerified": true
+    }
+  },
+  "measurement": {
+    "successfulBusinessSourceCollectionSeconds": 459.254,
+    "sourceObservationsPerSecond": 609.255,
+    "strictCoverageComputationSeconds": 66.983,
+    "localReconciliationSQLiteBytes": 2270527488,
+    "localSourceSQLiteBytes": 293384192,
+    "databaseBytesAfter": 216752128,
+    "freeStorageLimitBytes": 5000000000,
+    "freeTransferLimitBytes": 5000000000,
+    "plannedObjectPutAndVerificationBytes": 143978726
+  },
+  "automatedTests": {
+    "nodeTotal": 329,
+    "nodePassed": 326,
+    "nodeSkipped": 3,
+    "nodeFailed": 0,
+    "pythonPassed": 158,
+    "pythonFailed": 0
+  },
+  "realDataSearchTests": [
+    {
+      "city": "Monschau",
+      "cityKey": "DE:NW:27510",
+      "niche": "Restaurantes",
+      "environment": "local read-only production reader and engine; staged real data",
+      "elapsedMs": 507,
+      "before": {
+        "rows": 0,
+        "withPhone": 0,
+        "withWebsite": 0,
+        "withAddress": 0,
+        "validLocation": 0,
+        "archive": false,
+        "sources": [],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": false,
+        "engineOutcome": "empty_archive_requires_source_fallback",
+        "absenceOfBusinessesConfirmed": false
+      },
+      "after": {
+        "rows": 0,
+        "withPhone": 0,
+        "withWebsite": 0,
+        "withAddress": 0,
+        "validLocation": 0,
+        "archive": false,
+        "sources": [],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": false,
+        "engineOutcome": "empty_archive_requires_source_fallback",
+        "absenceOfBusinessesConfirmed": false
+      }
+    },
+    {
+      "city": "Monschau",
+      "cityKey": "DE:NW:27510",
+      "niche": "Padarias",
+      "environment": "local read-only production reader and engine; staged real data",
+      "elapsedMs": 1745,
+      "before": {
+        "rows": 5,
+        "withPhone": 5,
+        "withWebsite": 4,
+        "withAddress": 5,
+        "validLocation": 5,
+        "archive": true,
+        "sources": [
+          "overture"
+        ],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": false
+      },
+      "after": {
+        "rows": 13,
+        "withPhone": 9,
+        "withWebsite": 8,
+        "withAddress": 9,
+        "validLocation": 13,
+        "archive": true,
+        "sources": [
+          "qlever",
+          "overture"
+        ],
+        "newSourceRecords": 8,
+        "examples": [
+          {
+            "id": "node/11049473767",
+            "name": "Hirsch-Cafe Bäckerei",
+            "phone": "",
+            "url": "https://www.openstreetmap.org/node/11049473767"
+          },
+          {
+            "id": "node/11148055050",
+            "name": "Knusperhaus",
+            "phone": "+49 2472 2375",
+            "url": "https://www.openstreetmap.org/node/11148055050"
+          },
+          {
+            "id": "node/11159510605",
+            "name": "Hensch Bäckerei und Konditorei",
+            "phone": "",
+            "url": "https://www.openstreetmap.org/node/11159510605"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "city": "Cochem",
+      "cityKey": "DE:RP:24545",
+      "niche": "Restaurantes",
+      "environment": "local read-only production reader and engine; staged real data",
+      "elapsedMs": 283,
+      "before": {
+        "rows": 0,
+        "withPhone": 0,
+        "withWebsite": 0,
+        "withAddress": 0,
+        "validLocation": 0,
+        "archive": false,
+        "sources": [],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": false,
+        "engineOutcome": "empty_archive_requires_source_fallback",
+        "absenceOfBusinessesConfirmed": false
+      },
+      "after": {
+        "rows": 0,
+        "withPhone": 0,
+        "withWebsite": 0,
+        "withAddress": 0,
+        "validLocation": 0,
+        "archive": false,
+        "sources": [],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": false,
+        "engineOutcome": "empty_archive_requires_source_fallback",
+        "absenceOfBusinessesConfirmed": false
+      }
+    },
+    {
+      "city": "Cochem",
+      "cityKey": "DE:RP:24545",
+      "niche": "Padarias",
+      "environment": "local read-only production reader and engine; staged real data",
+      "elapsedMs": 1932,
+      "before": {
+        "rows": 6,
+        "withPhone": 6,
+        "withWebsite": 6,
+        "withAddress": 6,
+        "validLocation": 6,
+        "archive": true,
+        "sources": [
+          "overture"
+        ],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": false
+      },
+      "after": {
+        "rows": 11,
+        "withPhone": 7,
+        "withWebsite": 7,
+        "withAddress": 10,
+        "validLocation": 11,
+        "archive": true,
+        "sources": [
+          "qlever",
+          "overture"
+        ],
+        "newSourceRecords": 5,
+        "examples": [
+          {
+            "id": "node/302137723",
+            "name": "Die Lohner's",
+            "phone": "",
+            "url": "https://www.openstreetmap.org/node/302137723"
+          },
+          {
+            "id": "node/5446639226",
+            "name": "Müsch",
+            "phone": "",
+            "url": "https://www.openstreetmap.org/node/5446639226"
+          },
+          {
+            "id": "node/5601607820",
+            "name": "Bäckerei Lutz",
+            "phone": "+49 2671 605938",
+            "url": "https://www.openstreetmap.org/node/5601607820"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "city": "Bernau bei Berlin",
+      "cityKey": "DE:BB:24061",
+      "niche": "Restaurantes",
+      "environment": "local read-only production reader and engine; staged real data",
+      "elapsedMs": 5741,
+      "before": {
+        "rows": 45,
+        "withPhone": 42,
+        "withWebsite": 31,
+        "withAddress": 44,
+        "validLocation": 45,
+        "archive": true,
+        "sources": [
+          "overture"
+        ],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": false
+      },
+      "after": {
+        "rows": 64,
+        "withPhone": 50,
+        "withWebsite": 40,
+        "withAddress": 58,
+        "validLocation": 64,
+        "archive": true,
+        "sources": [
+          "qlever",
+          "overture"
+        ],
+        "newSourceRecords": 19,
+        "examples": [
+          {
+            "id": "node/10246895856",
+            "name": "Zur Waldschänke",
+            "phone": "",
+            "url": "https://www.openstreetmap.org/node/10246895856"
+          },
+          {
+            "id": "node/10750276524",
+            "name": "Lindenhof",
+            "phone": "",
+            "url": "https://www.openstreetmap.org/node/10750276524"
+          },
+          {
+            "id": "node/11757813428",
+            "name": "Oma's",
+            "phone": "+49 176 2488 8177",
+            "url": "https://www.openstreetmap.org/node/11757813428"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "city": "Bernau bei Berlin",
+      "cityKey": "DE:BB:24061",
+      "niche": "Padarias",
+      "environment": "local read-only production reader and engine; staged real data",
+      "elapsedMs": 1675,
+      "before": {
+        "rows": 6,
+        "withPhone": 6,
+        "withWebsite": 6,
+        "withAddress": 6,
+        "validLocation": 6,
+        "archive": true,
+        "sources": [
+          "overture"
+        ],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": false
+      },
+      "after": {
+        "rows": 17,
+        "withPhone": 8,
+        "withWebsite": 8,
+        "withAddress": 13,
+        "validLocation": 17,
+        "archive": true,
+        "sources": [
+          "qlever",
+          "overture"
+        ],
+        "newSourceRecords": 11,
+        "examples": [
+          {
+            "id": "node/13061407193",
+            "name": "Märkisch Edel",
+            "phone": "+49 3338 604950",
+            "url": "https://www.openstreetmap.org/node/13061407193"
+          },
+          {
+            "id": "node/13081259135",
+            "name": "Wriezener Backstube",
+            "phone": "",
+            "url": "https://www.openstreetmap.org/node/13081259135"
+          },
+          {
+            "id": "node/13307194840",
+            "name": "Märkisch Edel",
+            "phone": "",
+            "url": "https://www.openstreetmap.org/node/13307194840"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "city": "Berlin",
+      "cityKey": "DE:BE:24053",
+      "niche": "Restaurantes",
+      "environment": "local read-only production reader and engine; staged real data",
+      "elapsedMs": 7292,
+      "before": {
+        "rows": 3000,
+        "withPhone": 2658,
+        "withWebsite": 2191,
+        "withAddress": 2979,
+        "validLocation": 3000,
+        "archive": true,
+        "sources": [
+          "overture"
+        ],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": true
+      },
+      "after": {
+        "rows": 3000,
+        "withPhone": 2658,
+        "withWebsite": 2191,
+        "withAddress": 2979,
+        "validLocation": 3000,
+        "archive": true,
+        "sources": [
+          "overture"
+        ],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": true
+      }
+    },
+    {
+      "city": "Berlin",
+      "cityKey": "DE:BE:24053",
+      "niche": "Padarias",
+      "environment": "local read-only production reader and engine; staged real data",
+      "elapsedMs": 11793,
+      "before": {
+        "rows": 1137,
+        "withPhone": 1015,
+        "withWebsite": 857,
+        "withAddress": 1129,
+        "validLocation": 1137,
+        "archive": true,
+        "sources": [
+          "overture"
+        ],
+        "newSourceRecords": 0,
+        "examples": [],
+        "truncated": false
+      },
+      "after": {
+        "rows": 2352,
+        "withPhone": 1204,
+        "withWebsite": 1117,
+        "withAddress": 1792,
+        "validLocation": 2352,
+        "archive": true,
+        "sources": [
+          "qlever",
+          "overture"
+        ],
+        "newSourceRecords": 1215,
+        "examples": [
+          {
+            "id": "node/1002586842",
+            "name": "Bäcker Walf",
+            "phone": "+49 30 7727093",
+            "url": "https://www.openstreetmap.org/node/1002586842"
+          },
+          {
+            "id": "node/1002675868",
+            "name": "Bäckerei Scheele",
+            "phone": "",
+            "url": "https://www.openstreetmap.org/node/1002675868"
+          },
+          {
+            "id": "node/10035859800",
+            "name": "Spro",
+            "phone": "",
+            "url": "https://www.openstreetmap.org/node/10035859800"
+          }
+        ],
+        "truncated": false
+      }
+    }
+  ],
+  "checkpoint": {
+    "file": "germany-checkpoint-20261123.tar.gz",
+    "bytes": 624400326,
+    "sha256": "ecbe04c9be1c4c07968b6d71c98c3101d4d0d4e8123a124e9b232bdb50a44ce9",
+    "sourceFiles": 6577,
+    "uncompressedSourceBytes": 3018052431,
+    "credentialsIncluded": false,
+    "customerDataIncluded": false,
+    "publicationState": "prepared_locally_optional_full_sqlite_backup"
+  },
+  "backgroundProcessConfigured": false,
+  "paidServicesEnabled": false,
+  "remoteCatalogSearchTests": [
+    {
+      "city": "Monschau",
+      "niche": "Padarias",
+      "environment": "local reviewed backend; real remote SQL metadata and hash-verified remote municipal geometry; real Parquet cache matching durable assets; staging selected only in read-only test transport",
+      "rows": 13,
+      "metrics": {
+        "raw": 13,
+        "unique": 13,
+        "withPhone": 9,
+        "withWebsite": 8,
+        "withAddress": 9,
+        "validLocation": 13,
+        "elapsedMs": 1844,
+        "cacheHit": true,
+        "archive": true
+      },
+      "sources": [
+        "qlever",
+        "overture"
+      ],
+      "elapsedMs": 2481,
+      "productionDataActivated": false
+    },
+    {
+      "city": "Cochem",
+      "niche": "Padarias",
+      "environment": "local reviewed backend; real remote SQL metadata and hash-verified remote municipal geometry; real Parquet cache matching durable assets; staging selected only in read-only test transport",
+      "rows": 11,
+      "metrics": {
+        "raw": 11,
+        "unique": 11,
+        "withPhone": 7,
+        "withWebsite": 7,
+        "withAddress": 10,
+        "validLocation": 11,
+        "elapsedMs": 1626,
+        "cacheHit": true,
+        "archive": true
+      },
+      "sources": [
+        "qlever",
+        "overture"
+      ],
+      "elapsedMs": 1930,
+      "productionDataActivated": false
+    },
+    {
+      "city": "Bernau bei Berlin",
+      "niche": "Restaurantes",
+      "environment": "local reviewed backend; real remote SQL metadata and hash-verified remote municipal geometry; real Parquet cache matching durable assets; staging selected only in read-only test transport",
+      "rows": 64,
+      "metrics": {
+        "raw": 64,
+        "unique": 64,
+        "withPhone": 50,
+        "withWebsite": 40,
+        "withAddress": 58,
+        "validLocation": 64,
+        "elapsedMs": 2899,
+        "cacheHit": true,
+        "archive": true
+      },
+      "sources": [
+        "qlever",
+        "overture"
+      ],
+      "elapsedMs": 3305,
+      "productionDataActivated": false
+    },
+    {
+      "city": "Berlin",
+      "niche": "Padarias",
+      "environment": "local reviewed backend; real remote SQL metadata and hash-verified remote municipal geometry; real Parquet cache matching durable assets; staging selected only in read-only test transport",
+      "rows": 2352,
+      "metrics": {
+        "raw": 2352,
+        "unique": 2352,
+        "withPhone": 1204,
+        "withWebsite": 1117,
+        "withAddress": 1792,
+        "validLocation": 2352,
+        "elapsedMs": 6222,
+        "cacheHit": true,
+        "archive": true
+      },
+      "sources": [
+        "qlever",
+        "overture"
+      ],
+      "elapsedMs": 6449,
+      "productionDataActivated": false
+    }
+  ]
+}

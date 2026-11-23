@@ -53,3 +53,18 @@ test("archive narrows files by geographic overlap before applying its bounded re
  assert.ok(request.query.indexOf("bounds->>0")<request.query.indexOf("LIMIT 9"));
  assert.match(request.query,/state='ready'/);
 });
+test('OSM archive keeps provenance, contacts and unverified status without an Overture disguise',()=>{
+ const {archiveRecord}=require('../discovery/catalog-archive.cjs');
+ const tags={name:'Dorf Bäckerei',shop:'bakery',phone:'+49 30 12345678','addr:street':'Dorfstraße','addr:housenumber':'1'};
+ const input={source:'qlever',source_id:'node/123',name:tags.name,country_code:'US',longitude:1,latitude:1,osm_tags:JSON.stringify(tags),license_id:'ODbL-1.0',provenance:JSON.stringify([{source:'qlever',sourceId:'node/123',license:{id:'ODbL-1.0'}}]),discovered_at:'2026-11-23T00:00:00Z'};
+ const result=archiveRecord(input,area,'Padarias');assert.equal(result.sourceKey,'qlever');assert.equal(result.osmId,'node/123');assert.equal(result.phone,tags.phone);assert.equal(result.websiteClassification,'insufficient_information');assert.equal(result.lastVerifiedAt,null);
+ for(const override of [{license_id:'unknown'},{source:'unreviewed'},{source_id:'street/123'},{country_code:'DE'},{provenance:'[]'},{osm_tags:JSON.stringify({...tags,shop:'vacant'})}])assert.equal(archiveRecord({...input,...override},area,'Padarias'),null);
+ assert.equal(archiveRecord(input,area,'Electrician'),null);
+});
+test('OSM archive accepts the existing 400-character display limit while retaining the published name',()=>{
+ const {archiveRecord}=require('../discovery/catalog-archive.cjs');const name='Bäckerei '+ 'a'.repeat(450);const raw={source:'qlever',source_id:'way/124',country_code:'US',name:name.slice(0,400),latitude:1,longitude:1,license_id:'ODbL-1.0',osm_tags:JSON.stringify({name,shop:'bakery'}),provenance:[{source:'qlever',sourceId:'way/124',license:{id:'ODbL-1.0'}}]};assert.equal(archiveRecord(raw,area,'Padarias').name,name.slice(0,400));
+});
+test('German area resolution applies the municipal archive policy before native region aliases',async()=>{
+ const ids=[];const archive=createArchive({databaseUrl:'postgresql://reader:fixture@fixture.neon.tech/catalog',python:'python',fetchImpl:async(url,options)=>{const input=JSON.parse(options.body);assert.doesNotMatch(input.query,/JOIN catalog_admin_areas/);ids.push(input.params[0]);return {ok:true,json:async()=>({rows:[]})};}});
+ assert.equal(await archive.resolveArea({countryCode:'DE',stateCode:'RP',cityId:24545,cityName:'Cochem'}),null);assert.deepEqual(ids,['geometry-municipal-v2:DE:RP','geometry-v1:DE:RP']);
+});
