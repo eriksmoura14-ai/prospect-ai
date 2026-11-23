@@ -9,3 +9,7 @@ A preparação usa uma branch de dados isolada, sem credenciais. O workflow `cat
 Ordem de publicação: CI aprovado → merge do código → deploy Render live e `/health` válido → publicação dos três arquivos na release → verificação dos hashes da release → troca atômica dos assets alemães por seus espelhos, habilitando o lote novo → buscas reais. Nenhum contador municipal deve ser promovido antes da ativação.
 
 O cadastro Google é uma alteração separada; as credenciais do cliente OAuth precisam ser configuradas pelo titular no Google Cloud/Render. A senha atual e os dados das contas continuam preservados.
+
+## Transporte conferido
+
+A release `catalog-germany-20261123` contém os três Parquets, com tamanho e digest SHA-256 confirmados pelo GitHub. A primeira execução rejeitou tipos numéricos serializados como texto no manifesto; o snapshot foi normalizado e a execução 45250180339 concluiu com sucesso. O publicador agora normaliza esses tamanhos explicitamente e reconhece assets já publicados com o mesmo digest, sem sobrescrever arquivos ou reiniciar uploads concluídos.
